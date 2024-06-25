@@ -3,7 +3,7 @@ import { createRouteMatcher } from "@clerk/nextjs/server";
 
 
 const isProtectedRoute = createRouteMatcher([
-  '/',
+  '/dashboard',
   
 ]);
 
