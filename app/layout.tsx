@@ -51,11 +51,7 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <head>
-<<<<<<< HEAD
         <AdSense/>
-=======
-        
->>>>>>> e40a2e6146c82906793c7b0397d3c6f96007b4a0
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
         <ThemeProvider
