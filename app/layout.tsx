@@ -7,7 +7,7 @@ import Header from '@/components/header'
 import Footer from '@/components/footer'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs"
 import AdSense from '@/components/AdSense';
 
 const fontSans = FontSans({
