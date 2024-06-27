@@ -51,7 +51,7 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="google-adsense-account" content="ca-pub-7574084780651527">
+        
         <AdSense pId="7574084780651527"/>
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
