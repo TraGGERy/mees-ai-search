@@ -55,6 +55,7 @@ export default function RootLayout({
         <AdSense pId="7574084780651527"/>
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
+       <Analytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
