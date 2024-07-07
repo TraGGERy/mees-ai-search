@@ -17,10 +17,10 @@ const fontSans = FontSans({
 
 const title = 'Mees Ai'
 const description =
-  'A fully open-source AI-powered answer engine with a generative UI.'
+  'Discover Mees AI Search Engine, the next generation in search technology. Our fully open-source, AI-powered answer engine features a sleek, generative UI, delivering precise and relevant answers effortlessly. Experience an intuitive and intelligent search designed to transform the way you find information. Welcome to the future of search with Mees AI'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://morphic.sh'),
+  metadataBase: new URL('https://www.mees.co.nz/ai'),
   title,
   description,
   openGraph: {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title,
     description,
     card: 'summary_large_image',
-    creator: '@miiura'
+    creator: '@Iamtoxix'
   }
 }
 
@@ -52,6 +52,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <AdSense pId="7574084780651527"/>
+        <meta name="google-adsense-account" content="ca-pub-7574084780651527"></meta>
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
         <ThemeProvider
