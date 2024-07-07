@@ -31,7 +31,11 @@ export const metadata: Metadata = {
     title,
     description,
     card: 'summary_large_image',
+<<<<<<< HEAD
     creator: '@Iamtoxix'
+=======
+    creator: '@lamtoxix'
+>>>>>>> 4d891c9066c8ab9d24f9d63dcdae0b44edfe9d35
   }
 }
 
