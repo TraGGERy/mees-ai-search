@@ -8,7 +8,8 @@ import Footer from '@/components/footer'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { ClerkProvider } from "@clerk/nextjs";
-import AdSense from '@/components/AdSense'
+import AdSense from '@/components/AdSense';
+import { Analytics } from "@vercel/analytics/react"
 
 const fontSans = FontSans({
   subsets: ['latin'],
