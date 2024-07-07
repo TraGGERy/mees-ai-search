@@ -9,7 +9,8 @@ import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { ClerkProvider } from "@clerk/nextjs";
 import AdSense from '@/components/AdSense';
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -56,6 +57,7 @@ export default function RootLayout({
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
        <Analytics />
+       <SpeedInsights/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
