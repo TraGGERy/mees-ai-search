@@ -1,4 +1,4 @@
-import { History } from './history'
+import HistoryContainer from './history-container'
 
 export async function Sidebar() {
   return (
