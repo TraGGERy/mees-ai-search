@@ -1,25 +1,15 @@
+import { tool } from 'ai'
 import { retrieveSchema } from '@/lib/schema/retrieve'
-import { ToolsProps } from '.'
-import { Card } from '@/components/ui/card'
+import { ToolProps } from '.'
 import { SearchSkeleton } from '@/components/search-skeleton'
 import { SearchResults as SearchResultsType } from '@/lib/types'
 import RetrieveSection from '@/components/retrieve-section'
 
-export const retrieveTool = ({
-  uiStream,
-  fullResponse,
-  isFirstToolResponse
-}: ToolsProps) => ({
+export const retrieveTool = ({ uiStream, fullResponse }: ToolProps) => tool({
   description: 'Retrieve content from the web',
   parameters: retrieveSchema,
-  execute: async ({ url }: { url: string }) => {
+  execute: async ({ url }) => {
     let hasError = false
-
-    // If this is the first tool response, remove spinner
-    if (isFirstToolResponse) {
-      isFirstToolResponse = false
-      uiStream.update(null)
-    }
     // Append the search section
     uiStream.append(<SearchSkeleton />)
 
@@ -28,13 +18,18 @@ export const retrieveTool = ({
       const response = await fetch(`https://r.jina.ai/${url}`, {
         method: 'GET',
         headers: {
-          Accept: 'application/json'
+          Accept: 'application/json',
+          'X-With-Generated-Alt': 'true'
         }
       })
       const json = await response.json()
       if (!json.data || json.data.length === 0) {
         hasError = true
       } else {
+        // Limit the content to 5000 characters
+        if (json.data.content.length > 5000) {
+          json.data.content = json.data.content.slice(0, 5000)
+        }
         results = {
           results: [
             {
@@ -50,22 +45,11 @@ export const retrieveTool = ({
     } catch (error) {
       hasError = true
       console.error('Retrieve API error:', error)
-
-      fullResponse += `\n${error} "${url}".`
-
-      uiStream.update(
-        <Card className="p-4 mt-2 text-sm">{`${error} "${url}".`}</Card>
-      )
-      return results
     }
 
     if (hasError || !results) {
-      fullResponse += `\nAn error occurred while retrieving "${url}".`
-      uiStream.update(
-        <Card className="p-4 mt-2 text-sm">
-          {`An error occurred while retrieving "${url}".This webiste may not be supported.`}
-        </Card>
-      )
+      fullResponse = `An error occurred while retrieving "${url}".`
+      uiStream.update(null)
       return results
     }
 
