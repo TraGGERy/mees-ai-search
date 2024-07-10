@@ -1,7 +1,3 @@
-'use client'
-
-import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Sheet,
   SheetContent,
@@ -13,30 +9,17 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { History as HistoryIcon } from 'lucide-react'
+import { HistoryList } from './history-list'
 import { Suspense } from 'react'
 import { HistorySkeleton } from './history-skelton'
-import { useAppState } from '@/lib/utils/app-state'
 
 type HistoryProps = {
   location: 'sidebar' | 'header'
-  children?: React.ReactNode
 }
 
-export function History({ location, children }: HistoryProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const { isGenerating, setIsGenerating } = useAppState()
-
-  const onOpenChange = (open: boolean) => {
-    if (open) {
-      startTransition(() => {
-        router.refresh()
-      })
-    }
-  }
-
+export function History({ location }: HistoryProps) {
   return (
-    <Sheet onOpenChange={onOpenChange}>
+    <Sheet>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -44,7 +27,6 @@ export function History({ location, children }: HistoryProps) {
           className={cn({
             'rounded-full text-foreground/30': location === 'sidebar'
           })}
-          disabled={isGenerating}
         >
           {location === 'header' ? <Menu /> : <ChevronLeft size={16} />}
         </Button>
@@ -57,7 +39,9 @@ export function History({ location, children }: HistoryProps) {
           </SheetTitle>
         </SheetHeader>
         <div className="my-2 h-full pb-12 md:pb-10">
-          <Suspense fallback={<HistorySkeleton />}>{children}</Suspense>
+          <Suspense fallback={<HistorySkeleton />}>
+            <HistoryList userId="anonymous" />
+          </Suspense>
         </div>
       </SheetContent>
     </Sheet>

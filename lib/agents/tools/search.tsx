@@ -1,29 +1,35 @@
-import { tool } from 'ai'
 import { createStreamableValue } from 'ai/rsc'
 import Exa from 'exa-js'
 import { searchSchema } from '@/lib/schema/search'
+import { Card } from '@/components/ui/card'
 import { SearchSection } from '@/components/search-section'
-import { ToolProps } from '.'
+import { ToolsProps } from '.'
 
-export const searchTool = ({ uiStream, fullResponse }: ToolProps) => tool({
+export const searchTool = ({
+  uiStream,
+  fullResponse,
+  isFirstToolResponse
+}: ToolsProps) => ({
   description: 'Search the web for information',
   parameters: searchSchema,
   execute: async ({
     query,
     max_results,
-    search_depth,
-    include_domains,
-    exclude_domains
+    search_depth
+  }: {
+    query: string
+    max_results: number
+    search_depth: 'basic' | 'advanced'
   }) => {
     let hasError = false
+    // If this is the first tool response, remove spinner
+    if (isFirstToolResponse) {
+      isFirstToolResponse = false
+      uiStream.update(null)
+    }
     // Append the search section
     const streamResults = createStreamableValue<string>()
-    uiStream.update(
-      <SearchSection
-        result={streamResults.value}
-        includeDomains={include_domains}
-      />
-    )
+    uiStream.append(<SearchSection result={streamResults.value} />)
 
     // Tavily API requires a minimum of 5 characters in the query
     const filledQuery =
@@ -33,13 +39,7 @@ export const searchTool = ({ uiStream, fullResponse }: ToolProps) => tool({
     try {
       searchResult =
         searchAPI === 'tavily'
-          ? await tavilySearch(
-              filledQuery,
-              max_results,
-              search_depth,
-              include_domains,
-              exclude_domains
-            )
+          ? await tavilySearch(filledQuery, max_results, search_depth)
           : await exaSearch(query)
     } catch (error) {
       console.error('Search API error:', error)
@@ -47,9 +47,12 @@ export const searchTool = ({ uiStream, fullResponse }: ToolProps) => tool({
     }
 
     if (hasError) {
-      fullResponse = `An error occurred while searching for "${query}.`
-      uiStream.update(null)
-      streamResults.done()
+      fullResponse += `\nAn error occurred while searching for "${query}.`
+      uiStream.update(
+        <Card className="p-4 mt-2 text-sm">
+          {`An error occurred while searching for "${query}".`}
+        </Card>
+      )
       return searchResult
     }
 
@@ -62,9 +65,7 @@ export const searchTool = ({ uiStream, fullResponse }: ToolProps) => tool({
 async function tavilySearch(
   query: string,
   maxResults: number = 10,
-  searchDepth: 'basic' | 'advanced' = 'basic',
-  includeDomains: string[] = [],
-  excludeDomains: string[] = []
+  searchDepth: 'basic' | 'advanced' = 'basic'
 ): Promise<any> {
   const apiKey = process.env.TAVILY_API_KEY
   const response = await fetch('https://api.tavily.com/search', {
@@ -78,9 +79,7 @@ async function tavilySearch(
       max_results: maxResults < 5 ? 5 : maxResults,
       search_depth: searchDepth,
       include_images: true,
-      include_answers: true,
-      include_domains: includeDomains,
-      exclude_domains: excludeDomains
+      include_answers: true
     })
   })
 
@@ -92,18 +91,11 @@ async function tavilySearch(
   return data
 }
 
-async function exaSearch(
-  query: string,
-  maxResults: number = 10,
-  includeDomains: string[] = [],
-  excludeDomains: string[] = []
-): Promise<any> {
+async function exaSearch(query: string, maxResults: number = 10): Promise<any> {
   const apiKey = process.env.EXA_API_KEY
   const exa = new Exa(apiKey)
   return exa.searchAndContents(query, {
     highlights: true,
-    numResults: maxResults,
-    includeDomains,
-    excludeDomains
+    numResults: maxResults
   })
 }

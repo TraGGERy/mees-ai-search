@@ -3,82 +3,62 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AI, UIState } from '@/app/actions'
-import { useUIState, useActions, useAIState } from 'ai/rsc'
+import { useUIState, useActions } from 'ai/rsc'
 import { cn } from '@/lib/utils'
 import { UserMessage } from './user-message'
+import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { ArrowRight, Plus } from 'lucide-react'
 import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
-import { generateId } from 'ai'
-import { useAppState } from '@/lib/utils/app-state'
+import { nanoid } from 'ai'
 
 interface ChatPanelProps {
   messages: UIState
-  query?: string
 }
 
-export function ChatPanel({ messages, query }: ChatPanelProps) {
+export function ChatPanel({ messages }: ChatPanelProps) {
   const [input, setInput] = useState('')
-  const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const [, setMessages] = useUIState<typeof AI>()
-  const [aiMessage, setAIMessage] = useAIState<typeof AI>()
-  const { isGenerating, setIsGenerating } = useAppState()
   const { submit } = useActions()
-  const router = useRouter()
+  const [isButtonPressed, setIsButtonPressed] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const isFirstRender = useRef(true) // For development environment
+  const [showEmptyScreen, setShowEmptyScreen] = useState(false)
+  const router = useRouter()
+  // Focus on input when button is pressed
+  useEffect(() => {
+    if (isButtonPressed) {
+      inputRef.current?.focus()
+      setIsButtonPressed(false)
+    }
+  }, [isButtonPressed])
 
-  async function handleQuerySubmit(query: string, formData?: FormData) {
-    setInput(query)
-    setIsGenerating(true)
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    // Clear messages if button is pressed
+    if (isButtonPressed) {
+      handleClear()
+      setIsButtonPressed(false)
+    }
 
     // Add user message to UI state
     setMessages(currentMessages => [
       ...currentMessages,
       {
-        id: generateId(),
-        component: <UserMessage message={query} />
+        id: nanoid(),
+        component: <UserMessage message={input} />
       }
     ])
 
     // Submit and get response message
-    const data = formData || new FormData()
-    if (!formData) {
-      data.append('input', query)
-    }
-    const responseMessage = await submit(data)
-    setMessages(currentMessages => [...currentMessages, responseMessage])
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    await handleQuerySubmit(input, formData)
+    const responseMessage = await submit(formData)
+    setMessages(currentMessages => [...currentMessages, responseMessage as any])
   }
-
-  // if query is not empty, submit the query
-  useEffect(() => {
-    if (isFirstRender.current && query && query.trim().length > 0) {
-      handleQuerySubmit(query)
-      isFirstRender.current = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query])
-
-  useEffect(() => {
-    const lastMessage = aiMessage.messages.slice(-1)[0]
-    if (lastMessage?.type === 'followup' || lastMessage?.type === 'inquiry') {
-      setIsGenerating(false)
-    }
-  }, [aiMessage, setIsGenerating])
 
   // Clear messages
   const handleClear = () => {
-    setIsGenerating(false)
-    setMessages([])
-    setAIMessage({ messages: [], chatId: '' })
-    setInput('')
     router.push('/')
   }
 
@@ -88,7 +68,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   }, [])
 
   // If there are messages and the new button has not been pressed, display the new Button
-  if (messages.length > 0) {
+  if (messages.length > 0 && !isButtonPressed) {
     return (
       <div className="fixed bottom-2 md:bottom-8 left-0 right-0 flex justify-center items-center mx-auto pointer-events-none">
         <Button
@@ -96,7 +76,6 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
           variant={'secondary'}
           className="rounded-full bg-secondary/80 group transition-all hover:scale-105 pointer-events-auto"
           onClick={() => handleClear()}
-          disabled={isGenerating}
         >
           <span className="text-sm mr-2 group-hover:block hidden animate-in fade-in duration-300">
             New
@@ -105,10 +84,6 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         </Button>
       </div>
     )
-  }
-
-  if (query && query.trim().length > 0) {
-    return null
   }
 
   return (
@@ -141,10 +116,6 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                 !e.nativeEvent.isComposing
               ) {
                 // Prevent the default action to avoid adding a new line
-                if (input.trim().length === 0) {
-                  e.preventDefault()
-                  return
-                }
                 e.preventDefault()
                 const textarea = e.target as HTMLTextAreaElement
                 textarea.form?.requestSubmit()

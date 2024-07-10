@@ -3,12 +3,11 @@
 import { cn } from '@/lib/utils'
 import {
   BookCheck,
-  Film,
   Image,
   MessageCircleMore,
   Newspaper,
   Repeat2,
-  Search, BotIcon
+  Search
 } from 'lucide-react'
 import React from 'react'
 import { Separator } from './ui/separator'
@@ -28,31 +27,26 @@ export const Section: React.FC<SectionProps> = ({
   title,
   separator = false
 }) => {
-  const iconSize = 16
-  const iconClassName = 'mr-1.5 text-muted-foreground'
   let icon: React.ReactNode
   switch (title) {
     case 'Images':
       // eslint-disable-next-line jsx-a11y/alt-text
-      icon = <Image size={iconSize} className={iconClassName} />
-      break
-    case 'Videos':
-      icon = <Film size={iconSize} className={iconClassName} />
+      icon = <Image size={18} className="mr-2" />
       break
     case 'Sources':
-      icon = <Newspaper size={iconSize} className={iconClassName} />
+      icon = <Newspaper size={18} className="mr-2" />
       break
     case 'Answer':
-      icon = <BotIcon size={iconSize} className={iconClassName} />
+      icon = <BookCheck size={18} className="mr-2" />
       break
     case 'Related':
-      icon = <Repeat2 size={iconSize} className={iconClassName} />
+      icon = <Repeat2 size={18} className="mr-2" />
       break
     case 'Follow-up':
-      icon = <MessageCircleMore size={iconSize} className={iconClassName} />
+      icon = <MessageCircleMore size={18} className="mr-2" />
       break
     default:
-      icon = <Search size={iconSize} className={iconClassName} />
+      icon = <Search size={18} className="mr-2" />
   }
 
   return (
@@ -65,7 +59,7 @@ export const Section: React.FC<SectionProps> = ({
         )}
       >
         {title && (
-          <h2 className="flex items-center leading-none py-2">
+          <h2 className="flex items-center text-lg leading-none py-2">
             {icon}
             {title}
           </h2>
