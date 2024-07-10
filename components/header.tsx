@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserButton } from "@clerk/nextjs";
@@ -17,12 +16,15 @@ export const Header: React.FC = async () => {
         </a>
       </div>
       <div className="flex items-center gap-2">
-           <i>Mees Ai</i>
+           <Avatar>
+             <AvatarImage src="https://i.ibb.co/z7vKZfY/Mees-AILogoby-Designer.png" />
+             <AvatarFallback>CN</AvatarFallback>
+           </Avatar>
       </div>
       <div className="flex gap-0.5">
-      
+      <UserButton afterSignOutUrl="/"/>
         <ModeToggle />
-       
+        <HistoryContainer location="header" />
       </div>
     </header>
   )
