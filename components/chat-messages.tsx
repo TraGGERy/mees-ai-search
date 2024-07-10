@@ -1,17 +1,11 @@
 'use client'
 
-import { StreamableValue } from 'ai/rsc'
-import type { UIState } from '@/app/actions'
+import { StreamableValue, useUIState } from 'ai/rsc'
+import type { AI, UIState } from '@/app/actions'
 import { CollapsibleMessage } from './collapsible-message'
 
 interface ChatMessagesProps {
   messages: UIState
-}
-
-type GroupedMessage = {
-  id: string
-  components: React.ReactNode[]
-  isCollapsed?: StreamableValue<boolean> | undefined
 }
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
@@ -21,7 +15,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
   // Group messages based on ID, and if there are multiple messages with the same ID, combine them into one message
   const groupedMessages = messages.reduce(
-    (acc: { [key: string]: GroupedMessage }, message) => {
+    (acc: { [key: string]: any }, message) => {
       if (!acc[message.id]) {
         acc[message.id] = {
           id: message.id,
@@ -47,19 +41,30 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
   return (
     <>
-      {groupedMessagesArray.map((groupedMessage: GroupedMessage) => (
-        <CollapsibleMessage
-          key={`${groupedMessage.id}`}
-          message={{
-            id: groupedMessage.id,
-            component: groupedMessage.components.map((component, i) => (
-              <div key={`${groupedMessage.id}-${i}`}>{component}</div>
-            )),
-            isCollapsed: groupedMessage.isCollapsed
-          }}
-          isLastMessage={groupedMessage.id === messages[messages.length - 1].id}
-        />
-      ))}
+      {groupedMessagesArray.map(
+        (
+          groupedMessage: {
+            id: string
+            components: React.ReactNode[]
+            isCollapsed?: StreamableValue<boolean>
+          },
+          index
+        ) => (
+          <CollapsibleMessage
+            key={`${groupedMessage.id}`}
+            message={{
+              id: groupedMessage.id,
+              component: groupedMessage.components.map((component, i) => (
+                <div key={`${groupedMessage.id}-${i}`}>{component}</div>
+              )),
+              isCollapsed: groupedMessage.isCollapsed
+            }}
+            isLastMessage={
+              groupedMessage.id === messages[messages.length - 1].id
+            }
+          />
+        )
+      )}
     </>
   )
 }

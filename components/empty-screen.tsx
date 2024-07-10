@@ -3,18 +3,21 @@ import { ArrowRight } from 'lucide-react'
 
 const exampleMessages = [
   {
-    heading: 'What is Apple Intelligence?',
-    message: 'What is Apple Intelligence?'
+    heading: "What's new with the iPad Pro?",
+    message: "What's new with the iPad Pro?"
   },
   {
-    heading: 'Write A Email for me ?',
-    message: 'Write an Email for me'
+    heading: 'Why is Nvidia growing rapidly?',
+    message: 'Why is Nvidia growing rapidly?'
   },
   {
     heading: 'How does the Vercel AI SDK work?',
     message: 'How does the Vercel AI SDK work?'
   },
- 
+  {
+    heading: 'Tesla vs Rivian',
+    message: 'Tesla vs Rivian'
+  }
 ]
 export function EmptyScreen({
   submitMessage,
@@ -43,11 +46,6 @@ export function EmptyScreen({
           ))}
         </div>
       </div>
-
-      <div>
-      </div>
     </div>
-
-    
   )
 }
