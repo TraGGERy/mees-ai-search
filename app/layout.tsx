@@ -7,10 +7,7 @@ import Header from '@/components/header'
 import Footer from '@/components/footer'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
-import { ClerkProvider } from "@clerk/nextjs";
-import AdSense from '@/components/AdSense';
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { AppStateProvider } from '@/lib/utils/app-state'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -22,7 +19,7 @@ const description =
   'A fully open-source AI-powered answer engine with a generative UI.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mees-ai-search.vercel.app'),
+  metadataBase: new URL('https://morphic.sh'),
   title,
   description,
   openGraph: {
@@ -33,7 +30,7 @@ export const metadata: Metadata = {
     title,
     description,
     card: 'summary_large_image',
-    creator: '@lamtoxix'
+    creator: '@miiura'
   }
 }
 
@@ -50,28 +47,23 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <AdSense pId="7574084780651527"/>
-      </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
-       <Analytics />
-       <SpeedInsights/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          {children}
-          <Sidebar />
-          <Footer />
-          <Toaster />
+          <AppStateProvider>
+            <Header />
+            {children}
+            <Sidebar />
+            <Footer />
+            <Toaster />
+          </AppStateProvider>
         </ThemeProvider>
       </body>
     </html>
-    </ClerkProvider>
   )
 }
