@@ -1,10 +1,10 @@
 import React from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserButton } from "@clerk/nextjs";
 import { ModeToggle } from './mode-toggle'
 import { IconLogo } from './ui/icons'
 import { cn } from '@/lib/utils'
 import HistoryContainer from './history-container'
+import { Avatar } from './ui/avatar'
+import { AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'
 
 export const Header: React.FC = async () => {
   return (
@@ -12,17 +12,17 @@ export const Header: React.FC = async () => {
       <div>
         <a href="/">
           <IconLogo className={cn('w-5 h-5')} />
-          <span className="sr-only">Mees Ai Search</span>
+          <span className="sr-only">Mees Ai</span>
         </a>
       </div>
-      <div className="flex items-center gap-2">
-           <Avatar>
-             <AvatarImage src="https://i.ibb.co/z7vKZfY/Mees-AILogoby-Designer.png" />
-             <AvatarFallback>CN</AvatarFallback>
-           </Avatar>
-      </div>
+      
+      <Avatar>
+             <AvatarImage src="ai.jpeg" >
+
+             </AvatarImage>
+            <AvatarFallback>Ai</AvatarFallback>
+      </Avatar>
       <div className="flex gap-0.5">
-      <UserButton afterSignOutUrl="/"/>
         <ModeToggle />
         <HistoryContainer location="header" />
       </div>
