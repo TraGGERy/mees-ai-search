@@ -17,6 +17,7 @@ const fontSans = FontSans({
 const title = 'Mees Ai'
 const description =
   'A fully open-source AI-powered answer engine with a generative UI.'
+  
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://morphic.sh'),
@@ -31,7 +32,9 @@ export const metadata: Metadata = {
     description,
     card: 'summary_large_image',
     creator: '@miiura'
-  }
+  },
+  manifest: "/manifest.json",
+  icons: {apple:"/icon.png"}
 }
 
 export const viewport: Viewport = {
