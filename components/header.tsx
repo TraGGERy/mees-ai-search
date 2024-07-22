@@ -17,7 +17,7 @@ export const Header: React.FC = async () => {
       </div>
       
       <Avatar>
-             <AvatarImage src="ai.jpeg" >
+             <AvatarImage src="iam.jpeg" >
 
              </AvatarImage>
             <AvatarFallback>Ai</AvatarFallback>
