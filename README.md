@@ -112,6 +112,8 @@ Host your own live version of Morphic with Vercel or Cloudflare Pages.
 
 List of verified models that can be specified to writers.
 
-- [Groq](https://console.groq.com/docs/models)
+[Groq](https://console.groq.com/docs/models)
+  - LLaMA3.1 8b
+  - LLaMA3.1 70B
   - LLaMA3 8b
   - LLaMA3 70b

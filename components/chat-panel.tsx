@@ -1,5 +1,6 @@
 'use client'
 
+import { Card, CardContent } from '@/components/ui/card'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AI, UIState } from '@/app/actions'
@@ -12,6 +13,7 @@ import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
 import { generateId } from 'ai'
 import { useAppState } from '@/lib/utils/app-state'
+import TitleForBlog from './TitleForBlog'
 
 interface ChatPanelProps {
   messages: UIState
@@ -187,6 +189,9 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
           className={cn(showEmptyScreen ? 'visible' : 'invisible')}
         />
       </form>
+      <br></br>
+      <TitleForBlog/>
     </div>
+    
   )
 }
