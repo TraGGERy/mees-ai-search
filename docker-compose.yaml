@@ -1,6 +1,6 @@
 # This is a Docker Compose file for setting up the morphic-stack environment.
 
-name: morphic-stack
+name: Mees Ai-stack
 services:
   morphic:
     build:

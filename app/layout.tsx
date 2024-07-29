@@ -34,7 +34,15 @@ export const metadata: Metadata = {
     creator: '@miiura'
   },
   manifest: "/manifest.json",
-  icons: {apple:"/icon.png"}
+  icons: {apple:"/icon.png"},
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title,
+    // startUpImage: [],
+  },  formatDetection: {
+    telephone: false,
+  },
 }
 
 export const viewport: Viewport = {

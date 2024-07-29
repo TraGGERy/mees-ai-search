@@ -1,5 +1,7 @@
+'use client'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
+import { HoverBorderGradient } from "./ui/hover-border-gradient";
 
 const exampleMessages = [
   {
@@ -7,17 +9,11 @@ const exampleMessages = [
     message: 'What is Apple Intelligence?'
   },
   {
-    heading: 'Why is Nvidia growing rapidly?',
-    message: 'Why is Nvidia growing rapidly?'
+    heading: 'Why is Water So Tasteless?',
+    message: 'Why is Water So Tasteless?'
   },
-  {
-    heading: 'How does the Vercel AI SDK work?',
-    message: 'How does the Vercel AI SDK work?'
-  },
-  {
-    heading: 'Tesla vs Rivian',
-    message: 'Tesla vs Rivian'
-  }
+  
+  
 ]
 export function EmptyScreen({
   submitMessage,
@@ -40,11 +36,18 @@ export function EmptyScreen({
                 submitMessage(message.message)
               }}
             >
-              <ArrowRight size={16} className="mr-2 text-muted-foreground" />
+                <div className="m-0 flex justify-center text-center">
+                     <HoverBorderGradient containerClassName="rounded-full" as="button"
+                     className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2" >
+              <ArrowRight size={16} className="mr-2 text-muted-foreground rounded-s-lg" />
               {message.heading}
+                 </HoverBorderGradient>
+    </div>
+
             </Button>
           ))}
         </div>
+       
       </div>
     </div>
   )
