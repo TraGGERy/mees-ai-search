@@ -1,13 +1,7 @@
-"use client";
-
-import { generateId } from 'ai'
-import { redirect } from 'next/navigation'
-import React, { useEffect, useState } from "react";
-import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
-
+import React from "react";
 import { useId } from "react";
 
-export default function News() {
+export default function FeaturesSectionDemo() {
   return (
     <div className="py-20 lg:py-40">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-2 max-w-7xl mx-auto">
@@ -23,8 +17,6 @@ export default function News() {
             <p className="text-neutral-600 dark:text-neutral-400 mt-4 text-base font-normal relative z-20">
               {feature.description}
             </p>
-            
-            <a href='/'>Read More</a>
           </div>
         ))}
       </div>
