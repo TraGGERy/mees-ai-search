@@ -75,7 +75,7 @@ const grid = [
   },
 ];
 
-export const Grid = ({
+const Grid = ({
   pattern,
   size,
 }: {
