@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import HistoryContainer from './history-container'
 import { Avatar } from './ui/avatar'
 import { AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'
+import { Button } from './ui/button'
 
 export const Header: React.FC = async () => {
   return (
@@ -22,7 +23,11 @@ export const Header: React.FC = async () => {
              </AvatarImage>
             <AvatarFallback>Ai</AvatarFallback>
       </Avatar>
-      <div className="flex gap-0.5">
+
+      
+      <div className="flex gap-0.5"><button className="shadow-[0_0_0_3px_#000000_inset] px-2 py-2 bg-transparent border border-black dark:border-white dark:text-white text-black rounded-lg font-bold transform hover:-translate-y-1 transition duration-400">
+        <a href='/news'>blog</a>
+      </button>
         <ModeToggle />
         <HistoryContainer location="header" />
       </div>
