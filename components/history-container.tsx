@@ -15,7 +15,6 @@ const HistoryContainer: React.FC<HistoryContainerProps> = async ({
     >
       <History location={location}>
         <HistoryList userId="anonymous" />
-    
       </History>
     </div>
   )
