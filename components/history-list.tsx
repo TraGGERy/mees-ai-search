@@ -22,7 +22,6 @@ export async function HistoryList({ userId }: HistoryListProps) {
         {!chats?.length ? (
           <div className="text-foreground/30 text-sm text-center py-4">
             No search history
-            news and blog
           </div>
         ) : (
           chats?.map(

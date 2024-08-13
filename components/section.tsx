@@ -8,7 +8,7 @@ import {
   MessageCircleMore,
   Newspaper,
   Repeat2,
-  Search, BotIcon
+  Search
 } from 'lucide-react'
 import React from 'react'
 import { Separator } from './ui/separator'
