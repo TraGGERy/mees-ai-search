@@ -8,8 +8,9 @@ import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 import { useId } from "react";
 
 export default function News() {
-  return (
+  return ( 
     <div className="py-20 lg:py-40">
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-2 max-w-7xl mx-auto">
         {grid.map((feature) => (
           <div
@@ -34,44 +35,44 @@ export default function News() {
 
 const grid = [
   {
-    title: "HIPAA and SOC2 Compliant",
+    title: "Politics and Governance",
     description:
-      "Our applications are HIPAA and SOC2 compliant, your data is safe with us, always.",
+      "Curious about the latest political moves? Let Mees AI break it down for you in a flash.",
   },
   {
-    title: "Automated Social Media Posting",
+    title: "Economy and Business",
     description:
-      "Schedule and automate your social media posts across multiple platforms to save time and maintain a consistent online presence.",
+      "Stay ahead of the market with quick, no-nonsense business updates from Mees AI",
   },
   {
-    title: "Advanced Analytics",
+    title: "Science and Technology",
     description:
-      "Gain insights into your social media performance with detailed analytics and reporting tools to measure engagement and ROI.",
+      "Discover the future, simplified—Mees AI delivers the latest in science and tech in just a few words.",
   },
   {
-    title: "Content Calendar",
+    title: "Society and Culture",
     description:
-      "Plan and organize your social media content with an intuitive calendar view, ensuring you never miss a post.",
+      "Want to know what’s shaping our world? Mees AI’s got the cultural pulse, neatly summarized for you",
   },
   {
-    title: "Audience Targeting",
+    title: "Environment and Climate",
     description:
-      "Reach the right audience with advanced targeting options, including demographics, interests, and behaviors.",
+      " Get the scoop on our planet’s health—Mees AI makes understanding environmental news a breeze.",
   },
   {
-    title: "Social Listening",
+    title: "Global Conflicts and Security",
     description:
-      "Monitor social media conversations and trends to stay informed about what your audience is saying and respond in real-time.",
+      " Keep up with global tensions and security issues—Mees AI cuts through the noise so you don’t have to.",
   },
   {
-    title: "Customizable Templates",
+    title: "Health and Wellness",
     description:
-      "Create stunning social media posts with our customizable templates, designed to fit your brand's unique style and voice.",
+      " Stay informed and stay healthy—Mees AI’s wellness updates are quick, clear, and to the point"
   },
-  {
-    title: "Collaboration Tools",
+    {
+    title: "Sports and Entertainment:",
     description:
-      "Work seamlessly with your team using our collaboration tools, allowing you to assign tasks, share drafts, and provide feedback in real-time.",
+      "Catch the latest in sports and entertainment—Mees AI brings you the highlights you can’t miss.",
   },
 ];
 
