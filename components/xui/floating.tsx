@@ -4,43 +4,43 @@ import { AnimatedTooltip } from "../ui/animated-tooltip";
 const people = [
   {
     id: 1,
-    name: "John Doe",
-    designation: "Software Engineer",
+    name: "Mees Ai Research",
+    designation: "Politics and Governance",
     image:
       "/iam.jpg",
   },
   {
     id: 2,
-    name: "Robert Johnson",
-    designation: "Product Manager",
+    name: "Mees Ai Research",
+    designation: "Economy and Business",
     image:
       "/iam.jpg",
   },
   {
     id: 3,
-    name: "Jane Smith",
-    designation: "Data Scientist",
+    name: "Mees Ai Research",
+    designation: "Science and Technology",
     image:
       "/iam.jpg",
   },
   {
     id: 4,
-    name: "Emily Davis",
-    designation: "UX Designer",
+    name: "Mees Ai Research",
+    designation: "Society and Culture",
     image:
       "/iam.jpg",
   },
   {
     id: 5,
-    name: "Tyler Durden",
-    designation: "Soap Developer",
+    name: "Mees Ai Research",
+    designation: "Environment and Climate",
     image:
       "/iam.jpg",
   },
   {
     id: 6,
-    name: "Dora",
-    designation: "The Explorer",
+    name: "Mees Ai Research",
+    designation: "Global Conflicts and Security",
     image:
       "/iam.jpg",
   },
