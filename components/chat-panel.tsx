@@ -12,9 +12,8 @@ import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
 import { generateId } from 'ai'
 import { useAppState } from '@/lib/utils/app-state'
-import { CardHoverEffectDemo } from './xui/articles'
 import { AnimatedTooltipPreview } from './xui/floating'
-import reactElementToJSXString from "react-element-to-jsx-string"
+import reactElementToJSXString from 'react-element-to-jsx-string'
 import { TextGenerateEffectDemo } from './xui/headline'
 
 interface ChatPanelProps {
