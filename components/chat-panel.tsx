@@ -191,7 +191,6 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         />
       </form>
         <br></br>
-        <br></br>
         
         <h6><TextGenerateEffectDemo/></h6>
         

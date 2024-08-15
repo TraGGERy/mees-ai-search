@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 
 import { useId } from "react";
+import { link } from 'fs';
 
 export default function News() {
   return ( 
@@ -38,41 +39,49 @@ const grid = [
     title: "Politics and Governance",
     description:
       "Curious about the latest political moves? Let Mees AI break it down for you in a flash.",
+    link: "google.com"  
   },
   {
     title: "Economy and Business",
     description:
       "Stay ahead of the market with quick, no-nonsense business updates from Mees AI",
+      link: "google.com" 
   },
   {
     title: "Science and Technology",
     description:
       "Discover the future, simplified—Mees AI delivers the latest in science and tech in just a few words.",
-  },
+      link: "google.com" 
+    },
   {
     title: "Society and Culture",
     description:
       "Want to know what’s shaping our world? Mees AI’s got the cultural pulse, neatly summarized for you",
-  },
+      link: "google.com" 
+    },
   {
     title: "Environment and Climate",
     description:
       " Get the scoop on our planet’s health—Mees AI makes understanding environmental news a breeze.",
-  },
+      link: "google.com" 
+    },
   {
     title: "Global Conflicts and Security",
     description:
       " Keep up with global tensions and security issues—Mees AI cuts through the noise so you don’t have to.",
-  },
+      link: "google.com" 
+    },
   {
     title: "Health and Wellness",
     description:
-      " Stay informed and stay healthy—Mees AI’s wellness updates are quick, clear, and to the point"
-  },
+      " Stay informed and stay healthy—Mees AI’s wellness updates are quick, clear, and to the point",
+      link: "google.com" 
+    },
     {
     title: "Sports and Entertainment:",
     description:
       "Catch the latest in sports and entertainment—Mees AI brings you the highlights you can’t miss.",
+      link: "google.com" 
   },
 ];
 
