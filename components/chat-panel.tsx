@@ -12,6 +12,10 @@ import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
 import { generateId } from 'ai'
 import { useAppState } from '@/lib/utils/app-state'
+import { CardHoverEffectDemo } from './xui/articles'
+import { AnimatedTooltipPreview } from './xui/floating'
+import reactElementToJSXString from "react-element-to-jsx-string"
+import { TextGenerateEffectDemo } from './xui/headline'
 
 interface ChatPanelProps {
   messages: UIState
@@ -187,6 +191,15 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
           className={cn(showEmptyScreen ? 'visible' : 'invisible')}
         />
       </form>
+        <br></br>
+        <br></br>
+        
+        <h6><TextGenerateEffectDemo/></h6>
+        
+        <br></br>
+        <br></br>
+      <AnimatedTooltipPreview/>
+      
     </div>
   )
 }

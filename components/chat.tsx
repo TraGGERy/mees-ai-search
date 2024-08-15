@@ -6,6 +6,8 @@ import { ChatPanel } from './chat-panel'
 import { ChatMessages } from './chat-messages'
 import { useUIState } from 'ai/rsc'
 import { FlipWordsDemo } from './xui/flip-word'
+import { CardHoverEffectDemo } from './xui/articles'
+import { CardStackDemo } from './xui/floating'
 
 type ChatProps = {
   id?: string
@@ -27,6 +29,8 @@ export function Chat({ id, query }: ChatProps) {
        <FlipWordsDemo/>
       <ChatMessages messages={messages} />
       <ChatPanel messages={messages} query={query} />
+      
+      
     </div>
   )
 }
