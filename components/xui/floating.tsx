@@ -7,7 +7,7 @@ const people = [
     name: "Mees Ai Research",
     designation: "Politics and Governance",
     image:
-      "/iam.jpg",
+      "/ai.jpeg",
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ const people = [
     name: "Mees Ai Research",
     designation: "Science and Technology",
     image:
-      "/iam.jpg",
+      "/iamai.jpg",
   },
   {
     id: 4,
