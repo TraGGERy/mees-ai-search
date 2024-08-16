@@ -8,6 +8,10 @@ import Footer from '@/components/footer'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { AppStateProvider } from '@/lib/utils/app-state'
+import { ClerkProvider } from "@clerk/nextjs";
+import AdSense from '@/components/AdSense';
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -47,8 +51,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
+
+    <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <AdSense pId="7574084780651527"/>
+      </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
+       <Analytics />
+       <SpeedInsights/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -65,5 +76,7 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
+    
+    </ClerkProvider>
   )
 }
