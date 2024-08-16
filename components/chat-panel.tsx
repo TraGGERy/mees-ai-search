@@ -193,8 +193,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         <br></br>
         
         <h6><TextGenerateEffectDemo/></h6>
-        
-        <br></br>
+      
         <br></br>
      <a href='/news'>
       <AnimatedTooltipPreview/></a>
