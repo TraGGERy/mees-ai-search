@@ -7,7 +7,7 @@ import { useUIState, useActions, useAIState } from 'ai/rsc'
 import { cn } from '@/lib/utils'
 import { UserMessage } from './user-message'
 import { Button } from './ui/button'
-import { ArrowRight, Plus } from 'lucide-react'
+import { ArrowRight, CodeIcon, Keyboard, Plus, Settings, User, User2 } from 'lucide-react'
 import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
 import { generateId } from 'ai'
@@ -15,6 +15,15 @@ import { useAppState } from '@/lib/utils/app-state'
 import { AnimatedTooltipPreview } from './xui/floating'
 import reactElementToJSXString from 'react-element-to-jsx-string'
 import { TextGenerateEffectDemo } from './xui/headline'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
+import { IconAlien, IconRobotFace } from '@tabler/icons-react'
+
 
 interface ChatPanelProps {
   messages: UIState
@@ -115,12 +124,44 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   }
 
   return (
+    
     <div
       className={
         'fixed bottom-8 left-0 right-0 top-10 mx-auto h-screen flex flex-col items-center justify-center'
       }
     >
-      <form onSubmit={handleSubmit} className="max-w-2xl w-full px-6">
+     
+      
+      
+      <form onSubmit={handleSubmit} className="max-w-2xl w-full px-6 top-10">
+      <div className={'mt-4 flex flex-col items-start space-y-2 mb-4'}>
+        
+        <DropdownMenu>
+              <DropdownMenuTrigger>
+                Speed
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className='w-60'>
+                <center>
+                <DropdownMenuLabel>Speed</DropdownMenuLabel></center>
+                <DropdownMenuSeparator/>
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <IconRobotFace className='mr-2 h-3 w-4'/>
+                      <span>OpenAI/GPT-4o-mini</span>
+                      <br></br>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <IconAlien className='mr-2 h-3 w-4'/>
+                      <span>OpenAI/GPT-4o</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <CodeIcon className='mr-2 h-3 w-4'/>
+                      <span>Anthropic/Claude3.5-Sonnet</span>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+          </DropdownMenu>   
+        </div>
         <div className="relative flex items-center w-full">
           <Textarea
             ref={inputRef}

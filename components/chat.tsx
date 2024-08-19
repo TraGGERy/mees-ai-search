@@ -6,6 +6,7 @@ import { ChatPanel } from './chat-panel'
 import { ChatMessages } from './chat-messages'
 import { useUIState } from 'ai/rsc'
 import { FlipWordsDemo } from './xui/flip-word'
+import { ModeToggle } from './mode-toggle'
 
 
 type ChatProps = {
