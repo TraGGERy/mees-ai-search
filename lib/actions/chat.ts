@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { type Chat } from '@/lib/types'
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
 
+
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
 }
@@ -84,6 +85,7 @@ export async function getChat(id: string, userId: string = 'anonymous') {
 
 export async function clearChats(
   userId: string = 'anonymous'
+  
 ): Promise<{ error?: string }> {
   const redis = await getRedis()
   const chats = await redis.zrange(`user:chat:${userId}`, 0, -1)
