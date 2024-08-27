@@ -24,8 +24,6 @@ import { VideoSearchSection } from '@/components/video-search-section'
 import { transformToolMessages } from '@/lib/utils'
 import { AnswerSection } from '@/components/answer-section'
 import { ErrorCard } from '@/components/error-card'
-import { currentUser } from '@clerk/nextjs/server'
-import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
 async function submit(
   formData?: FormData,
@@ -327,7 +325,7 @@ export const AI = createAI<AIState, UIState>({
 
     const { chatId, messages } = state
     const createdAt = new Date()
-    const userId = await currentUser();
+    const userId = 'anonymous'
     const path = `/search/${chatId}`
     const title =
       messages.length > 0
