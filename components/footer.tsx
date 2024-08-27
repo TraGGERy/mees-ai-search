@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { SiDiscord, SiFacebook, SiGithub, SiTwitter, SiWhatsapp } from 'react-icons/si'
+import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiInfosys, SiPrivateinternetaccess, SiTwitter, SiWhatsapp } from 'react-icons/si'
 import { Button } from './ui/button'
 
 const Footer: React.FC = () => {
@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
           className="text-muted-foreground/50"
         >
           <Link href="/privacy-policy" target="_blank">
-            ?
+            <SiPrivateinternetaccess size={18}/>
           </Link>
         </Button>
         <Button
