@@ -146,7 +146,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                 <DropdownMenuSeparator/>
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
-                      <IconRobotFace className='mr-2 h-3 w-4'/>
+                      <IconRobotFace className='mr-2 h-3 w-4 bg-green-800 underline-offset-auto'/>
                       <span>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem>

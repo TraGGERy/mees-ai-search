@@ -12,6 +12,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import AdSense from '@/components/AdSense';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -50,6 +51,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  
   return (
 
     <ClerkProvider>
@@ -69,7 +71,7 @@ export default function RootLayout({
           <AppStateProvider>
             <Header />
             {children}
-           
+            
             <Footer />
             <Toaster />
           </AppStateProvider>

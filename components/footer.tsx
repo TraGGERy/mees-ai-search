@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
           size={'icon'}
           className="text-muted-foreground/50"
         >
-          <Link href="/" target="_blank">
+          <Link href="/privacy-policy" target="_blank">
             ?
           </Link>
         </Button>
