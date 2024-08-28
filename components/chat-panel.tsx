@@ -22,8 +22,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
-import { IconAlien, IconRobotFace } from '@tabler/icons-react'
-
+import { IconAlien, IconBrandOpenai, IconRobotFace } from '@tabler/icons-react'
+import { getModel } from '@/lib/utils'
 
 interface ChatPanelProps {
   messages: UIState
@@ -146,17 +146,17 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                 <DropdownMenuSeparator/>
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
-                      <IconRobotFace className='mr-2 h-3 w-4 bg-green-800 underline-offset-auto'/>
+                      <IconBrandOpenai className='mr-2 h-4 w-5 underline-offset-auto text-green-700'/>
                       <span>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <IconAlien className='mr-2 h-3 w-4'/>
+                      <IconBrandOpenai className='mr-2 h-4 w-5 text-purple-700'/>
                       <span>OpenAI/GPT-4o</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <CodeIcon className='mr-2 h-3 w-4'/>
-                      <span>Anthropic/Claude3.5-Sonnet</span>
+                      <IconAlien className='mr-2 h-4 w-5 text-orange-600'/>
+                      <span>Claude3.5-Sonnet</span>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
