@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
-import { IconAlien, IconBrandOpenai, IconRobotFace } from '@tabler/icons-react'
+import { IconAlien, IconBrandOpenai, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace } from '@tabler/icons-react'
 import { getModel } from '@/lib/utils'
 
 interface ChatPanelProps {
@@ -138,16 +138,25 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         
         <DropdownMenu>
               <DropdownMenuTrigger>
-                Speed
+                <div className='flex items-stretch'>
+                <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto text-green-700'/>
+                 <h6>Speed</h6>
+                </div>
+                
               </DropdownMenuTrigger>
               <DropdownMenuContent className='w-60'>
                 <center>
-                <DropdownMenuLabel>Speed</DropdownMenuLabel></center>
+                <DropdownMenuLabel>
+                  <div className='flex items-stretch'>
+                  <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto text-green-700'/>
+                 <h6>Speed</h6> 
+                  </div>
+                  </DropdownMenuLabel></center>
                 <DropdownMenuSeparator/>
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
                       <IconBrandOpenai className='mr-2 h-4 w-5 underline-offset-auto text-green-700'/>
-                      <span>OpenAI/GPT-4o-mini</span>
+                      <span className='hover:uppercase'>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
