@@ -24,6 +24,7 @@ import {
 import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
 import { IconAlien, IconBrandOpenai, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace } from '@tabler/icons-react'
 import { getModel } from '@/lib/utils'
+import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
 interface ChatPanelProps {
   messages: UIState
@@ -40,6 +41,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const router = useRouter()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isFirstRender = useRef(true) // For development environment
+  const {user,isSignedIn}=useUser();
 
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
@@ -162,11 +164,20 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     <DropdownMenuItem>
                       <IconBrandOpenai className='mr-2 h-4 w-5 text-purple-700'/>
                       <span>OpenAI/GPT-4o</span>
-                      <p className='flex px-1 text-green-300'><i>login</i>  </p>
+                      {isSignedIn?
+                      <p className='flex px-1 text-green-300'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-purple-700'/></i>  </p>
+
+                      :<p className='flex px-1 text-green-300'><i>login</i>  </p>
+                    }
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <IconAlien className='mr-2 h-4 w-5 text-orange-600'/>
                       <span>Claude3.5-Sonnet</span>
+                      {isSignedIn?
+                      <p className='flex px-1 text-green-300'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-orange-600'/></i>  </p>
+                      
+                      :<p className='flex px-1 text-green-300'><i>login</i>  </p>
+                    }
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
