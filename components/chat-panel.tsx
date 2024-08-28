@@ -237,7 +237,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         <a href='/news'>
         <AnimatedTooltipPreview/>
         </a>
-      
+        <br></br>
     </div>
   )
 }
