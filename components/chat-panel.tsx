@@ -138,8 +138,8 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         
         <DropdownMenu>
               <DropdownMenuTrigger>
-                <div className='flex items-stretch'>
-                <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto text-green-700'/>
+                <div className='flex items-stretch px-0'>
+                <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto px-0 text-green-700'/>
                  <h6>Speed</h6>
                 </div>
                 
@@ -162,6 +162,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     <DropdownMenuItem>
                       <IconBrandOpenai className='mr-2 h-4 w-5 text-purple-700'/>
                       <span>OpenAI/GPT-4o</span>
+                      <p className='flex px-1 text-green-300'><i>login</i>  </p>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <IconAlien className='mr-2 h-4 w-5 text-orange-600'/>
