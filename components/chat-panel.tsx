@@ -231,7 +231,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
           className={cn(showEmptyScreen ? 'visible' : 'invisible')}
         />
       </form>
-        <br></br>
+        
         <h6><TextGenerateEffectDemo/></h6>
         <br></br>
         <a href='/news'>
