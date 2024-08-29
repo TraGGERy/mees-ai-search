@@ -251,10 +251,9 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
           }}
           className={cn(showEmptyScreen ? 'visible' : 'invisible')}
         />
-      </form>
+      </form>   
+       <h6 className='flex bottom-2' ><TextGenerateEffectDemo/></h6>
         
-        <h6><TextGenerateEffectDemo/></h6>
-        <br></br>
         <a href='/news'>
         <AnimatedTooltipPreview/>
         </a>
