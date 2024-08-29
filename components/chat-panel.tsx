@@ -167,7 +167,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                       {isSignedIn?
                       <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-purple-700'/></i>  </p>
 
-                      :<p className='flex px-1 text-green-700 items-end'> <b><IconUser/></b> </p>
+                      :<p className='flex px-1 text-purple-700 items-end'> <b><IconUser/></b> </p>
                     }
                     </DropdownMenuItem>
                     <DropdownMenuItem>
@@ -176,7 +176,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                       {isSignedIn?
                       <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-orange-600'/></i>  </p>
                       
-                      :<p className='flex px-1 text-green-700'><b> <IconUser/> </b> </p>
+                      :<p className='flex px-1 text-orange-700'><b> <IconUser/> </b> </p>
                     }
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
