@@ -21,28 +21,28 @@ const people = [
     name: "Mees Ai Research",
     designation: "Science and Technology",
     image:
-      "/iam.jpg",
+      "/student.svg",
   },
   {
     id: 4,
     name: "Mees Ai Research",
     designation: "Society and Culture",
     image:
-      "/iam.jpg",
+      "/school.svg",
   },
   {
     id: 5,
     name: "Mees Ai Research",
     designation: "Environment and Climate",
     image:
-      "/icon-192x192.png",
+      "/globe.svg",
   },
   {
     id: 6,
     name: "Mees Ai Research",
     designation: "Global Conflicts and Security",
     image:
-      "/iamai.jpg",
+      "/research.svg",
   },
 ];
 
