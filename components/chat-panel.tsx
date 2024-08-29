@@ -142,7 +142,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
               <DropdownMenuTrigger>
                 <div className='flex items-stretch px-0'>
                 <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto px-0 text-green-700'/>
-                 <h6>Speed</h6>
+                 <h6><b>Speed</b></h6>
                 </div>
                 
               </DropdownMenuTrigger>
@@ -151,13 +151,13 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                 <DropdownMenuLabel>
                   <div className='flex items-stretch'>
                   <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto text-green-700'/>
-                 <h6>Speed</h6> 
+                 <h6><b>Speed</b></h6> 
                   </div>
                   </DropdownMenuLabel></center>
                 <DropdownMenuSeparator/>
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
-                      <IconBrandOpenai className='mr-2 h-4 w-5 underline-offset-auto text-green-700'/>
+                      <IconBrandOpenai className='mr-2 h-4 w-5 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
                       <span className='hover:uppercase'>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem>
@@ -165,18 +165,18 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                       <IconBrandOpenai className='mr-2 h-4 w-5 text-purple-700'/>
                       <span>OpenAI/GPT-4o</span>
                       {isSignedIn?
-                      <p className='flex px-1 text-green-300'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-purple-700'/></i>  </p>
+                      <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-purple-700'/></i>  </p>
 
-                      :<p className='flex px-1 text-green-300'><i>login</i>  </p>
+                      :<p className='flex px-1 text-green-700 items-end'> <b><i>login</i> </b> </p>
                     }
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <IconAlien className='mr-2 h-4 w-5 text-orange-600'/>
                       <span>Claude3.5-Sonnet</span>
                       {isSignedIn?
-                      <p className='flex px-1 text-green-300'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-orange-600'/></i>  </p>
+                      <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-orange-600'/></i>  </p>
                       
-                      :<p className='flex px-1 text-green-300'><i>login</i>  </p>
+                      :<p className='flex px-1 text-green-700'><b><i>login</i></b> </p>
                     }
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
