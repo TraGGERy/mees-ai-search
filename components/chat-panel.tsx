@@ -45,6 +45,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const {user,isSignedIn}=useUser();
   const [selectedValue, setSelectedValue] = useState('Speed');
 
+
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
     setIsGenerating(true)
