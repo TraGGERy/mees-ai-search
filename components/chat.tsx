@@ -27,9 +27,8 @@ export function Chat({ id, query }: ChatProps) {
   return (
     <div className="px-8 sm:px-12 pt-12 md:pt-14 pb-14 md:pb-24 max-w-3xl mx-auto flex flex-col space-y-3 md:space-y-4">
        <FlipWordsDemo/>
-      
-      <h1><b>we closing for the next 48 hours we are investigating a potential breach</b> </h1>
-     
+      <ChatMessages messages={messages} />
+     <ChatPanel messages={messages} query={query} />
       
       
     </div>
