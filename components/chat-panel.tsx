@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
-import { IconAlien, IconBrandOpenai, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace, IconUser } from '@tabler/icons-react'
+import { IconAlien, IconBrandOpenai, IconLighter, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace, IconUser } from '@tabler/icons-react'
 import { getModel } from '@/lib/utils'
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
@@ -149,34 +149,35 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
               <DropdownMenuContent className='w-60'>
                 <center>
                 <DropdownMenuLabel>
-                  <div className='flex items-stretch'>
-                  <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto text-green-700'/>
-                 <h6><b>Speed</b></h6> 
-                  </div>
+              
                   </DropdownMenuLabel></center>
                 <DropdownMenuSeparator/>
                 <DropdownMenuGroup>
+
+                     <h5 className='flex justify-start px-7 '><b>Speed</b> ..<b className='inline-block bg-green-700 font-medium py-0 px-3 rounded-full'> New</b></h5>
                     <DropdownMenuItem>
-                      <IconBrandOpenai className='mr-2 h-4 w-5 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
-                      <span className='hover:uppercase'>OpenAI/GPT-4o-mini</span>
+                      <IconBrandOpenai className='mr-2 h-5 w-6 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
+                      <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem>
+                    <h5 className='flex justify-start px-7'>Quality(GPT)..<b className='inline-block bg-green-700 font-medium py-0 px-3 rounded-full'> login</b></h5>
                     <DropdownMenuItem>
-                      <IconBrandOpenai className='mr-2 h-4 w-5 text-purple-700'/>
-                      <span>OpenAI/GPT-4o</span>
+                      <IconBrandOpenai className='mr-2 h-5 w-6 text-purple-700'/>
+                      <span className='flex text-gray-500'>High quality generation<br></br> (OpenAI/GPT-4o)</span>
                       {isSignedIn?
                       <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-purple-700'/></i>  </p>
 
-                      :<p className='flex px-1 text-purple-700 items-end'> <b><IconUser/></b> </p>
+                      :<p className='flex px-1 text-purple-700 items-end'> <b></b> </p>
                     }
                     </DropdownMenuItem>
+                    <h6 className='flex justify-start px-7'>Quality(Claude)..<b className='inline-block bg-green-700 font-medium py-0 px-3 rounded-full'> login</b></h6>
                     <DropdownMenuItem>
-                      <IconAlien className='mr-2 h-4 w-5 text-orange-600'/>
-                      <span>Claude3.5-Sonnet</span>
+                      <IconAlien className='mr-2 h-5 w-6 text-orange-700'/>
+                      <span className='flex text-gray-500'>High quality generation<br></br>(Claude3.5-Sonnet)</span>
                       {isSignedIn?
                       <p className='flex px-1 text-green-700'><i><IconPlayerTrackNext  className='mr-2 h-4 w-5 underline-offset-auto text-orange-600'/></i>  </p>
                       
-                      :<p className='flex px-1 text-orange-700'><b> <IconUser/> </b> </p>
+                      :<p className='flex px-1 text-orange-700'></p>
                     }
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
