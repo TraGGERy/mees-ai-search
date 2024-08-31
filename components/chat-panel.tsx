@@ -30,7 +30,8 @@ interface ChatPanelProps {
   messages: UIState
   query?: string
 }
-
+var model = "Speed"
+var modelType = "gpt-4o-mini"
 export function ChatPanel({ messages, query }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
@@ -42,6 +43,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isFirstRender = useRef(true) // For development environment
   const {user,isSignedIn}=useUser();
+  const [selectedValue, setSelectedValue] = useState('Speed');
 
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
@@ -142,7 +144,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
               <DropdownMenuTrigger>
                 <div className='flex items-stretch px-0'>
                 <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto px-0 text-green-400'/>
-                 <h6><b>Speed</b></h6>
+                 <h6><b>{selectedValue}</b></h6>
                 </div>
                 
               </DropdownMenuTrigger>
@@ -157,11 +159,11 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                      <h5 className=' '><b>Speed</b></h5>
                      <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> New</b></h5>
                    </div>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={()=> setSelectedValue("Speed")}>
                       <IconBrandOpenai className='mr-2 h-6 w-7 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
                       <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-4o-mini</span>
                       <br></br>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem >
                     <div className='flex space-x-1 px-7'>
                     <h5 className='font-bold '>Quality(GPT)</h5>
                     {isSignedIn?
@@ -169,7 +171,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     :<h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> login</b></h5>
                     }
                     </div>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={()=> setSelectedValue("Quality(GPT)")}>
                       <IconSparkles className='mr-2 h-6 w-7 text-purple-700'/>
                       <span className='flex text-gray-500'>High quality generation<br></br> (OpenAI/GPT-4o)</span>
                       
@@ -181,7 +183,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     :<h5><b className='inline-block bg-green-400  text-black font-bold  px-4 rounded-full'> login</b></h5>
                    }
                    </div>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={()=> setSelectedValue("Quality(Claude)")}>
                       <IconSparkles className='mr-2 h-6 w-7 text-orange-700'/>
                       <span className='flex text-gray-500'>High quality generation<br></br>(Claude3.5-Sonnet)</span>
                       
