@@ -177,8 +177,8 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     <div className='flex space-x-1 px-7'>
                     <h6 className='font-bold '>Quality(Claude)</h6>
                     {isSignedIn?
-                     <h5><b className='inline-block bg-orange-400  text-black font-bold  px-5 rounded-full'> ro</b></h5>
-                    :<h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> login</b></h5>
+                     <h5><b className='inline-block bg-orange-400  text-black font-bold  px-4 rounded-full'> Pro</b></h5>
+                    :<h5><b className='inline-block bg-green-400  text-black font-bold  px-4 rounded-full'> login</b></h5>
                    }
                    </div>
                     <DropdownMenuItem>
