@@ -24,7 +24,7 @@ const description =
   'A fully open-source AI-powered answer engine with a generative UI.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.mees.co.nz/'),
+  metadataBase: new URL('https://www.mees.co.nz'),
   title,
   description,
   openGraph: {
@@ -69,10 +69,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppStateProvider>
-            
+            <Header />
             {children}
             
-            
+            <Footer />
             <Toaster />
           </AppStateProvider>
         </ThemeProvider>
