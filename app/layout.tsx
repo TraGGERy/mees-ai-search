@@ -69,10 +69,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppStateProvider>
-            <Header />
+            
             {children}
             
-            <Footer />
+            
             <Toaster />
           </AppStateProvider>
         </ThemeProvider>
