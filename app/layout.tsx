@@ -21,7 +21,8 @@ const fontSans = FontSans({
 
 const title = 'Mees Ai'
 const description =
-  'A fully open-source AI-powered answer engine with a generative UI.'
+  'A fully AI-powered answer engine with a generative UI.'
+  
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees.co.nz'),

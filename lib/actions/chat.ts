@@ -4,9 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { type Chat } from '@/lib/types'
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
-import { currentUser } from '@clerk/nextjs/server'
-
-
 
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
@@ -87,9 +84,6 @@ export async function getChat(id: string, userId: string = 'anonymous') {
 
 export async function clearChats(
   userId: string = 'anonymous'
-  
-  
-  
 ): Promise<{ error?: string }> {
   const redis = await getRedis()
   const chats = await redis.zrange(`user:chat:${userId}`, 0, -1)
@@ -109,13 +103,7 @@ export async function clearChats(
   redirect('/')
 }
 
-export async function saveChat(chat: Chat, userId="anonymous") {
-  const user = await currentUser()
-  if (!user){
-    userId="anonymous"
-  }else{
-    userId=user.id
-  }
+export async function saveChat(chat: Chat, userId: string = 'anonymous') {
   try {
     const redis = await getRedis()
     const pipeline = redis.pipeline()
