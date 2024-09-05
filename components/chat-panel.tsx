@@ -46,6 +46,10 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const {user,isSignedIn}=useUser();
   const [selectedValue, setSelectedValue] = useState('Speed');
 
+  const handleDropdownChange = (value: any) => {
+    setSelectedValue(value);
+  };
+
 
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
@@ -145,8 +149,26 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
         <DropdownMenu>
               <DropdownMenuTrigger>
                 <div className='flex items-stretch px-0'>
+                 
+                {selectedValue=="Lighting"? 
+                 <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
+                
+                 :null
+                }
+                
+                {selectedValue=="Quality(Claude)"? 
+                <IconSparkles className='mr-2 h-6 w-7 text-orange-700'/>
+                :null
+                }
+
+                {selectedValue=="Quality(GPT)"? 
+                 <IconSparkles className='mr-2 h-6 w-7 text-purple-700'/>
+                :null}
+                
+                {selectedValue=="Speed"? 
                 <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto px-0 text-green-400'/>
-                 <h6><b>{selectedValue}</b></h6>
+                 :null }
+                <h6><b>{selectedValue}</b></h6>
                 </div>
                 
               </DropdownMenuTrigger>
@@ -204,6 +226,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
           </DropdownMenu>   
+
         </div>
         <div className="relative flex items-center w-full">
           <Textarea
