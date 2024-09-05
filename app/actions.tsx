@@ -24,7 +24,8 @@ import { VideoSearchSection } from '@/components/video-search-section'
 import { transformToolMessages } from '@/lib/utils'
 import { AnswerSection } from '@/components/answer-section'
 import { ErrorCard } from '@/components/error-card'
-
+import { getAuth } from '@clerk/nextjs/server'
+import { NextApiHandler, NextApiResponse } from 'next'
 
 async function submit(
   formData?: FormData,
@@ -300,6 +301,7 @@ const initialUIState: UIState = []
 
 // AI is a provider you wrap your application with so you can access AI and UI state in your components.
 export const AI = createAI<AIState, UIState>({
+  
   actions: {
     submit
   },
@@ -318,7 +320,7 @@ export const AI = createAI<AIState, UIState>({
   },
   onSetAIState: async ({ state, done }) => {
     'use server'
-
+    
     // Check if there is any message of type 'answer' in the state messages
     if (!state.messages.some(e => e.type === 'answer')) {
       return

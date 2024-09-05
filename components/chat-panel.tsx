@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
-import { IconAlien, IconBrandOpenai, IconLighter, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace, IconSparkles, IconUser } from '@tabler/icons-react'
+import { IconAlien, IconBrandCodesandbox, IconBrandOpenai, IconLighter, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace, IconSparkles, IconUser } from '@tabler/icons-react'
 import { getModel } from '@/lib/utils'
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 
@@ -32,6 +32,7 @@ interface ChatPanelProps {
 }
 var model = "Speed"
 var modelType = "gpt-4o-mini"
+var modelIcon ="IconPlayerTrackNext"
 export function ChatPanel({ messages, query }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
@@ -165,6 +166,17 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                       <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-4o-mini</span>
                       <br></br>
                     </DropdownMenuItem >
+
+                    <div className='flex space-x-1 px-7'>
+                     <h5 className=' '><b>Lighting</b></h5>
+                     <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'></b></h5>
+                   </div>
+                    <DropdownMenuItem onClick={()=> setSelectedValue("Lighting")}>
+                      <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
+                      <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-3.5</span>
+                      <br></br>
+                    </DropdownMenuItem >
+
                     <div className='flex space-x-1 px-7'>
                     <h5 className='font-bold '>Quality(GPT)</h5>
                     {isSignedIn?
