@@ -172,7 +172,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                      <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'></b></h5>
                    </div>
                     <DropdownMenuItem onClick={()=> setSelectedValue("Lighting")}>
-                      <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
+                      <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
                       <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-3.5</span>
                       <br></br>
                     </DropdownMenuItem >
