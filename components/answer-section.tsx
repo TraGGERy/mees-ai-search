@@ -36,7 +36,8 @@ const [open, setOpen] = useState(false)
     const text = <BotMessage content={content} />
 
     if (<BotMessage content={content} />) {
-      copyToClipboard("hello")
+      copyToClipboard("comming Soon")
+      
       toast.success('Link copied to clipboard')
       setOpen(false)
     } else {
@@ -52,7 +53,7 @@ const [open, setOpen] = useState(false)
            <IconSearch className='mr-0 h-4 w-5 mt-1  text-green-400'/><p className='flex font-light text-sm'>Mees Ai Research</p></div>
           <BotMessage content={content} />
 
-          <div className='flex justify-end '><IconCopy className='mr-1 h-5 w-8 mt-1  text-purple-700' onClick={handleCopy}/>copy</div>
+          <div className='flex justify-end '><IconCopy className='mr-1 h-5 w-8 mt-1  text-purple-700' onClick={handleCopy}/></div>
         </Section>
       ) : (
         <DefaultSkeleton />
