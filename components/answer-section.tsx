@@ -34,9 +34,10 @@ const [open, setOpen] = useState(false)
 
   const handleCopy = () => {
     const text = <BotMessage content={content} />
+    const easy = JSON.stringify(text.props.content);
 
     if (<BotMessage content={content} />) {
-      copyToClipboard("comming Soon")
+      copyToClipboard(easy)
       
       toast.success('Link copied to clipboard')
       setOpen(false)
