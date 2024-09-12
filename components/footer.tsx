@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiInfosys, SiPrivateinternetaccess, SiTwitter, SiWhatsapp } from 'react-icons/si'
+import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiInfosys, SiPrivateinternetaccess, SiTwitter, SiWhatsapp, SiX } from 'react-icons/si'
 import { Button } from './ui/button'
 
 const Footer: React.FC = () => {
@@ -21,8 +21,8 @@ const Footer: React.FC = () => {
           size={'icon'}
           className="text-muted-foreground/50"
         >
-          <Link href="https://twitter.com/Iamtoxix" target="_blank">
-            <SiTwitter size={18} />
+          <Link href="https://twitter.com/Mees_nz" target="_blank">
+            <SiX size={18} />
           </Link>
         </Button>
         <Button
@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
           size={'icon'}
           className="text-muted-foreground/50"
         >
-          <Link href="https://wa.me/263789539103" target="_blank">
+          <Link href="https://whatsapp.com/channel/0029VafFHO8IyPtbwtGq7K1G" target="_blank">
             <SiWhatsapp size={18} />
           </Link>
         </Button>
