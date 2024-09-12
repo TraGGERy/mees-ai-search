@@ -39,7 +39,7 @@ const [open, setOpen] = useState(false)
     if (<BotMessage content={content} />) {
       copyToClipboard(easy)
       
-      toast.success('Link copied to clipboard')
+      toast.success('Text copied to clipboard')
       setOpen(false)
     } else {
       toast.error('No Text To Copy')
