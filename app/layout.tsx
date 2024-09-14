@@ -21,8 +21,8 @@ const fontSans = FontSans({
 
 const title = 'Mees Ai'
 const description =
-  'A fully AI-powered answer engine with a generative UI.'
-  
+  'Mees AI is an advanced answer engine with a dynamic AI-driven interface, delivering precise, real-time responses for all your needs.'
+  const image = '/opengraph-image.png';   
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees.co.nz'),
@@ -30,8 +30,17 @@ export const metadata: Metadata = {
   description,
   openGraph: {
     title,
-    description
+    description,
+    images: [
+      {
+        url: image,
+        width: 1200, // optional, specify width if needed
+        height: 630, // optional, specify height if needed
+        alt: 'Mees AI Thumbnail' // optional, add alternative text for the image
+      }
+    ]
   },
+
   twitter: {
     title,
     description,
