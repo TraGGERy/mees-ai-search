@@ -22,7 +22,7 @@ const fontSans = FontSans({
 const title = 'Mees Ai'
 const description =
   'Mees AI is an advanced answer engine with a dynamic AI-driven interface, delivering precise, real-time responses for all your needs.'
-  const image = '/opengraph-image.png';   
+  const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees.co.nz'),
