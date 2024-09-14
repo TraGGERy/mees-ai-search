@@ -35,9 +35,14 @@ const [open, setOpen] = useState(false)
   const handleCopy = () => {
     const text = <BotMessage content={content} />
     const easy = JSON.stringify(text.props.content);
-
+   
     if (<BotMessage content={content} />) {
-      copyToClipboard(easy)
+      const text = extractText(content);
+      const imageUrls = extractImageUrls(content);
+
+      const combinedContent = `${text}\n\nImages:\n${imageUrls.join('\n')}`;
+
+      copyToClipboard(combinedContent)
       
       toast.success('Text copied to clipboard')
       setOpen(false)
@@ -45,6 +50,26 @@ const [open, setOpen] = useState(false)
       toast.error('No Text To Copy')
     }
   }
+
+  // Function to extract text from content (replace with your actual method)
+const text = <BotMessage content={content} />
+const easy = JSON.stringify(text.props.content);
+const extractText = (content=easy) => {
+  // Assuming content is a JSX element, convert it to a string
+  return typeof content === 'string' ? content : content || '';
+}
+
+// Function to extract image URLs from content (replace with your actual method)
+const extractImageUrls = (content= easy) => {
+  // Extract image URLs from content
+  // Assuming content is an array of JSX elements
+  if (Array.isArray(content)) {
+    return content
+      .filter(item => item.type === 'img')
+      .map(img => img.props.src || '');
+  }
+  return [];
+}
 
   return (
     <div>
