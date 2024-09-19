@@ -139,7 +139,10 @@ const modelHandle=(Model: String)=>{
     let newEnvVar;
     if(Model =="gpt-4o-mini"){
       newEnvVar = "gpt-4o-mini"
-     toast.success(Model)}
+     toast.success(Model)
+        
+    }
+
     else if(Model== "gpt-3.5-turbo"){
       toast.success(Model)
       newEnvVar = "gpt-3.5-turbo"
@@ -155,6 +158,7 @@ const modelHandle=(Model: String)=>{
     }
   
   SetMyEnvVar(newEnvVar);   
+  
 }
  
 

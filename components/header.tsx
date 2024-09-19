@@ -7,8 +7,9 @@ import HistoryContainer from './history-container'
 import reactElementToJSXString from "react-element-to-jsx-string";
 import { toast, Toaster } from "sonner";
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
-import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconUser } from '@tabler/icons-react'
+import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
 import { NotificationUpdate } from './xui/notifiatication-update'
+import { icons } from 'lucide-react'
 
 function Header  () {
   const {user,isSignedIn}=useUser();
@@ -58,9 +59,12 @@ function Header  () {
       </button>
       </a>
       }
-     
+      {isSignedIn?
 
-
+           <IconWallet className='w-5 h-5 mt-2'/>
+        :null
+      }
+         
         <ModeToggle />
        
       </div>
