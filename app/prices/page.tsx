@@ -181,12 +181,6 @@ export default function Price(){
         </li>
       </ul>
 
-      <a
-        href="/"
-        className="mt-8 block rounded-full border border-green-600 bg-black-600 px-12 py-3 text-center text-sm font-medium text-white hover:bg-black-700 hover:ring-1 hover:ring-black-700 focus:outline-none focus:ring active:text-indigo-500"
-      >
-        Return Home
-      </a>
     </div>
   </div>
 </div>
