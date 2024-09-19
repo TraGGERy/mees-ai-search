@@ -3,8 +3,8 @@ import { ArrowRight, TrendingUpIcon } from 'lucide-react'
 
 const exampleMessages = [
   {
-    heading: 'What is GPT-4o mini?',
-    message: 'What is GPT-4o mini?'
+    heading: 'What is StarLink kit?',
+    message: 'What is StarLink kit?'
   },
   {
     heading: 'Why is Nvidia growing rapidly?',
