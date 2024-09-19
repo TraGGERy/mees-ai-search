@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { IconBrightness, IconCalendarBolt, IconCopy, IconCopyX, IconDesk, IconDeviceLaptop, IconLamp, IconLighter, IconMoon, IconPlayerTrackNext, IconSearch, IconSun } from '@tabler/icons-react'
 
 export function ModeToggle() {
   const { setTheme } = useTheme()
@@ -26,12 +27,15 @@ export function ModeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>
+        <IconSun className='mr-1 h-5 w-6 mt-0 py-0 text-white-700'/>
           Light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
+        <IconMoon className='mr-1 h-5 w-6 mt-0 py-0 text-white-700'/>
           Dark
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
+        <IconDeviceLaptop className='mr-1 h-5 w-6 mt-0 py-0 text-white-700'/>
           System
         </DropdownMenuItem>
       </DropdownMenuContent>

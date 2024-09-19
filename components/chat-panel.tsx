@@ -15,6 +15,7 @@ import { useAppState } from '@/lib/utils/app-state'
 import { AnimatedTooltipPreview } from './xui/floating'
 import reactElementToJSXString from 'react-element-to-jsx-string'
 import { TextGenerateEffectDemo } from './xui/headline'
+import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,11 +31,10 @@ interface ChatPanelProps {
   messages: UIState
   query?: string
 }
-var model = "Speed"
-var modelType = "gpt-4o-mini"
-var modelIcon ="IconPlayerTrackNext"
+
 export function ChatPanel({ messages, query }: ChatPanelProps) {
   const [input, setInput] = useState('')
+  const[myEnVar, SetMyEnvVar]=useState(process.env.OPENAI_API_MODEL || 'gpt-4o-mini');
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const [, setMessages] = useUIState<typeof AI>()
   const [aiMessage, setAIMessage] = useAIState<typeof AI>()
@@ -50,7 +50,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
     setSelectedValue(value);
   };
 
-
+ 
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
     setIsGenerating(true)
@@ -133,6 +133,33 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
     return null
   }
 
+
+  
+const modelHandle=(Model: String)=>{
+    let newEnvVar;
+    if(Model =="gpt-4o-mini"){
+      newEnvVar = "gpt-4o-mini"
+     toast.success(Model)}
+    else if(Model== "gpt-3.5-turbo"){
+      toast.success(Model)
+      newEnvVar = "gpt-3.5-turbo"
+    } 
+    else if(Model=="gpt-4o"){
+      toast.success(Model)
+      newEnvVar = "gpt-4o"
+    }
+    else{
+      
+      let myEnVar = process.env.OPENAI_API_MODEL || 'gpt-4o'
+      newEnvVar = "gpt-4o"
+    }
+  
+  SetMyEnvVar(newEnvVar);   
+}
+ 
+
+  
+
   return (
     
     <div
@@ -152,7 +179,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                  
                 {selectedValue=="Lighting"? 
                  <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
-                
+                  
                  :null
                 }
                 
@@ -183,7 +210,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                      <h5 className=' '><b>Speed</b></h5>
                      <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> New</b></h5>
                    </div>
-                    <DropdownMenuItem onClick={()=> setSelectedValue("Speed")}>
+                    <DropdownMenuItem onClick={()=> {setSelectedValue("Speed"); modelHandle("gpt-4o-mini")}}>
                       <IconBrandOpenai className='mr-2 h-6 w-7 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
                       <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-4o-mini</span>
                       <br></br>
@@ -193,7 +220,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                      <h5 className=' '><b>Lighting</b></h5>
                      <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'></b></h5>
                    </div>
-                    <DropdownMenuItem onClick={()=> setSelectedValue("Lighting")}>
+                    <DropdownMenuItem onClick={()=> {setSelectedValue("Lighting"); modelHandle("gpt-3.5-turbo")}}>
                       <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
                       <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-3.5</span>
                       <br></br>
@@ -206,7 +233,7 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
                     :<h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> login</b></h5>
                     }
                     </div>
-                    <DropdownMenuItem onClick={()=> setSelectedValue("Quality(GPT)")}>
+                    <DropdownMenuItem onClick={()=> {setSelectedValue("Quality(GPT)");modelHandle("gpt-4o")}}>
                       <IconSparkles className='mr-2 h-6 w-7 text-purple-700'/>
                       <span className='flex text-gray-500'>High quality generation<br></br> (OpenAI/GPT-4o)</span>
                       
