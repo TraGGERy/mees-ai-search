@@ -60,8 +60,8 @@ function Header  () {
       </a>
       }
       {isSignedIn?
-
-           <IconWallet className='w-5 h-5 mt-2'/>
+          <a href='/prices'>
+           <IconWallet className='w-5 h-5 mt-2'/></a>
         :null
       }
          
