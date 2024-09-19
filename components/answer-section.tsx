@@ -79,7 +79,7 @@ const extractImageUrls = (content= easy) => {
            <IconSearch className='mr-0 h-4 w-5 mt-1  text-green-400'/><p className='flex font-light text-sm'>Mees Ai Research</p></div>
           <BotMessage content={content} />
 
-          <div className='flex justify-end '><IconCopy className='mr-1 h-5 w-8 mt-1  text-purple-700' onClick={handleCopy}/></div>
+          <div className='flex justify-end '><IconCopy className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handleCopy}/></div>
         </Section>
       ) : (
         <DefaultSkeleton />

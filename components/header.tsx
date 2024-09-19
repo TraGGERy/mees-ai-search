@@ -7,8 +7,8 @@ import HistoryContainer from './history-container'
 import reactElementToJSXString from "react-element-to-jsx-string";
 import { toast, Toaster } from "sonner";
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
-import { IconHome, IconNews, IconUser } from '@tabler/icons-react'
-
+import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconUser } from '@tabler/icons-react'
+import { NotificationUpdate } from './xui/notifiatication-update'
 
 function Header  () {
   const {user,isSignedIn}=useUser();
@@ -23,7 +23,10 @@ function Header  () {
       </div>
       <div className="flex gap-0.5">
 
-  
+        
+      <div>
+      <NotificationUpdate></NotificationUpdate></div>
+     
     <a href='/news' >
       <button className="bg-slate-800 m-2 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-5  text-white inline-block">
         <span className="absolute inset-0 overflow-hidden rounded-full">
@@ -36,6 +39,7 @@ function Header  () {
         <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
       </button>
       </a> 
+
       
       
   {isSignedIn?
