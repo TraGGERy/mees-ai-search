@@ -51,6 +51,11 @@ const [open, setOpen] = useState(false)
     }
   }
 
+   const handlePdf = () =>{
+    toast.success('coming soon')
+  }
+  
+
   // Function to extract text from content (replace with your actual method)
 const text = <BotMessage content={content} />
 const easy = JSON.stringify(text.props.content);
@@ -80,7 +85,7 @@ const extractImageUrls = (content= easy) => {
           <BotMessage content={content} />
 
           <div className='flex justify-end items-stretch'>
-            <IconCopy className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handleCopy}/>
+            <IconDownload className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handlePdf}/>
             <IconCopy className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handleCopy}/>
           </div>
         </Section>
