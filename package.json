@@ -55,7 +55,6 @@
     "next": "^14.2.3",
     "next-themes": "^0.3.0",
     "ollama-ai-provider": "^0.7.0",
-    "prisma": "^5.19.1",
     "pwa-install-handler": "^2.6.0",
     "react-dom": "^18",
     "react-element-to-jsx-string": "^15.0.0",
