@@ -3,13 +3,15 @@
 import { Section } from './section'
 import { StreamableValue, useStreamableValue } from 'ai/rsc'
 import { BotMessage } from './message'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { DefaultSkeleton } from './default-skeleton'
 import { IconCopy, IconCopyX, IconDownload, IconPlayerTrackNext, IconSearch } from '@tabler/icons-react'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { toast } from 'sonner'
 import { any } from 'zod'
 import { convertToCoreMessages } from 'ai'
+import { User } from '@clerk/nextjs/server'
+import { useUser } from '@clerk/nextjs'
 
 
 
@@ -22,10 +24,13 @@ export function AnswerSection({
   result,
   hasHeader = true
 }: AnswerSectionProps) {
+  const user = useUser()
+
   const [data, error, pending] = useStreamableValue(result)
   const [content, setContent] = useState<string>('')
 const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
 const [open, setOpen] = useState(false)
+
 
   useEffect(() => {
     if (!data) return
@@ -52,6 +57,8 @@ const [open, setOpen] = useState(false)
   }
 
    const handlePdf = () =>{
+    
+        
     toast.success('coming soon')
   }
   
@@ -83,10 +90,13 @@ const extractImageUrls = (content= easy) => {
           <div className='flex items-stretch'>
            <IconSearch className='mr-0 h-4 w-5 mt-1  text-green-400'/><p className='flex font-light text-sm'>Mees Ai Research</p></div>
           <BotMessage content={content} />
-
+         <div> 
+          <div className='flex justify-start items-stretch text-wrap mt-1'> hello</div>
           <div className='flex justify-end items-stretch'>
             <IconDownload className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handlePdf}/>
             <IconCopy className='mr-1 h-5 w-8 mt-1 active:bg-gray-700 focus:outline-none text-purple-700 rounded-md hover:bg-green-600' onClick={handleCopy}/>
+          </div>
+          
           </div>
         </Section>
       ) : (
