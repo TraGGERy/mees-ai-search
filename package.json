@@ -1,5 +1,5 @@
 {
-  "name": "Mees-Ai",
+  "name": "Mees Ai",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -8,8 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:push": "drizzle-kit push"
+    
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.21",
