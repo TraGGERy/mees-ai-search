@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { type Chat } from '@/lib/types'
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
+import { useUser } from '@clerk/nextjs'
 
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
@@ -105,6 +106,7 @@ export async function clearChats(
 
 export async function saveChat(chat: Chat, userId: string = 'anonymous') {
   try {
+    
     const redis = await getRedis()
     const pipeline = redis.pipeline()
 
