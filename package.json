@@ -43,6 +43,7 @@
     "exa-js": "^1.0.12",
     "framer-motion": "^11.3.24",
     "katex": "^0.16.10",
+    "list": "^2.0.19",
     "lucide-react": "^0.363.0",
     "next": "^14.2.3",
     "next-themes": "^0.3.0",
