@@ -135,20 +135,20 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
 
 
   
-const modelHandle=(Model: String)=>{
+const modelHandle=(ModelName: String)=>{
     let newEnvVar;
-    if(Model =="gpt-4o-mini"){
+    if(ModelName =="gpt-4o-mini"){
       newEnvVar = "gpt-4o-mini"
-     toast.success(Model)
+     toast.success(ModelName)
         
     }
 
-    else if(Model== "gpt-3.5-turbo"){
-      toast.success(Model)
+    else if(ModelName== "gpt-3.5-turbo"){
+      toast.success(ModelName)
       newEnvVar = "gpt-3.5-turbo"
     } 
-    else if(Model=="gpt-4o"){
-      toast.success(Model)
+    else if(ModelName=="gpt-4o"){
+      toast.success(ModelName)
       newEnvVar = "gpt-4o"
     }
     else{
