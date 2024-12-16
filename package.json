@@ -75,6 +75,7 @@
     "openai": "^4.72.0",
     "openai-edge": "^1.2.2",
     "pdf-parse": "^1.1.1",
+    "react-day-picker": "^9.4.4",
     "react-dom": "^18",
     "react-dropzone": "^14.3.5",
     "react-icons": "^5.0.1",
