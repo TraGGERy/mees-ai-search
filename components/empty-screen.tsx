@@ -1,22 +1,25 @@
-import { Button } from '@/components/ui/button'
-import { ArrowRight, TrendingUpIcon } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { IconMessage } from "@tabler/icons-react"
+import { ArrowRight, Quote, Atom, PenSquare, Rocket } from 'lucide-react'
+import Link from "next/link"
 
 const exampleMessages = [
   {
-    heading: 'What is StarLink kit?',
-    message: 'What is StarLink kit?'
+    heading: 'What is OpenAI o1?',
+    message: 'What is OpenAI o1?'
   },
   {
     heading: 'Why is Nvidia growing rapidly?',
     message: 'Why is Nvidia growing rapidly?'
   },
   {
-    heading: 'Do a research on why Nation Fail ?',
-    message: 'Do a research on why Nation Fail?'
+    heading: 'Tesla vs Rivian',
+    message: 'Tesla vs Rivian'
   },
   {
-    heading: 'Econet zimbabwe vs Netone zimbabwe',
-    message: 'Econet zimbabwe vs Netone zimbabwe'
+    heading: 'Summary: https://arxiv.org/pdf/2407.16833',
+    message: 'Summary: https://arxiv.org/pdf/2407.16833'
   }
 ]
 export function EmptyScreen({
@@ -27,24 +30,35 @@ export function EmptyScreen({
   className?: string
 }) {
   return (
-    <div className={`mx-auto w-full transition-all ${className}`}>
-      <div className="bg-background p-2">
-        <div className="mt-4 flex flex-col items-start space-y-2 mb-4">
-          {exampleMessages.map((message, index) => (
-            <Button
-              key={index}
-              variant="link"
-              className="h-auto p-0 text-base"
-              name={message.message}
-              onClick={async () => {
-                submitMessage(message.message)
-              }}
-            >
-              <TrendingUpIcon size={16} className="mr-2 text-muted-foreground" />
-              {message.heading}
-            </Button>
-          ))}
+    <div className="top-8 p-3">
+      <div className="mx-auto max-w-3xl space-y-4">
+        {/* Action Cards Grid */}
+        <div className="mx-auto w-full">
+          <div className="bg-background p-1">
+            <div className="grid grid-cols-2 gap-2">
+              {exampleMessages.map((message, index) => (
+                <Card key={index} className="group relative overflow-hidden bg-zinc-900 border border-purple-500 transition-colors hover:border-purple-400">
+                  <Button
+                    variant="link"
+                    className="h-auto p-2 text-xs sm:text-sm w-full justify-start"
+                    name={message.message}
+                    onClick={() => submitMessage(message.message)}
+                  >
+                    <div className="flex items-start space-x-2">
+                      <IconMessage className="h-4 w-4 text-purple-500 mt-1" />
+                      <div className="flex flex-col items-start">
+                        <ArrowRight size={12} className="mb-1 text-purple-400" />
+                        <span className="font-semibold text-white">{message.heading}</span>
+                      </div>
+                    </div>
+                  </Button>
+                </Card>
+              ))}
+            </div>
+            
+          </div>
         </div>
+
       </div>
     </div>
   )

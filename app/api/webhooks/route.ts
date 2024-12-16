@@ -1,44 +1,93 @@
 import Stripe from "stripe";
 import { NextResponse, NextRequest } from "next/server";
+import { db } from "@/db/db";
+import { eq } from "drizzle-orm";
+import { subscribedUsers, subscriptionEvents } from "@/db/schema";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-09-30.acacia",
+});
+
 export async function POST(req: NextRequest) {
   const payload = await req.text();
-  const res = JSON.parse(payload);
-
   const sig = req.headers.get("Stripe-Signature");
 
-  const dateTime = new Date(res?.created * 1000).toLocaleDateString();
-  const timeString = new Date(res?.created * 1000).toLocaleDateString();
-
   try {
-    let event = stripe.webhooks.constructEvent(
+    const event = stripe.webhooks.constructEvent(
       payload,
       sig!,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
 
-    console.log("Event", event?.type);
-    // charge.succeeded
-    // payment_intent.succeeded
-    // payment_intent.created
+    console.log("Event:", event.type);
 
-    console.log(
-      res?.data?.object?.billing_details?.email, // email
-      res?.data?.object?.amount, // amount
-      JSON.stringify(res), // payment info
-      res?.type, // type
-      String(timeString), // time
-      String(dateTime), // date
-      res?.data?.object?.receipt_email, // email
-      res?.data?.object?.receipt_url, // url
-      JSON.stringify(res?.data?.object?.payment_method_details), // Payment method details
-      JSON.stringify(res?.data?.object?.billing_details), // Billing details
-      res?.data?.object?.currency // Currency
-    );
+    // Only handle 'invoice.payment_succeeded' event
+    if (event.type !== "invoice.payment_succeeded") {
+      return NextResponse.json({
+        status: "Ignored",
+        message: "Only handling invoice.payment_succeeded events.",
+      });
+    }
 
-    return NextResponse.json({ status: "sucess", event: event.type, response: res });
+    const invoice = event.data.object as Stripe.Invoice; // Correctly casting to Invoice object
+    const userId = invoice.customer as string; // Stripe customer ID
+    const email = invoice.customer_email || ""; // Default fallback if email is null
+    const subscriptionStatus = invoice.status; // Assuming status is 'paid' when payment is successful
+    const receiptUrl = invoice.hosted_invoice_url || null; // Extract the receipt URL
+    const amountPaid = invoice.amount_paid / 100;
+    let currentPlan = "Pro"; // Assume "Pro" plan
+    if (amountPaid >= 7.99 && amountPaid <= 20) {
+      currentPlan = "Monthly";
+    } else if (amountPaid > 100) {
+      currentPlan = "Yearly";
+    }
+    const nextInvoiceDate = new Date(new Date().setDate(new Date().getDate() + 30)); // Set next invoice date to 30 days from now
+
+    // Insert the event data into the subscriptionEvents table
+    await db.insert(subscriptionEvents).values({
+      eventId: event.id,
+      eventPayload: event,
+      email: email,
+    });
+
+    // Check if the user already exists in the subscribedUsers table
+    const existingUser = await db
+      .select()
+      .from(subscribedUsers)
+      .where(eq(subscribedUsers.email, email))
+      .limit(1);
+
+    if (existingUser.length > 0) {
+      // User exists, update their subscription data
+      await db
+        .update(subscribedUsers)
+        .set({
+          type: event.type,
+          subscriptionStatus: subscriptionStatus || null,
+          currentPlan: currentPlan || null,
+          nextInvoiceDate: nextInvoiceDate || null,
+          InvoicePdfUrl: receiptUrl || null, // Save the receipt URL
+        })
+        .where(eq(subscribedUsers.email, email));
+    } else {
+      // User doesn't exist, insert a new record
+      await db.insert(subscribedUsers).values({
+        email: email,
+        userId: userId, // Set the Stripe customer ID as userId
+        type: event.type,
+        subscriptionStatus: subscriptionStatus || null,
+        currentPlan: currentPlan || null,
+        nextInvoiceDate: nextInvoiceDate || null,
+        InvoicePdfUrl: receiptUrl || null, // Save the receipt URL
+      });
+    }
+
+    return NextResponse.json({
+      status: "success",
+      event: event.type,
+    });
   } catch (error) {
-    return NextResponse.json({ status: "Failed", error });
+    console.error("Error processing Stripe webhook:", error);
+    return NextResponse.json({ status: "Failed", error: error });
   }
 }

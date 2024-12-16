@@ -96,8 +96,7 @@ We may update this Privacy Policy from time to time. When we make changes, we wi
 If you have any questions or concerns about this Privacy Policy or our privacy practices, please contact us at:
 <br></br>
 Mees AI
-Email: info@mees.co.nz and admin@mees.co.nz
-Address: 4 rothsay harare
+Email: info@mees-ai.co.zw and admin@mees.co.nz
             </p>
 
             </center>

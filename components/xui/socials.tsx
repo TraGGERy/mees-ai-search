@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { IconBrightness, IconCalendarBolt, IconCodeDots, IconCopy, IconCopyX, IconDesk, IconDeviceLaptop, IconDots, IconLamp, IconLighter, IconMarkdown, IconMarkdownOff, IconMoon, IconPlayerTrackNext, IconSearch, IconSelect, IconSocial, IconSun, IconVersions } from '@tabler/icons-react'
-import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiInfosys, SiPrivateinternetaccess, SiTwitter, SiWhatsapp, SiX } from 'react-icons/si'
+import { IconBadge, IconBrightness, IconCalendarBolt, IconCodeDots, IconCopy, IconCopyX, IconDesk, IconDeviceLaptop, IconDots, IconLamp, IconLighter, IconMarkdown, IconMarkdownOff, IconMoon, IconPlayerTrackNext, IconSearch, IconSelect, IconSocial, IconSun, IconVersions } from '@tabler/icons-react'
+import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiHelpdesk, SiInfosys, SiMattermost, SiPrivateinternetaccess, SiTwitter, SiWhatsapp, SiX } from 'react-icons/si'
 import Link from 'next/link'
 
 export function Socials() {
@@ -28,39 +28,54 @@ export function Socials() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem >
+        <a href='/home'> 
         <Button
           variant={'ghost'}
           size={'icon'}
-          className="text-muted-foreground/50"
+          className="text-muted-foreground/50 items-stretch"
         >
-          <Link href="https://twitter.com/Mees_nz" target="_blank">
-            <SiX size={18} />
-          </Link>
+          
+            <IconBadge size={16} />
         </Button>
-         X
+         <span>Mees Ai Pro</span> </a> 
         </DropdownMenuItem>
         <DropdownMenuItem >
+        <a href='/help_&_faq'> 
         <Button
           variant={'ghost'}
           size={'icon'}
-          className="text-muted-foreground/50"
+          className="text-muted-foreground/50 items-stretch"
         >
-          <Link href="https://facebook.com/profile.php?id=100090089754837&mibextid=LQQJ4d" target="_blank">
-            <SiFacebook size={18} />
-          </Link>
-        </Button> Facebook
+            <SiHelpdesk size={16} />
+        
+        </Button> Help And FAQ</a>
 
         </DropdownMenuItem>
+
         <DropdownMenuItem >
+        <a href='/terms-of-service'>
         <Button
           variant={'ghost'}
           size={'icon'}
-          className="text-muted-foreground/50"
+          className="text-muted-foreground/50 items-stretch"
         >
-          <Link href="https://whatsapp.com/channel/0029VafFHO8IyPtbwtGq7K1G" target="_blank">
-            <SiWhatsapp size={18} />
-          </Link>
-        </Button> WhatsApp
+          
+            <SiMattermost size={16} />
+          
+        
+        </Button> Terms of service</a>
+        
+        </DropdownMenuItem>
+        <DropdownMenuItem >
+        <a href='/privacy-policy'>
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          className="text-muted-foreground/50 items-stretch"
+        >
+        
+        <SiPrivateinternetaccess size={16}/>
+        </Button>Privacy Policy</a>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

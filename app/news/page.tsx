@@ -1,9 +1,11 @@
+
 "use client";
 
 import { generateId } from 'ai'
 import { redirect } from 'next/navigation'
 import React, { useEffect, useState } from "react";
 import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
+import { newsArticles } from '@/db/schema';
 
 import { useId } from "react";
 import { link } from 'fs';
