@@ -9,7 +9,7 @@ import { chatNeon } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import path from 'path'
 import { currentUser } from '@clerk/nextjs/server'
-import { searchFeedback } from '@/db/schema'
+
 
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
@@ -193,18 +193,3 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
   return payload
 }
 
-export async function saveFeedback(searchId: number, userId: string, liked: boolean, disliked: boolean) {
-  try {
-    await db.insert(searchFeedback).values({
-      searchId,
-      userId,
-      liked,
-      disliked,
-      createdAt: new Date() // Set the createdAt timestamp to the current date and time
-    });
-    console.log(`Feedback for search ID ${searchId} saved successfully.`);
-  } catch (error) {
-    console.error('Error saving feedback:', error);
-    throw new Error('Failed to save feedback');
-  }
-}
