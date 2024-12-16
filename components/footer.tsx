@@ -13,9 +13,6 @@ const Footer: React.FC = () => {
           size={'icon'}
           className="text-muted-foreground/50"
         >
-          <Link href="/privacy-policy" target="_blank">
-            <SiPrivateinternetaccess size={18}/>
-          </Link>
         </Button>
         <Socials></Socials>
       </div>

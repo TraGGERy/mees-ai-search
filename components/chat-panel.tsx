@@ -7,34 +7,30 @@ import { useUIState, useActions, useAIState } from 'ai/rsc'
 import { cn } from '@/lib/utils'
 import { UserMessage } from './user-message'
 import { Button } from './ui/button'
-import { ArrowRight, CodeIcon, Keyboard, Plus, Settings, User, User2 } from 'lucide-react'
+import { ArrowRight, Plus, Upload } from 'lucide-react'
 import { EmptyScreen } from './empty-screen'
 import Textarea from 'react-textarea-autosize'
 import { generateId } from 'ai'
 import { useAppState } from '@/lib/utils/app-state'
-import { AnimatedTooltipPreview } from './xui/floating'
-import reactElementToJSXString from 'react-element-to-jsx-string'
-import { TextGenerateEffectDemo } from './xui/headline'
+import { ModelSelector } from './model-selector'
+import { models } from '@/lib/types/models'
+import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { getDefaultModelId } from '@/lib/utils'
 import { toast } from 'sonner'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
-import { IconAlien, IconBrandCodesandbox, IconBrandOpenai, IconLighter, IconPlayerSkipForwardFilled, IconPlayerTrackNext, IconRobotFace, IconSparkles, IconUser } from '@tabler/icons-react'
-import { getModel } from '@/lib/utils'
-import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
+import { Search, Sparkle } from 'lucide-react'
+import { motion } from 'framer-motion';
+import { Trending } from './xui/trending'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { FileUpload } from './file-upload'
 
 interface ChatPanelProps {
   messages: UIState
   query?: string
+  onModelChange?: (id: string) => void
 }
 
-export function ChatPanel({ messages, query }: ChatPanelProps) {
+export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
   const [input, setInput] = useState('')
-  const[myEnVar, SetMyEnvVar]=useState(process.env.OPENAI_API_MODEL || 'gpt-4o-mini');
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const [, setMessages] = useUIState<typeof AI>()
   const [aiMessage, setAIMessage] = useAIState<typeof AI>()
@@ -43,14 +39,25 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const router = useRouter()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isFirstRender = useRef(true) // For development environment
-  const {user,isSignedIn}=useUser();
-  const [selectedValue, setSelectedValue] = useState('Speed');
 
-  const handleDropdownChange = (value: any) => {
-    setSelectedValue(value);
-  };
+  const [selectedModelId, setSelectedModelId] = useLocalStorage<string>(
+    'selectedModel',
+    getDefaultModelId(models)
+  )
 
- 
+  const [isComposing, setIsComposing] = useState(false) // Composition state
+  const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
+
+  const handleCompositionStart = () => setIsComposing(true)
+
+  const handleCompositionEnd = () => {
+    setIsComposing(false)
+    setEnterDisabled(true)
+    setTimeout(() => {
+      setEnterDisabled(false)
+    }, 300)
+  }
+
   async function handleQuerySubmit(query: string, formData?: FormData) {
     setInput(query)
     setIsGenerating(true)
@@ -64,11 +71,18 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
       }
     ])
 
-    // Submit and get response message
+    // Use existing formData or create new one
     const data = formData || new FormData()
+
+    // Add or update the model information
+    const modelString = selectedModelId
+    data.set('model', modelString)
+
+    // Add or update the input query if not already present
     if (!formData) {
-      data.append('input', query)
+      data.set('input', query)
     }
+
     const responseMessage = await submit(data)
     setMessages(currentMessages => [...currentMessages, responseMessage])
   }
@@ -76,7 +90,14 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    await handleQuerySubmit(input, formData)
+    try {
+      await handleQuerySubmit(input, formData)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      toast.error(`${error}`)
+
+      handleClear()
+    }
   }
 
   // if query is not empty, submit the query
@@ -133,207 +154,112 @@ export function ChatPanel({ messages, query }: ChatPanelProps) {
     return null
   }
 
-
-  
-const modelHandle=(ModelName: String)=>{
-    let newEnvVar;
-    if(ModelName =="gpt-4o-mini"){
-      newEnvVar = "gpt-4o-mini"
-     toast.success(ModelName)
-        
-    }
-
-    else if(ModelName== "gpt-3.5-turbo"){
-      toast.success(ModelName)
-      newEnvVar = "gpt-3.5-turbo"
-    } 
-    else if(ModelName=="gpt-4o"){
-      toast.success(ModelName)
-      newEnvVar = "gpt-4o"
-    }
-    else{
-      
-      let myEnVar = process.env.OPENAI_API_MODEL || 'gpt-4o'
-      newEnvVar = "gpt-4o"
-    }
-  
-  SetMyEnvVar(newEnvVar);   
-  
-}
- 
-
-  
-
   return (
-    
-    <div
-      className={
-        'fixed bottom-8 left-0 right-0 top-10 mx-auto h-screen flex flex-col items-center justify-center'
-      }
-    >
-     
-      
-      
-      <form onSubmit={handleSubmit} className="max-w-2xl w-full px-6 top-10">
-      <div className={'mt-4 flex flex-col items-start space-y-2 mb-4'}>
-        
-        <DropdownMenu>
-              <DropdownMenuTrigger>
-                <div className='flex items-stretch px-0'>
-                 
-                {selectedValue=="Lighting"? 
-                 <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
-                  
-                 :null
-                }
-                
-                {selectedValue=="Quality(Claude)"? 
-                <IconSparkles className='mr-2 h-6 w-7 text-orange-700'/>
-                :null
-                }
-
-                {selectedValue=="Quality(GPT)"? 
-                 <IconSparkles className='mr-2 h-6 w-7 text-purple-700'/>
-                :null}
-                
-                {selectedValue=="Speed"? 
-                <IconPlayerTrackNext className='mr-2 h-4 w-5 mt-1 underline-offset-auto px-0 text-green-400'/>
-                 :null }
-                <h6><b>{selectedValue}</b></h6>
-                </div>
-                
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className='w-60'>
-                <center>
-                <DropdownMenuLabel>
-              
-                  </DropdownMenuLabel></center>
-                <DropdownMenuSeparator/>
-                <DropdownMenuGroup>
-                    <div className='flex space-x-1 px-7'>
-                     <h5 className=' '><b>Speed</b></h5>
-                     <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> New</b></h5>
-                   </div>
-                    <DropdownMenuItem onClick={()=> {setSelectedValue("Speed"); modelHandle("gpt-4o-mini")}}>
-                      <IconBrandOpenai className='mr-2 h-6 w-7 underline-offset-auto text-green-700 text-pretty align-text-bottom'/>
-                      <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-4o-mini</span>
-                      <br></br>
-                    </DropdownMenuItem >
-
-                    <div className='flex space-x-1 px-7'>
-                     <h5 className=' '><b>Lighting</b></h5>
-                     <h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'></b></h5>
-                   </div>
-                    <DropdownMenuItem onClick={()=> {setSelectedValue("Lighting"); modelHandle("gpt-3.5-turbo")}}>
-                      <IconBrandCodesandbox className='mr-2 h-6 w-7 underline-offset-auto text-blue-700 text-pretty align-text-bottom'/>
-                      <span className='flex text-gray-500'>High speed,but low quality <br></br>OpenAI/GPT-3.5</span>
-                      <br></br>
-                    </DropdownMenuItem >
-
-                    <div className='flex space-x-1 px-7'>
-                    <h5 className='font-bold '>Quality(GPT)</h5>
-                    {isSignedIn?
-                    <h5><b className='inline-block bg-purple-400  text-black font-bold  px-5 rounded-full'> Pro</b></h5>
-                    :<h5><b className='inline-block bg-green-400  text-black font-bold  px-5 rounded-full'> login</b></h5>
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-background to-muted/50 overflow-hidden">
+      <motion.div
+        className="absolute top-16 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-purple-400 to-purple-700 bg-clip-text text-transparent">
+          Mees AI Search
+        </h1>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Explore <span className="text-purple-700">AI</span> with seamless search.
+        </p>
+      </motion.div>
+      <div
+        className={
+          'fixed bottom-8 left-0 right-0 top-10 mx-auto h-screen flex flex-col items-center justify-center'
+        }
+      >
+        <form onSubmit={handleSubmit} className="max-w-3xl w-full px-4 md:px-6">
+          <div className="relative flex items-center w-full">
+            <ModelSelector
+              selectedModelId={selectedModelId}
+              onModelChange={id => {
+                setSelectedModelId(id)
+                onModelChange?.(id)
+              }}
+            />
+            <div className="relative flex-grow top-3">
+              <Textarea
+                ref={inputRef}
+                name="input"
+                rows={1}
+                maxRows={5}
+                tabIndex={0}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
+                placeholder="Ask a question..."
+                spellCheck={false}
+                value={input}
+                className="resize-none w-full min-h-12 rounded-full bg-muted/50 border border-input pl-4 pr-20 py-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                onChange={e => {
+                  setInput(e.target.value)
+                  setShowEmptyScreen(e.target.value.length === 0)
+                }}
+                onKeyDown={e => {
+                  if (
+                    e.key === 'Enter' &&
+                    !e.shiftKey &&
+                    !isComposing &&
+                    !enterDisabled
+                  ) {
+                    if (input.trim().length === 0) {
+                      e.preventDefault()
+                      return
                     }
-                    </div>
-                    <DropdownMenuItem onClick={()=> {setSelectedValue("Quality(GPT)");modelHandle("gpt-4o")}}>
-                      <IconSparkles className='mr-2 h-6 w-7 text-purple-700'/>
-                      <span className='flex text-gray-500'>High quality generation<br></br> (OpenAI/GPT-4o)</span>
-                      
-                    </DropdownMenuItem>
-                    <div className='flex space-x-1 px-7'>
-                    <h6 className='font-bold '>Quality(Claude)</h6>
-                    {isSignedIn?
-                     <h5><b className='inline-block bg-orange-400  text-black font-bold  px-4 rounded-full'> Pro</b></h5>
-                    :<h5><b className='inline-block bg-green-400  text-black font-bold  px-4 rounded-full'> login</b></h5>
-                   }
-                   </div>
-                    <DropdownMenuItem onClick={()=> setSelectedValue("Quality(Claude)")}>
-                      <IconSparkles className='mr-2 h-6 w-7 text-orange-700'/>
-                      <span className='flex text-gray-500'>High quality generation<br></br>(Claude3.5-Sonnet)</span>
-                      
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-          </DropdownMenu>   
-
-        </div>
-        <div className="relative flex items-center w-full">
-          <Textarea
-            ref={inputRef}
-            name="input"
-            rows={1}
-            maxRows={5}
-            tabIndex={0}
-            placeholder="Ask a question..."
-            spellCheck={false}
-            value={input}
-            className="resize-none w-full min-h-12 rounded-fill bg-muted border border-input pl-4 pr-10 pt-3 pb-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'"
-            onChange={e => {
-              setInput(e.target.value)
-              setShowEmptyScreen(e.target.value.length === 0)
+                    e.preventDefault()
+                    const textarea = e.target as HTMLTextAreaElement
+                    textarea.form?.requestSubmit()
+                  }
+                }}
+                onHeightChange={height => {
+                  if (!inputRef.current) return
+                  const initialHeight = 70
+                  const initialBorder = 32
+                  const multiple = (height - initialHeight) / 20
+                  const newBorder = initialBorder - 4 * multiple
+                  inputRef.current.style.borderRadius =
+                    Math.max(8, newBorder) + 'px'
+                }}
+                onFocus={() => setShowEmptyScreen(true)}
+                onBlur={() => setShowEmptyScreen(false)}
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button type="button" size="icon" variant="ghost">
+                      <Upload size={20} />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <FileUpload />
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  disabled={input.length === 0}
+                >
+                  <ArrowRight size={20} />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <EmptyScreen
+            submitMessage={message => {
+              setInput(message)
             }}
-            onKeyDown={e => {
-              // Enter should submit the form
-              if (
-                e.key === 'Enter' &&
-                !e.shiftKey &&
-                !e.nativeEvent.isComposing
-              ) {
-                // Prevent the default action to avoid adding a new line
-                if (input.trim().length === 0) {
-                  e.preventDefault()
-                  return
-                }
-                e.preventDefault()
-                const textarea = e.target as HTMLTextAreaElement
-                textarea.form?.requestSubmit()
-              }
-            }}
-            onHeightChange={height => {
-              // Ensure inputRef.current is defined
-              if (!inputRef.current) return
-
-              // The initial height and left padding is 70px and 2rem
-              const initialHeight = 70
-              // The initial border radius is 32px
-              const initialBorder = 32
-              // The height is incremented by multiples of 20px
-              const multiple = (height - initialHeight) / 20
-
-              // Decrease the border radius by 4px for each 20px height increase
-              const newBorder = initialBorder - 4 * multiple
-              // The lowest border radius will be 8px
-              inputRef.current.style.borderRadius =
-                Math.max(8, newBorder) + 'px'
-            }}
-            onFocus={() => setShowEmptyScreen(true)}
-            onBlur={() => setShowEmptyScreen(false)}
+            className={cn(showEmptyScreen ? 'visible' : 'invisible')}
           />
-          <Button
-            type="submit"
-            size={'icon'}
-            variant={'ghost'}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            disabled={input.length === 0}
-          >
-            <ArrowRight size={20} />
-          </Button>
-        </div>
-        <EmptyScreen
-          submitMessage={message => {
-            setInput(message)
-          }}
-          className={cn(showEmptyScreen ? 'visible' : 'invisible')}
-        />
-      </form>   
-       <h6 className='flex bottom-2' ><TextGenerateEffectDemo/></h6>
-        
-        <a href='/news'>
-        <AnimatedTooltipPreview/>
-        </a>
-        <br></br>
+        </form>
+      </div>
+      <Trending/>
     </div>
   )
 }
+

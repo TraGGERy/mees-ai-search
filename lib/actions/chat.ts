@@ -4,11 +4,50 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { type Chat } from '@/lib/types'
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
-import { useUser } from '@clerk/nextjs'
+import { db } from '@/db/db'
+import { chatNeon } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
+import path from 'path'
+import { currentUser } from '@clerk/nextjs/server'
+import { searchFeedback } from '@/db/schema'
 
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
 }
+// Function to check if a chat with the given chatId exists
+export async function chatExists(chatId: string): Promise<boolean> {
+  const existingChat = await db
+    .select()
+    .from(chatNeon)
+    .where(eq(chatNeon.chatId, chatId)) // Query by chatId directly
+    .execute();
+
+  return existingChat.length > 0; // Return true if a chat with this ID exists
+}
+//to save chats to neon database
+export async function saveChatNeon(chat: Chat){
+   
+  const { id: chatId,createdAt, userId, path, title, messages } = chat;
+  
+  //check for if the chatId exist 
+  const exists = await chatExists(chatId);
+  if(!exists){ 
+  await db.insert(chatNeon).values({
+    
+    chatId,
+    createdAt,
+    userId,
+    path,
+    title,
+    messages: JSON.stringify(messages), // Store messages as JSON
+  });
+  console.log(`Chat with path  saved successfully.`);
+}else{
+  //update the chat if it exist
+  console.log(`Chat with path already exists. Skipping save.`);
+}
+}
+
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -106,7 +145,6 @@ export async function clearChats(
 
 export async function saveChat(chat: Chat, userId: string = 'anonymous') {
   try {
-    
     const redis = await getRedis()
     const pipeline = redis.pipeline()
 
@@ -153,4 +191,20 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
   await redis.hmset(`chat:${id}`, payload)
 
   return payload
+}
+
+export async function saveFeedback(searchId: number, userId: string, liked: boolean, disliked: boolean) {
+  try {
+    await db.insert(searchFeedback).values({
+      searchId,
+      userId,
+      liked,
+      disliked,
+      createdAt: new Date() // Set the createdAt timestamp to the current date and time
+    });
+    console.log(`Feedback for search ID ${searchId} saved successfully.`);
+  } catch (error) {
+    console.error('Error saving feedback:', error);
+    throw new Error('Failed to save feedback');
+  }
 }

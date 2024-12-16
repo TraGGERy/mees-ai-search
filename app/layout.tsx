@@ -13,6 +13,7 @@ import AdSense from '@/components/AdSense';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
+import { Sidebarmees } from '@/components/setui/layout/sidebarmees'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -81,7 +82,8 @@ export default function RootLayout({
           <AppStateProvider>
             <Header />
             {children}
-            
+            <Sidebarmees/>
+            <Sidebar/>
             <Footer />
             <Toaster />
           </AppStateProvider>
