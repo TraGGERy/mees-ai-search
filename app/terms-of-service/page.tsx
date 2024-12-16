@@ -19,7 +19,7 @@ export default function TermsOfService() {
       <p className="mb-4"><strong>Effective Date:</strong> 04 August 2024</p>
       
       <p className="mb-6">
-        Welcome to Mees AI! These Terms of Service (Terms) govern your access to and use of Mees AI (the "Service"), 
+        Welcome to Mees AI! These Terms of Service Terms govern your access to and use of Mees AI the Service, 
         including our website, applications, and any related services. By accessing or using the Service, you agree to 
         be bound by these Terms. If you do not agree, do not use the Service.
       </p>
