@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { Upload, FileType, Loader2 } from "lucide-react";
@@ -26,10 +26,17 @@ export default function UploadPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
-  const handleFileUpload = async (file: File) => {
+  // Updated function to handle File | null
+  const handleFileUpload = async (file: File | null) => {
+    if (!file) {
+      setUploadedFile(null);
+      setAnalysisResults(null);
+      return;
+    }
+
     setUploadedFile(file);
     setAnalysisResults(null);
-    
+
     toast({
       title: "File uploaded successfully",
       description: "Your document is ready for analysis.",
@@ -38,7 +45,7 @@ export default function UploadPage() {
 
   const handleAnalyze = async () => {
     if (!uploadedFile) return;
-    
+
     setIsAnalyzing(true);
     try {
       const results = await analyzeDocument(
@@ -46,7 +53,7 @@ export default function UploadPage() {
         selectedModel
       );
       setAnalysisResults(results);
-      
+
       toast({
         title: "Analysis complete",
         description: "Your document has been successfully analyzed.",
@@ -66,18 +73,18 @@ export default function UploadPage() {
     <div className="container mx-auto px-4 pt-24 pb-12">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">AI Document Analysis</h1>
-        
+
         <Card className="p-6">
           <div className="space-y-8">
             <FileUploader onFileUpload={handleFileUpload} />
-            
+
             {uploadedFile && (
               <>
                 <AIModelSelector
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
                 />
-                
+
                 <Button
                   onClick={handleAnalyze}
                   className="w-full bg-purple-600 hover:bg-purple-700"
