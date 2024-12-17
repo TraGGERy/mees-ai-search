@@ -6,7 +6,7 @@ import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FileUploaderProps {
-  onFileUpload: (file: File | null) => void; // Allow null as a valid argument
+  onFileUpload: (file: File | null) => void; // Accepts File or null
 }
 
 export default function FileUploader({ onFileUpload }: FileUploaderProps) {
@@ -16,7 +16,7 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (file) {
-        onFileUpload(file);
+        onFileUpload(file); // Pass the uploaded file to the parent
         if (file.type.startsWith("image/")) {
           const reader = new FileReader();
           reader.onload = () => {
@@ -40,7 +40,7 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
 
   const clearFile = () => {
     setPreview(null);
-    onFileUpload(null); // Pass null to clear the file
+    onFileUpload(null); // Pass null to indicate clearing the file
   };
 
   return (
@@ -48,12 +48,20 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${isDragActive ? "border-purple-500 bg-purple-500/10" : "border-border hover:border-purple-500"}`}
+          ${
+            isDragActive
+              ? "border-purple-500 bg-purple-500/10"
+              : "border-border hover:border-purple-500"
+          }`}
       >
         <input {...getInputProps()} />
         {preview ? (
           <div className="relative">
-            <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded" />
+            <img
+              src={preview}
+              alt="Preview"
+              className="max-h-48 mx-auto rounded"
+            />
             <Button
               variant="destructive"
               size="icon"
@@ -70,7 +78,9 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
           <div className="space-y-4">
             <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
             <div>
-              <p className="text-lg font-medium">Drop your file here or click to upload</p>
+              <p className="text-lg font-medium">
+                Drop your file here or click to upload
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 Supports PDF and images (PNG, JPG)
               </p>
