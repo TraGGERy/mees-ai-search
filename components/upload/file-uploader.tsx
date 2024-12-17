@@ -2,42 +2,45 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, File, X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FileUploaderProps {
-  onFileUpload: (file: File) => void;
+  onFileUpload: (file: File | null) => void; // Allow null as a valid argument
 }
 
 export default function FileUploader({ onFileUpload }: FileUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      onFileUpload(file);
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        onFileUpload(file);
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
       }
-    }
-  }, [onFileUpload]);
+    },
+    [onFileUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "image/*": [".png", ".jpg", ".jpeg"]
+      "image/*": [".png", ".jpg", ".jpeg"],
     },
-    maxFiles: 1
+    maxFiles: 1,
   });
 
   const clearFile = () => {
     setPreview(null);
-    onFileUpload(null);
+    onFileUpload(null); // Pass null to clear the file
   };
 
   return (
