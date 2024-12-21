@@ -32,12 +32,16 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
   const [lockedModelId, setLockedModelId] = useState<string | null>(null);
 
   // Set the default model to GPT-4o mini
-  useEffect(() => {
-    if (!selectedModelId) {
-      const defaultModelId = createModelId(models.find((model) => model.id === "gpt-4o-mini")!);
+  // Set the default model to GPT-4o mini
+useEffect(() => {
+  if (!selectedModelId) {
+    const defaultModel = models.find((model) => model.id === "gpt-4o-mini");
+    if (defaultModel) {
+      const defaultModelId = createModelId(defaultModel);
       onModelChange(defaultModelId);
     }
-  }, [selectedModelId, onModelChange]);
+  }
+}, [selectedModelId, onModelChange]);
 
   useEffect(() => {
     if (user) {

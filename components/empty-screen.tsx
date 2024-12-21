@@ -6,20 +6,20 @@ import Link from "next/link"
 
 const exampleMessages = [
   {
-    heading: 'What is OpenAI o1?',
-    message: 'What is OpenAI o1?'
+    heading: 'What is OpenAI o3?',
+    message: 'What is OpenAI o3?'
   },
   {
     heading: 'Why is Nvidia growing rapidly?',
     message: 'Why is Nvidia growing rapidly?'
   },
   {
-    heading: 'Tesla vs Rivian',
-    message: 'Tesla vs Rivian'
+    heading: 'Econet vs Starlink',
+    message: 'Econet vs Starlink'
   },
   {
-    heading: 'Summary: https://arxiv.org/pdf/2407.16833',
-    message: 'Summary: https://arxiv.org/pdf/2407.16833'
+    heading: 'Summary: https://arxiv.org/abs/2410.02677',
+    message: 'Summary: https://arxiv.org/abs/2410.02677'
   }
 ]
 export function EmptyScreen({
