@@ -5,15 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Chat } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { MessageSquare } from 'lucide-react';
 
-type HistoryItemProps = {
+interface HistoryItemProps {
   chat: Chat;
-};
+}
 
 const formatDateWithTime = (date: Date | string) => {
   const parsedDate = new Date(date);
   const now = new Date();
-  const yesterday = new Date();
+  const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
 
   const isSameDay = (a: Date, b: Date) =>
@@ -37,12 +38,19 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ chat }) => {
     <Link
       href={chat.path}
       className={cn(
-        'flex flex-col p-2 rounded border hover:bg-muted cursor-pointer',
-        isActive ? 'bg-muted/70 border-border' : 'border-transparent'
+        'flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors',
+        isActive && 'bg-muted/50'
       )}
     >
-      <div className="text-xs font-medium truncate">{chat.title}</div>
-      <div className="text-xs text-muted-foreground">{formatDateWithTime(chat.createdAt)}</div>
+      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">
+          {chat.title || 'New Chat'}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {formatDateWithTime(chat.createdAt)}
+        </div>
+      </div>
     </Link>
   );
 };

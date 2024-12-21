@@ -77,7 +77,7 @@ async function fetchChatIdsForUser(userId: string): Promise<string[]> {
 }
 
 // Function to load chats by fetching chat details for each chat ID and removing duplicates
-async function loadChats(userId: string): Promise<Chat[]> {
+export async function loadChats(userId: string): Promise<Chat[]> {
   const chatIds = await fetchChatIdsForUser(userId);
   const chats: Chat[] = [];
 

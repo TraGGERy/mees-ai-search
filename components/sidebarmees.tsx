@@ -14,6 +14,7 @@ import { userSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { IconDeviceMobile } from "@tabler/icons-react";
 import { SiFacebook, SiWhatsapp, SiX } from "react-icons/si";
+import { ClientHistoryList } from './client-history-list';
 
 interface SidebarProps {
   className?: string;
@@ -125,7 +126,7 @@ export function Sidebarmees({ className }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className={cn(
-      "flex h-full flex-col bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out",
+      "flex h-full flex-col bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out overflow-hidden",
       isExpanded ? "w-64" : "w-16"
     )}>
       {/* Sidebar Header */}
@@ -168,21 +169,16 @@ export function Sidebarmees({ className }: SidebarProps) {
           {/* Chat History */}
           {isExpanded && (
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Recent Chats</h3>
-              <div className="space-y-2">
-                {chatHistory.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={cn(
-                      "p-2 rounded-md text-sm",
-                      chat.isUser
-                        ? "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                        : "bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    )}
-                  >
-                    {chat.message}
-                  </div>
-                ))}
+              <div className="flex items-center gap-2 px-4 mb-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-medium">Recent Chats</h3>
+              </div>
+              
+              <div className="px-2">
+                {isSignedIn ?
+                <ClientHistoryList />
+               :<p>login to see history</p>
+                }
               </div>
             </div>
           )}
@@ -266,14 +262,20 @@ export function Sidebarmees({ className }: SidebarProps) {
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="left" className="p-0 bg-background border-r shadow-none">
-          <SidebarContent />
+        <SheetContent 
+          side="left" 
+          className="p-0 w-[280px] h-full overflow-hidden"
+          style={{ background: 'transparent', boxShadow: 'none' }}
+        >
+          <div className="h-[100vh] w-full bg-white dark:bg-gray-900 overflow-hidden">
+            <SidebarContent />
+          </div>
         </SheetContent>
       </Sheet>
 
-      <div className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
+      <aside className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
         <SidebarContent />
-      </div>
+      </aside>
     </>
   );
 }
