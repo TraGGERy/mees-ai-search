@@ -35,6 +35,11 @@ export function Sidebarmees({ className }: SidebarProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const savedIsExpanded = localStorage.getItem('sidebarExpanded');
+    setIsExpanded(savedIsExpanded === 'true');
+  }, []);
+
+  useEffect(() => {
     if (user) {
       const fetchEmail = async () => {
         try {
@@ -103,7 +108,8 @@ export function Sidebarmees({ className }: SidebarProps) {
   }, [user]);  
 
   useEffect(() => {
-    setIsExpanded(true);
+    setIsExpanded(false);
+    localStorage.setItem('sidebarExpanded', 'false');
   }, [pathname]);
 
   const routes = [
@@ -125,6 +131,7 @@ export function Sidebarmees({ className }: SidebarProps) {
       setIsOpen(false);
     }
     setIsExpanded(false);
+    localStorage.setItem('sidebarExpanded', 'false');
   };
 
   const SidebarContent = () => (
@@ -140,7 +147,16 @@ export function Sidebarmees({ className }: SidebarProps) {
             <span className="font-semibold text-gray-900 dark:text-gray-100">Mees AI</span>
           </div>
         )}
-        <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)} className="ml-auto">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => {
+            const newIsExpanded = !isExpanded;
+            setIsExpanded(newIsExpanded);
+            localStorage.setItem('sidebarExpanded', newIsExpanded.toString());
+          }} 
+          className="ml-auto"
+        >
           {isExpanded ? <ChevronLeftCircle className="h-6 w-6" /> : <ChevronRightCircle className="h-6 w-6" />}
         </Button>
       </div>
@@ -255,30 +271,34 @@ export function Sidebarmees({ className }: SidebarProps) {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-40 lg:hidden"
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu className="h-6 w-6 text-purple-600" />
-      </Button>
+      {pathname !== '/home' && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="fixed top-4 left-4 z-40 lg:hidden"
+            onClick={() => setIsOpen(true)}
+          >
+            <Menu className="h-6 w-6 text-purple-600" />
+          </Button>
 
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent 
-          side="left" 
-          className="p-0 w-[280px] h-full overflow-hidden"
-          style={{ background: 'transparent', boxShadow: 'none' }}
-        >
-          <div className="h-[100vh] w-full bg-white dark:bg-gray-900 overflow-hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetContent 
+              side="left" 
+              className="p-0 w-[280px] h-full overflow-hidden"
+              style={{ background: 'transparent', boxShadow: 'none' }}
+            >
+              <div className="h-[100vh] w-full bg-white dark:bg-gray-900 overflow-hidden">
+                <SidebarContent />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <aside className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
             <SidebarContent />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <aside className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
-        <SidebarContent />
-      </aside>
+          </aside>
+        </>
+      )}
     </>
   );
 }

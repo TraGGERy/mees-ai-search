@@ -9,11 +9,13 @@ export function ClientHistoryList() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchChats = async () => {
-      if (!isLoaded) return;
+      if (!isLoaded || !user) return;
 
       try {
         const response = await fetch('/api/loader/chat');
@@ -22,27 +24,42 @@ export function ClientHistoryList() {
         }
         const data = await response.json();
         
-        // Format the chats
-        const formattedChats = data.map((chat: any) => ({
-          id: chat.chatId,
-          userId: chat.userId,
-          createdAt: chat.createdAt,
-          path: `/search/${chat.chatId}`,
-          title: chat.title || 'New Chat',
-          messages: chat.messages
-        }));
+        if (isMounted) {
+          const uniqueChats = new Map();
+          
+          data.forEach((chat: any) => {
+            if (!uniqueChats.has(chat.chatId)) {
+              uniqueChats.set(chat.chatId, {
+                id: chat.chatId,
+                userId: chat.userId,
+                createdAt: chat.createdAt,
+                path: `/search/${chat.chatId}`,
+                title: chat.title || 'New Chat',
+                messages: chat.messages
+              });
+            }
+          });
 
-        setChats(formattedChats);
+          setChats(Array.from(uniqueChats.values()));
+        }
       } catch (error) {
-        console.error('Error fetching chats:', error);
-        setError(error instanceof Error ? error : new Error('Failed to load chat history login'));
+        if (isMounted) {
+          console.error('Error fetching chats:', error);
+          setError(error instanceof Error ? error : new Error('Failed to load chat history'));
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchChats();
-  }, [isLoaded]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, user]);
 
   if (loading) {
     return (
