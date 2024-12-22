@@ -1,100 +1,118 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from './setui/ui/button';
+import { Button } from './ui/button';
+import Image from 'next/image';
+import { X } from 'lucide-react';
 
-export default function PWAInstallPrompt() {
+export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [installError, setInstallError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if the app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      return; // App is already installed
-    }
-
-    const handler = (e: Event) => {
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
-      e.preventDefault();
-      console.log('beforeinstallprompt fired');
-      setDeferredPrompt(e);
-      setShowInstallPrompt(true);
-      setIsInstallable(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Check if the app was successfully installed
-    window.addEventListener('appinstalled', () => {
-      console.log('App installed');
-      setShowInstallPrompt(false);
-      setDeferredPrompt(null);
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      console.log('No install prompt available');
       return;
     }
 
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
     try {
-      // Show the install prompt
       deferredPrompt.prompt();
-      
-      // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
       
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
         setShowInstallPrompt(false);
       }
     } catch (error) {
-      console.error('Error during installation:', error);
-      setInstallError(error instanceof Error ? error.message : 'Failed to install app');
+      console.error('Installation error:', error);
     }
   };
-
-  // Force show the prompt for testing (remove in production)
-  useEffect(() => {
-    // Uncomment the next line to test the prompt
-    // setShowInstallPrompt(true);
-  }, []);
-
-  if (installError) {
-    return (
-      <div className="text-red-600 p-2">
-        <p>Installation failed: {installError}</p>
-      </div>
-    );
-  }
 
   if (!showInstallPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg z-50 md:left-auto md:right-4 md:w-80">
-      <h3 className="text-lg font-semibold mb-2">Install Mees AI</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-        Install our app for a better experience
-      </p>
-      <div className="flex gap-2">
-        <Button onClick={handleInstallClick} className="flex-1">
-          Install
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowInstallPrompt(false)}
-          className="flex-1"
-        >
-          Not now
-        </Button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full p-6 shadow-xl">
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-2xl font-bold">Install Mees AI</h2>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShowInstallPrompt(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Features */}
+          <div className="grid gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-green-500">✓</span>
+              <span>Fast AI-powered search and chat</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-green-500">✓</span>
+              <span>Works offline</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-green-500">✓</span>
+              <span>Native app-like experience</span>
+            </div>
+          </div>
+
+          {/* Screenshots */}
+          <div className="grid grid-cols-2 gap-4 my-6">
+            <div className="space-y-2">
+              <div className="relative h-[400px] rounded-lg overflow-hidden border dark:border-gray-800">
+                <Image
+                  src="/screenshots/mobile.png"
+                  alt="Mobile view"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <p className="text-sm text-center text-gray-500">Mobile View</p>
+            </div>
+            <div className="space-y-2">
+              <div className="relative h-[400px] rounded-lg overflow-hidden border dark:border-gray-800">
+                <Image
+                  src="/screenshots/desktop.png"
+                  alt="Desktop view"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <p className="text-sm text-center text-gray-500">Desktop View</p>
+            </div>
+          </div>
+
+          {/* Install button */}
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={handleInstallClick}
+              className="w-full py-6 text-lg"
+              size="lg"
+            >
+              Install Mees AI
+            </Button>
+            <p className="text-xs text-center text-gray-500">
+              Install Mees AI for a faster, app-like experience with offline support
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
