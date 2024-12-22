@@ -9,6 +9,7 @@ import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '
 import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
 import { NotificationUpdate } from './xui/notifiatication-update'
 import { icons } from 'lucide-react'
+import { InstallButton } from './install-button'
 
 function Header  () {
   const {user,isSignedIn}=useUser();
@@ -71,7 +72,7 @@ function Header  () {
       </button>
       </a>
       }
-         
+        <InstallButton />
         <ModeToggle />
        
       </div>
