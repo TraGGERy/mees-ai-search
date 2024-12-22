@@ -1,9 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowBigUp, Bell, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
-
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,73 +9,53 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { IconBadge, IconBrightness, IconCalendarBolt, IconCodeDots, IconCopy, IconCopyX, IconDesk, IconDeviceLaptop, IconDots, IconLamp, IconLighter, IconMarkdown, IconMarkdownOff, IconMoon, IconPlayerTrackNext, IconSearch, IconSelect, IconSocial, IconSun, IconVersions } from '@tabler/icons-react'
-import { SiAboutdotme, SiAcademia, SiDiscord, SiFacebook, SiGithub, SiHelpdesk, SiInfosys, SiMattermost, SiPrivateinternetaccess, SiTwitter, SiWhatsapp, SiX } from 'react-icons/si'
-import Link from 'next/link'
+import { IconBadge, IconHelpCircle, IconFileDescription, IconLock } from '@tabler/icons-react'
+import { SiDiscord } from 'react-icons/si'
 
 export function Socials() {
- 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Sun className="h-[1.0rem] w-[1.2rem] rotate-0 scale-90 transition-all dark:-rotate-90 dark:scale-0" />
-          <IconSocial className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem >
-        <a href='/home'> 
-        <Button
-          variant={'ghost'}
-          size={'icon'}
-          className="text-muted-foreground/50 items-stretch"
+    <div className="fixed bottom-4 right-4 z-50">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="rounded-full bg-background/80 backdrop-blur-sm">
+            <SiDiscord className="h-[1.2rem] w-[1.2rem]" />
+            <span className="sr-only">Social menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          sideOffset={5} 
+          alignOffset={-5} 
+          className="w-56"
+          side="top"
         >
-          
-            <IconBadge size={16} />
-        </Button>
-         <span>Mees Ai Pro</span> </a> 
-        </DropdownMenuItem>
-        <DropdownMenuItem >
-        <a href='/help_&_faq'> 
-        <Button
-          variant={'ghost'}
-          size={'icon'}
-          className="text-muted-foreground/50 items-stretch"
-        >
-            <SiHelpdesk size={16} />
-        
-        </Button> Help And FAQ</a>
-
-        </DropdownMenuItem>
-
-        <DropdownMenuItem >
-        <a href='/terms-of-service'>
-        <Button
-          variant={'ghost'}
-          size={'icon'}
-          className="text-muted-foreground/50 items-stretch"
-        >
-          
-            <SiMattermost size={16} />
-          
-        
-        </Button> Terms of service</a>
-        
-        </DropdownMenuItem>
-        <DropdownMenuItem >
-        <a href='/privacy-policy'>
-        <Button
-          variant={'ghost'}
-          size={'icon'}
-          className="text-muted-foreground/50 items-stretch"
-        >
-        
-        <SiPrivateinternetaccess size={16}/>
-        </Button>Privacy Policy</a>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem asChild>
+            <Link href="/home" className="flex items-center">
+              <IconBadge className="mr-2 h-4 w-4" />
+              <span>Mees AI Pro</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/help_&_faq" className="flex items-center">
+              <IconHelpCircle className="mr-2 h-4 w-4" />
+              <span>Help and FAQ</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/terms-of-service" className="flex items-center">
+              <IconFileDescription className="mr-2 h-4 w-4" />
+              <span>Terms of Service</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/privacy-policy" className="flex items-center">
+              <IconLock className="mr-2 h-4 w-4" />
+              <span>Privacy Policy</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
+
