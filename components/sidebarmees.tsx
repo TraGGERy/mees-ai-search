@@ -12,7 +12,7 @@ import { useUser } from '@clerk/nextjs';
 import { db } from "@/db/db";
 import { userSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { IconDeviceMobile } from "@tabler/icons-react";
+import { IconBrain, IconDeviceMobile } from "@tabler/icons-react";
 import { SiFacebook, SiWhatsapp, SiX } from "react-icons/si";
 import { ClientHistoryList } from './client-history-list';
 
@@ -133,7 +133,7 @@ export function Sidebarmees({ className }: SidebarProps) {
       <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800">
         {isExpanded && (
           <div className="flex items-center gap-2">
-            <Star className="h-6 w-6 text-purple-600" />
+            <IconBrain className="h-6 w-6 text-purple-600" />
             <span className="font-semibold text-gray-900 dark:text-gray-100">Mees AI</span>
           </div>
         )}

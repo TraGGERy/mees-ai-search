@@ -14,6 +14,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import { Sidebarmees } from '@/components/sidebarmees'
+import ErrorBoundary from '@/components/error-boundary'
+import Loading from '@/components/loading';
+import { Suspense } from 'react';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -68,6 +71,41 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Mees AI" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/icons/apple-touch-icon-60x60.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/icons/apple-touch-icon-76x76.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon-120x120.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png" />
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash/apple-splash-2048-2732.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash/apple-splash-1668-2388.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash/apple-splash-1536-2048.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash/apple-splash-1242-2688.png"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash/apple-splash-1125-2436.png"
+        />
         <AdSense pId="7574084780651527"/>
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
@@ -81,7 +119,11 @@ export default function RootLayout({
         >
           <AppStateProvider>
             <Header />
-            {children}
+            <ErrorBoundary>
+              <Suspense fallback={<Loading />}>
+                {children}
+              </Suspense>
+            </ErrorBoundary>
             <Sidebarmees />
             <Footer />
             <Toaster />
