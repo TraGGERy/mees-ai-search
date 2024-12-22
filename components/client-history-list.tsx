@@ -8,7 +8,7 @@ import { useUser } from '@clerk/nextjs';
 export function ClientHistoryList() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const { isLoaded } = useUser();
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export function ClientHistoryList() {
         setChats(formattedChats);
       } catch (error) {
         console.error('Error fetching chats:', error);
-        setError('Failed to load chat history login');
+        setError(error instanceof Error ? error : new Error('Failed to load chat history login'));
       } finally {
         setLoading(false);
       }
@@ -56,11 +56,20 @@ export function ClientHistoryList() {
 
   if (error) {
     return (
-      <div className="text-red-500 text-sm text-start py-6">
-        {error}
+      <div className="p-4 text-red-600">
+        <h2>Error loading chat history</h2>
+        <p>{error.message}</p>
       </div>
     );
   }
+
+  const handleDelete = async (id: string) => {
+    try {
+      // Your delete logic...
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to delete chat'));
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-2">

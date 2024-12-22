@@ -1,167 +1,111 @@
 {
-    "background_color": "#000000",
-    "cache_busting_mode": "all",
-    "categories": ["productivity", "design", "development", "education"],
-    "description": "Personal LLM productivity tool, brings you the best user experience of ChatGPT, OLLaMA, Gemini, Claude WebUI. Customize AI assistant features flexibly according to personalized needs to solve problems, enhance productivity, and explore future workflow in LobeChat.",
-    "display": "standalone",
-    "display_override": ["tabbed"],
-    "edge_side_panel": {
-      "preferred_width": 480
+  "name": "Mees AI",
+  "short_name": "Mees AI",
+  "description": "AI-powered chat and search application",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "form_factor": "wide",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "prefer_related_applications": false,
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
-    "handle_links": "auto",
-    "icons": [
-      {
-        "src": "/icons/icon-192x192.png?v=1",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "any",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/icons/icon-192x192.maskable.png?v=1",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "maskable",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/icons/icon-512x512.png?v=1",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "any",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/icons/icon-512x512.maskable.png?v=1",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "maskable",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      }
-    ],
-    "id": "Mees Ai",
-    "immutable": "true",
-    "launch_handler": {
-      "client_mode": ["navigate-existing", "auto"]
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
-    "max_age": 31536000,
-    "name": "Mees Ai",
-    "orientation": "portrait",
-    "related_applications": [
-      {
-        "platform": "webapp",
-        "url": "https://chat-preview.lobehub.com/manifest.json"
-      }
-    ],
-    "scope": "/",
-    "screenshots": [
-      {
-        "src": "/screenshots/shot-1.mobile.png?v=1",
-        "sizes": "640x1138",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-2.mobile.png?v=1",
-        "sizes": "640x1138",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-3.mobile.png?v=1",
-        "sizes": "640x1138",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-4.mobile.png?v=1",
-        "sizes": "640x1138",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-5.mobile.png?v=1",
-        "sizes": "640x1138",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-1.desktop.png?v=1",
-        "sizes": "1280x676",
-        "type": "image/png",
-        "form_factor": "wide",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-2.desktop.png?v=1",
-        "sizes": "1280x676",
-        "type": "image/png",
-        "form_factor": "wide",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-3.desktop.png?v=1",
-        "sizes": "1280x676",
-        "type": "image/png",
-        "form_factor": "wide",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-4.desktop.png?v=1",
-        "sizes": "1280x676",
-        "type": "image/png",
-        "form_factor": "wide",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      },
-      {
-        "src": "/screenshots/shot-5.desktop.png?v=1",
-        "sizes": "1280x676",
-        "type": "image/png",
-        "form_factor": "wide",
-        "cache_busting_mode": "query",
-        "max_age": 31536000,
-        "immutable": "true"
-      }
-    ],
-    "short_name": "Mees Ai",
-    "splash_pages": null,
-    "start_url": ".",
-    "tab_strip": {
-      "new_tab_button": {
-        "url": "/"
-      }
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
-    "theme_color": "#000000"
-  }
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile view of Mees AI"
+    },
+    {
+      "src": "/screenshots/desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view of Mees AI"
+    }
+  ],
+  "apple_mobile_web_app_capable": "yes",
+  "apple_mobile_web_app_status_bar_style": "default",
+  "apple_mobile_web_app_title": "Mees AI",
+  "apple_touch_icon": [
+    {
+      "src": "/icons/60.png",
+      "sizes": "60x60",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/76.png",
+      "sizes": "76x76",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/120.png",
+      "sizes": "120x120",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
   
