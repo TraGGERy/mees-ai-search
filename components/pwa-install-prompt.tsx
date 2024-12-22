@@ -2,7 +2,6 @@
 
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { useState } from 'react';
 
 interface PWAInstallPromptProps {
   deferredPrompt: any;
@@ -10,11 +9,8 @@ interface PWAInstallPromptProps {
 }
 
 export function PWAInstallPrompt({ deferredPrompt, onClose }: PWAInstallPromptProps) {
-  const [isInstalling, setIsInstalling] = useState(false);
-
   const handleInstallClick = async () => {
     try {
-      setIsInstalling(true);
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`User response to the install prompt: ${outcome}`);
@@ -22,8 +18,6 @@ export function PWAInstallPrompt({ deferredPrompt, onClose }: PWAInstallPromptPr
     } catch (error) {
       console.error('Error during installation:', error);
       onClose();
-    } finally {
-      setIsInstalling(false);
     }
   };
 
@@ -39,7 +33,7 @@ export function PWAInstallPrompt({ deferredPrompt, onClose }: PWAInstallPromptPr
         <div className="flex-1">
           <h2 className="text-lg font-semibold mb-1">Install Mees AI app</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            Publisher: mees-ai-search.vercel.app
+            Publisher: https://wwww.mees-ai.co.zw/home
           </p>
           <div className="text-sm space-y-2 mb-4">
             <p>Use this site often? Install the app which:</p>
@@ -76,12 +70,8 @@ export function PWAInstallPrompt({ deferredPrompt, onClose }: PWAInstallPromptPr
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleInstallClick} 
-              className="flex-1"
-              disabled={isInstalling}
-            >
-              {isInstalling ? 'Installing...' : 'Install'}
+            <Button onClick={handleInstallClick} className="flex-1">
+              Install
             </Button>
             <Button variant="outline" onClick={onClose} className="flex-1">
               Not now
