@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/db/db';
 import { chatNeon } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
       .select()
       .from(chatNeon)
       .where(eq(chatNeon.userId, userId))
-      .orderBy(chatNeon.createdAt, 'desc')
+      .orderBy(desc(chatNeon.createdAt))
       .limit(30)
       .execute();
 
