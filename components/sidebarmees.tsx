@@ -102,6 +102,10 @@ export function Sidebarmees({ className }: SidebarProps) {
     fetchSubscriptionData();
   }, [user]);  
 
+  useEffect(() => {
+    setIsExpanded(true);
+  }, [pathname]);
+
   const routes = [
     { label: "Home", icon: Home, href: "/" },
     { label: "Discover Articles", icon: FileText, href: "/discover" },
@@ -119,9 +123,8 @@ export function Sidebarmees({ className }: SidebarProps) {
   const handleLinkClick = () => {
     if (window.innerWidth < 1024) {
       setIsOpen(false);
-    } else {
-      setIsExpanded(false);
     }
+    setIsExpanded(false);
   };
 
   const SidebarContent = () => (
@@ -147,7 +150,7 @@ export function Sidebarmees({ className }: SidebarProps) {
         <div className="px-3 py-2">
           <nav className="space-y-1 mb-4">
             {routes.map((route) => (
-              <Link key={route.href} href={route.href} onClick={handleLinkClick}>
+              <Link key={route.href} href={route.href} onClick={handleLinkClick} className="block">
                 <div
                   className={cn(
                     "group flex items-center justify-between p-2 rounded-md text-sm font-medium transition-colors",
@@ -279,5 +282,4 @@ export function Sidebarmees({ className }: SidebarProps) {
     </>
   );
 }
-
 
