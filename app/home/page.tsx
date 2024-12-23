@@ -120,15 +120,15 @@ export default function Home() {
                     alt="AI Dashboard Preview"
                     width={1920}
                     height={1080}
-                    className="rounded-xl border border-white/10 shadow-2xl"
+                    className="rounded-xl border border-white/10 shadow-2xl w-full h-auto"
                   />
-                  <div className="absolute -right-12 bottom-0 translate-y-1/3">
+                  <div className="absolute -right-[5%] sm:-right-[10%] bottom-0 w-[30%] sm:w-[25%] translate-y-[20%]">
                     <Image
                       src="/home/mobile-preview.JPG"
                       alt="Mobile App Preview"
                       width={280}
                       height={560}
-                      className="rounded-2xl border border-white/10 shadow-2xl"
+                      className="rounded-2xl border border-white/10 shadow-2xl w-full h-auto"
                     />
                   </div>
                 </div>
@@ -137,6 +137,7 @@ export default function Home() {
             </motion.div>
           </div>
         </section>
+
 
         {/* Features Section */}
         <section id="services" className="py-20 md:py-32">

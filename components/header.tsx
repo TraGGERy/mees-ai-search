@@ -1,5 +1,6 @@
 "use client"
 import React from 'react'
+import { usePathname } from 'next/navigation'
 import { ModeToggle } from './mode-toggle'
 import { IconLogo } from './ui/icons'
 import { cn } from '@/lib/utils'
@@ -13,6 +14,11 @@ import { InstallButton } from './install-button'
 
 function Header  () {
   const {user,isSignedIn}=useUser();
+  const pathname = usePathname()
+
+  if (pathname === '/home') {
+    return null
+  }
 
   return (
     <header className="fixed w-full p-1 md:p-2 flex justify-between items-center z-10 backdrop-blur md:backdrop-blur-none bg-background/80 md:bg-transparent">
@@ -81,3 +87,4 @@ function Header  () {
 }
 
 export default Header
+
