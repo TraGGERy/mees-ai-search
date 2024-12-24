@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from "@/db";
+import { db } from "@/db/db";
 import { waitlist } from "@/db/schema";
 import { redirect } from "next/navigation";
 
