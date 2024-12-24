@@ -82,4 +82,11 @@ export const userTries = pgTable('user_tries', {
   lastResetDate: timestamp('last_reset_date').notNull(), // Timestamp of last reset
 });
 
+export const waitlist = pgTable("waitlist", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  status: varchar("status", { length: 50 }).default('pending').notNull(), // pending, contacted, etc.
+});
+
 

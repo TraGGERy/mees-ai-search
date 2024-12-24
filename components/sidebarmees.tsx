@@ -192,13 +192,13 @@ export function Sidebarmees({ className }: { className?: string }) {
           
             </div>
             {/* Download Button */}
-            <Button variant="outline" className="w-full" onClick={() => window.open('your-download-link', '_blank')}>
+            <Button variant="outline" className="w-full" onClick={() => window.open('/download', '_blank')}>
               <Download className="h-4 w-4 mr-2" />
               Download App
             </Button>
           </div>
         ) : (
-          <Button variant="ghost" size="icon" className="w-full" onClick={() => window.open('your-download-link', '_blank')}>
+          <Button variant="ghost" size="icon" className="w-full" onClick={() => window.open('/download', '_blank')}>
             <Download className="h-5 w-5" />
           </Button>
         )}
