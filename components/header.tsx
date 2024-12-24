@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import HistoryContainer from './history-container'
 import { toast, Toaster } from "sonner";
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
-import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
+import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSettings, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
 import { NotificationUpdate } from './xui/notifiatication-update'
 import { icons } from 'lucide-react'
 import { InstallButton } from './install-button'
