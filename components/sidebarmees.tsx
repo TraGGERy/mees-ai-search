@@ -273,7 +273,7 @@ export function Sidebarmees({ className }: SidebarProps) {
 
   return (
     <>
-      {pathname !== '/home' && (
+      {pathname !== '/admin' && pathname !== '/home' && pathname !== '/admin/dashboard' && (
         <>
           <Button
             variant="ghost"

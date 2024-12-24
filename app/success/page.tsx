@@ -1,130 +1,207 @@
-"use client"; // Client-side only component
+"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // Next.js Router hook
-import { useUser } from "@clerk/nextjs"; // Import Clerk's useUser hook
-import { db } from "@/db/db"; // Your database instance
-import { subscribedUsers } from "@/db/schema"; // Your subscribedUsers schema
-import { userSubscriptions } from "@/db/schema"; // Your userSubscriptions schema
-import { eq } from "drizzle-orm"; // For querying the database
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { db } from "@/db/db";
+import { subscribedUsers, userSubscriptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
+
+// Define TypeScript interfaces
+interface DatabaseOperationState {
+  loading: boolean;
+  error: string | null;
+  success: boolean;
+}
+
+interface SubscribedUser {
+  userId: string;
+  type: string;
+  subscriptionStatus: string | null;
+  currentPlan: string | null;
+  nextInvoiceDate: Date | null;
+  InvoicePdfUrl: string | null;
+  email: string;
+}
 
 const Success = () => {
-  const { user, isLoaded } = useUser(); // Get the current Clerk user and loading state
+  const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [isEmailMatched, setIsEmailMatched] = useState<boolean | null>(null); // State to track email match status
+  const [isEmailMatched, setIsEmailMatched] = useState<boolean | null>(null);
+  const [dbState, setDbState] = useState<DatabaseOperationState>({
+    loading: false,
+    error: null,
+    success: false,
+  });
 
+  // Handle database operations
   useEffect(() => {
-    const handlePaymentSuccess = async () => {
-      if (!user || !user.primaryEmailAddress) return; // If no user or no email, exit
+    let mounted = true;
 
-      const email = user.primaryEmailAddress.emailAddress; // Get the user's email
+    const handlePaymentSuccess = async () => {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
+
+      const email = user.primaryEmailAddress.emailAddress;
+
+      setDbState(prev => ({ ...prev, loading: true, error: null }));
 
       try {
-        // Query the subscribedUsers table for a user with the same email
+        // Query the subscribedUsers table
         const existingUser = await db
           .select()
           .from(subscribedUsers)
-          .where(eq(subscribedUsers.email, email)) // Use the correct email field
+          .where(eq(subscribedUsers.email, email))
           .limit(1);
 
+        if (!mounted) return;
+
         if (existingUser.length > 0) {
-          // If the email exists in subscribedUsers, insert the data into userSubscriptions
-          const {
-            userId,
-            type,
-            subscriptionStatus,
-            currentPlan,
-            nextInvoiceDate,
-            InvoicePdfUrl,
-          } = existingUser[0]; // Extract data from existing user
+          const userData = existingUser[0] as SubscribedUser;
 
-          // Insert this data into the userSubscriptions table
-          await db.insert(userSubscriptions).values({
-            clerkUserId: user.id, // Store Clerk user ID
-            stripeUserId: userId, // Store Stripe user ID
-            email: email, // Store email
-            type: type || "payment_success", // Event type (default to "payment_success")
-            subscriptionStatus: subscriptionStatus || null,
-            currentPlan: currentPlan || null,
-            nextInvoiceDate: nextInvoiceDate || null,
-            invoicePdfUrl: InvoicePdfUrl || null,
-          });
+          // Insert into userSubscriptions with retry mechanism
+          let retryCount = 0;
+          const maxRetries = 3;
 
-          setIsEmailMatched(true); // Email matched, set success
+          while (retryCount < maxRetries) {
+            try {
+              await db.insert(userSubscriptions).values({
+                clerkUserId: user.id,
+                stripeUserId: userData.userId,
+                email: email,
+                type: userData.type || "payment_success",
+                subscriptionStatus: userData.subscriptionStatus,
+                currentPlan: userData.currentPlan,
+                nextInvoiceDate: userData.nextInvoiceDate,
+                invoicePdfUrl: userData.InvoicePdfUrl,
+              });
+              
+              if (mounted) {
+                setIsEmailMatched(true);
+                setDbState(prev => ({ ...prev, loading: false, success: true }));
+              }
+              break; // Success, exit retry loop
+              
+            } catch (insertError) {
+              retryCount++;
+              if (retryCount === maxRetries) {
+                throw insertError; // Throw error after max retries
+              }
+              // Wait before retrying (exponential backoff)
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            }
+          }
         } else {
-          setIsEmailMatched(false); // Email does not match any records
+          if (mounted) {
+            setIsEmailMatched(false);
+            setDbState(prev => ({
+              ...prev,
+              loading: false,
+              error: "No matching email found"
+            }));
+          }
         }
       } catch (error) {
-        console.error("Error during payment processing:", error);
-        setIsEmailMatched(false); // Handle errors by setting status to false
+        if (mounted) {
+          console.error("Error during payment processing:", error);
+          setIsEmailMatched(false);
+          setDbState(prev => ({
+            ...prev,
+            loading: false,
+            error: "Failed to process payment verification"
+          }));
+        }
       }
     };
 
-    if (isLoaded) {
+    if (isLoaded && !dbState.success) {
       handlePaymentSuccess();
     }
-  }, [isLoaded, user]); // Re-run when the user data is loaded
 
+    return () => {
+      mounted = false;
+    };
+  }, [isLoaded, user, dbState.success]);
+
+  // Handle redirect after successful operation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push("/"); // Redirect to home page after 3 seconds
-    }, 5000);
+    if (isEmailMatched && dbState.success) {
+      const timer = setTimeout(() => {
+        router.push("/");
+      }, 5000);
 
-    return () => clearTimeout(timer); // Cleanup on component unmount
-  }, [router]);
+      return () => clearTimeout(timer);
+    }
+  }, [isEmailMatched, dbState.success, router]);
 
-  if (!isLoaded) {
+  // Loading state
+  if (!isLoaded || dbState.loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="loading-spinner" />
+        <p className="mt-4">
+          {!isLoaded ? "Loading user data..." : "Verifying payment..."}
+        </p>
       </div>
-    ); // Show loading state if user data is not loaded yet
+    );
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
-      <h1>Payment Successful!</h1>
-      <p>Redirecting to home page...</p>
+      <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
+      
+      {dbState.success ? (
+        <p className="text-green-600">Redirecting to home page...</p>
+      ) : null}
+
+      {dbState.error ? (
+        <div className="text-red-600 mb-4">
+          <p>Error: {dbState.error}</p>
+          <button
+            onClick={() => setDbState(prev => ({ ...prev, success: false }))}
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
 
       {isEmailMatched === null ? (
         <p>Checking email match...</p>
       ) : isEmailMatched ? (
-        <div>
+        <div className="text-green-600">
           <p>Your email is successfully matched with your payment!</p>
         </div>
       ) : (
-        <div>
-          <p>Your email does not match the one used for payment. Please contact the admin to fix this.</p>
+        <div className="text-red-600">
+          <p>Your email does not match the one used for payment.</p>
+          <p>Please contact support for assistance.</p>
         </div>
       )}
 
       {user && (
-        <div>
+        <div className="mt-4">
           <p>Welcome, {user.firstName}!</p>
-          <p>Your email: {user.primaryEmailAddress?.emailAddress}</p> {/* Show user's email */}
+          <p>Email: {user.primaryEmailAddress?.emailAddress?.replace(/(?<=.{3}).(?=.*@)/g, '*')}</p>
         </div>
       )}
+
+      <style jsx>{`
+        .loading-spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #6b46c1;
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
 
 export default Success;
-
-// Add CSS for the Loading Spinner
-<style jsx>{`
-  /* Loading Spinner CSS */
-  .loading-spinner {
-    border: 4px solid #f3f3f3; /* Light gray background */
-    border-top: 4px solid #6b46c1; /* Purple color */
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 2s linear infinite;
-  }
-
-  /* Keyframes for spinning animation */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`}</style>

@@ -11,6 +11,8 @@ import { ChevronDown } from 'lucide-react'
 import { StreamableValue, useStreamableValue } from 'ai/rsc'
 import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
+import { useAuth } from '@clerk/nextjs'
+import { useFollowupState } from '@/lib/hooks/use-followup-state'
 
 interface CollapsibleMessageProps {
   message: {
@@ -28,6 +30,8 @@ export const CollapsibleMessage: React.FC<CollapsibleMessageProps> = ({
   const [data] = useStreamableValue(message.isCollapsed)
   const isCollapsed = data ?? false
   const [open, setOpen] = useState(isLastMessage)
+  const { isSignedIn } = useAuth()
+  const { hasReachedLimit } = useFollowupState()
 
   useEffect(() => {
     setOpen(isLastMessage)
