@@ -98,7 +98,7 @@ export function Trending() {
                     />
                   )}
                   <div className="flex flex-col justify-between">
-                    <Link href="#" className="text-xs sm:text-sm font-semibold text-white">
+                    <Link href="/discover" className="text-xs sm:text-sm font-semibold text-white">
                       {item.title}
                     </Link>
                     <div className="mt-1 text-xs text-zinc-400">
