@@ -223,22 +223,24 @@ export function Sidebarmees({ className }: SidebarProps) {
       )}
 
       {/* User Info and Settings */}
-      {isSignedIn && isExpanded && (
+      {isSignedIn && (
         <div className="border-t border-gray-200 dark:border-gray-800 p-4">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-900 dark:text-purple-100">
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {user?.fullName || "John Doe"}
+            {isExpanded && (
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {user?.fullName || "John Doe"}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {subscriptionData?.currentPlan || "Free Plan"}
+                </div>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {subscriptionData?.currentPlan || "Free Plan"}
-              </div>
-            </div>
+            )}
             <Link href="/settings" onClick={handleLinkClick}>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="shrink-0">
                 <Settings className="h-5 w-5 text-purple-600" />
               </Button>
             </Link>
