@@ -1,26 +1,40 @@
-// pages/success.tsx (or any other file)
-"use client";  // Mark the component as client-side only
+"use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation"; // New hook from next/navigation
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const Success = () => {
+const CancelPage = () => {
   const router = useRouter();
+  const [secondsLeft, setSecondsLeft] = useState(3);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push("/"); // Redirect to home after 3 seconds
-    }, 3000);
+    try {
+      const countdown = setInterval(() => {
+        setSecondsLeft((prev) => Math.max(0, prev - 1));
+      }, 1000);
+      const redirectTimer = setTimeout(() => {
+        router.push("/");
+      }, 3000);
 
-    return () => clearTimeout(timer); // Cleanup on component unmount
+      return () => {
+        clearTimeout(redirectTimer);
+        clearInterval(countdown);
+      };
+    } catch (error) {
+      console.error("Error in redirect setup:", error);
+      // Fallback direct navigation
+      window.location.href = "/";
+    }
   }, [router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
-      <h1>OOPS Payment Cancelled!</h1>
-      <p>Redirecting to home page...</p>
+      <h1 className="text-3xl font-bold text-red-600 mb-4">Payment Cancelled</h1>
+      <p className="text-gray-600">
+        Redirecting to home page in {secondsLeft} seconds...
+      </p>
     </div>
   );
 };
 
-export default Success;
+export default CancelPage;
