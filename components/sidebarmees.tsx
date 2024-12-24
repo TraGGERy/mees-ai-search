@@ -1,306 +1,259 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
+import dynamic from 'next/dynamic';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/setui/ui/button";
 import { ScrollArea } from "@/components/setui/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/setui/ui/sheet";
-import { Home, Search, Settings, Menu, Star, ChevronRight, MessageSquare, FileText, Upload, X, ChevronLeft, ChevronLeftCircle, ChevronRightCircle } from 'lucide-react';
+import { Sheet, SheetContent } from "@/components/setui/ui/sheet";
+import { 
+  Home, 
+  Menu, 
+  ChevronRight, 
+  MessageSquare, 
+  FileText, 
+  ChevronLeftCircle, 
+  ChevronRightCircle, 
+  User, 
+  Sparkles, 
+  Settings, 
+  Twitter, 
+  Github,  
+  Download 
+} from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { db } from "@/db/db";
-import { userSubscriptions } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { IconBrain, IconDeviceMobile } from "@tabler/icons-react";
-import { SiFacebook, SiWhatsapp, SiX } from "react-icons/si";
-import { ClientHistoryList } from './client-history-list';
+import { SignInButton } from '@clerk/nextjs';
+import Image from "next/image";
+import { SiFacebook, SiWhatsapp } from "react-icons/si";
 
-interface SidebarProps {
-  className?: string;
-}
+// Lazy load heavy components
+const ClientHistoryList = dynamic(() => import('./client-history-list').then(mod => mod.ClientHistoryList), {
+  loading: () => <div className="animate-pulse h-20 bg-gray-100 dark:bg-gray-800 rounded-md" />
+});
 
-export function Sidebarmees({ className }: SidebarProps) {
+const NavLink = ({ route, isExpanded, isActive, onClick }: {
+  route: { label: string; icon: any; href: string };
+  isExpanded: boolean;
+  isActive: boolean;
+  onClick: () => void;
+}) => (
+  <Link
+    href={route.href}
+    onClick={onClick}
+    className={cn(
+      "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+      isActive ? "bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-300" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+    )}
+  >
+    <route.icon className="h-5 w-5" />
+    {isExpanded && <span>{route.label}</span>}
+  </Link>
+);
+
+export function Sidebarmees({ className }: { className?: string }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { user, isSignedIn } = useUser();
-  const [email, setEmail] = useState<string | null>(null);
-  const [subscriptionData, setSubscriptionData] = useState<{
-    currentPlan: string;
-    subscriptionStatus: string;
-    nextInvoiceDate: string | null;
-    invoicePdfUrl: string | null;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const savedIsExpanded = localStorage.getItem('sidebarExpanded');
-    setIsExpanded(savedIsExpanded === 'true');
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      const fetchEmail = async () => {
-        try {
-          const clerkUserId = user.id;
-          const subscription = await db
-            .select({ email: userSubscriptions.email })
-            .from(userSubscriptions)
-            .where(eq(userSubscriptions.clerkUserId, clerkUserId))
-            .limit(1);
-          setEmail(subscription[0]?.email || "Email not found");
-        } catch (error) {
-          console.error("Error fetching user email:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchEmail();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const fetchSubscriptionData = async () => {
-      if (!user) return;
-      try {
-        const subscription = await db
-          .select({
-            currentPlan: userSubscriptions.currentPlan,
-            subscriptionStatus: userSubscriptions.subscriptionStatus,
-            nextInvoiceDate: userSubscriptions.nextInvoiceDate,
-            invoicePdfUrl: userSubscriptions.invoicePdfUrl,
-          })
-          .from(userSubscriptions)
-          .where(eq(userSubscriptions.clerkUserId, user.id))
-          .limit(1);
-
-        if (subscription.length > 0) {
-          const {
-            currentPlan,
-            subscriptionStatus,
-            nextInvoiceDate,
-            invoicePdfUrl,
-          } = subscription[0];
-
-          setSubscriptionData({
-            currentPlan: currentPlan || "No Plan",
-            subscriptionStatus: subscriptionStatus || "Inactive",
-            nextInvoiceDate: nextInvoiceDate ? nextInvoiceDate.toISOString() : null,
-            invoicePdfUrl: invoicePdfUrl || null,
-          });
-        } else {
-          setSubscriptionData({
-            currentPlan: "No Plan",
-            subscriptionStatus: "Inactive",
-            nextInvoiceDate: null,
-            invoicePdfUrl: null,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching subscription data:", error);
-        setSubscriptionData(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSubscriptionData();
-  }, [user]);  
-
-  useEffect(() => {
-    setIsExpanded(false);
-    localStorage.setItem('sidebarExpanded', 'false');
-  }, [pathname]);
 
   const routes = [
     { label: "Home", icon: Home, href: "/" },
     { label: "Discover Articles", icon: FileText, href: "/discover" },
     { label: "Chat", icon: MessageSquare, href: "/chat" },
-  ];
+    ...(isSignedIn ? [{ label: "Settings", icon: Settings, href: "/settings" }] : []),
+  ] as const;
 
-  // Mock chat history data
-  const chatHistory = [
-    { id: 1, message: "Hello! How can I help you today?", isUser: false },
-    { id: 2, message: "I have a question about AI.", isUser: true },
-    { id: 3, message: "Sure, what would you like to know?", isUser: false },
-    // Add more mock messages as needed
-  ];
-
-  const handleLinkClick = () => {
+  // Memoize handlers
+  const handleLinkClick = useCallback(() => {
     if (window.innerWidth < 1024) {
       setIsOpen(false);
+      setIsExpanded(false);
+      localStorage.setItem('sidebarExpanded', 'false');
     }
-    setIsExpanded(false);
-    localStorage.setItem('sidebarExpanded', 'false');
-  };
+  }, []);
 
-  const SidebarContent = () => (
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded(prev => {
+      const newState = !prev;
+      localStorage.setItem('sidebarExpanded', String(newState));
+      return newState;
+    });
+  }, []);
+
+  // Handle mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsOpen(false);
+        setIsExpanded(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Move localStorage check to useEffect
+  useEffect(() => {
+    const savedExpanded = localStorage.getItem('sidebarExpanded');
+    if (savedExpanded !== null) {
+      setIsExpanded(savedExpanded === 'true');
+    }
+  }, []);
+
+  // Memoize SidebarContent
+  const SidebarContent = memo(() => (
     <div className={cn(
-      "flex h-full flex-col bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out overflow-hidden",
+      "flex h-full flex-col bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out",
       isExpanded ? "w-64" : "w-16"
     )}>
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800">
-        {isExpanded && (
-          <div className="flex items-center gap-2">
-            <IconBrain className="h-6 w-6 text-purple-600" />
-            <span className="font-semibold text-gray-900 dark:text-gray-100">Mees AI</span>
+      {/* Profile Section */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+        {isSignedIn ? (
+          <div className="flex items-center gap-3">
+            {user?.imageUrl ? (
+              <Image 
+                src={user.imageUrl} 
+                alt="Profile" 
+                width={32} 
+                height={32} 
+                className="rounded-full"
+              />
+            ) : (
+              <User className="w-8 h-8 text-gray-500" />
+            )}
+            {isExpanded && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.fullName}</p>
+              </div>
+            )}
           </div>
+        ) : (
+          <SignInButton mode="modal">
+            <Button variant="ghost" size="sm">Sign In</Button>
+          </SignInButton>
         )}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => {
-            const newIsExpanded = !isExpanded;
-            setIsExpanded(newIsExpanded);
-            localStorage.setItem('sidebarExpanded', newIsExpanded.toString());
-          }} 
-          className="ml-auto"
-        >
-          {isExpanded ? <ChevronLeftCircle className="h-6 w-6" /> : <ChevronRightCircle className="h-6 w-6" />}
-        </Button>
       </div>
 
-      {/* Navigation */}
       <ScrollArea className="flex-grow">
         <div className="px-3 py-2">
           <nav className="space-y-1 mb-4">
-            {routes.map((route) => (
-              <Link key={route.href} href={route.href} onClick={handleLinkClick} className="block">
-                <div
-                  className={cn(
-                    "group flex items-center justify-between p-2 rounded-md text-sm font-medium transition-colors",
-                    pathname === route.href
-                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
-                      : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <route.icon className="h-5 w-5" />
-                    {isExpanded && route.label}
-                  </div>
-                  {isExpanded && <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                </div>
-              </Link>
+            {routes.map(route => (
+              <NavLink
+                key={route.href}
+                route={route}
+                isExpanded={isExpanded}
+                isActive={pathname === route.href}
+                onClick={handleLinkClick}
+              />
             ))}
           </nav>
 
-          {/* Chat History */}
           {isExpanded && (
             <div className="mb-4">
-              <div className="flex items-center gap-2 px-4 mb-2">
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-medium">Recent Chats</h3>
+              <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                <span>Recent Chats</span>
               </div>
               
-              <div className="px-2">
-                {isSignedIn ?
-                <ClientHistoryList />
-               :<p>login to see history</p>
-                }
-              </div>
+              <ScrollArea className="h-[calc(100vh-400px)]">
+                <div className="px-2 space-y-1">
+                  {isSignedIn ? (
+                    <ClientHistoryList />
+                  ) : (
+                    <div className="text-sm text-gray-500 dark:text-gray-400 py-2 px-3 rounded-md bg-gray-50 dark:bg-gray-800/50">
+                      Sign in to see your chat history
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      {/* Mees AI Pro Section */}
-      {isExpanded && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <div className="rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-5 w-5" />
-              <span className="font-semibold">Mees AI Pro</span>
-            </div>
-            <p className="text-sm mb-3">
-              Unlock advanced features and boost your productivity.
-            </p>
-            <Button className="w-full bg-white text-purple-700 hover:bg-gray-100">
-              {isSignedIn ? "Upgrade Now" : "Learn More"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* User Info and Settings */}
-      {isSignedIn && (
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-900 dark:text-purple-100">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </div>
-            {isExpanded && (
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
-                  {user?.fullName || "John Doe"}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {subscriptionData?.currentPlan || "Free Plan"}
-                </div>
-              </div>
-            )}
-            <Link href="/settings" onClick={handleLinkClick}>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Settings className="h-5 w-5 text-purple-600" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Social Links */}
-      {isExpanded && (
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex items-center gap-3">
-            <IconDeviceMobile className="h-5 w-5" />
-            <span className="text-sm">Download</span>
-            <div className="flex gap-2 ml-auto">
-              <Link href="https://twitter.com/Mees_nz" target="_blank" rel="noopener noreferrer" onClick={handleLinkClick}>
-                <SiX className="h-5 w-5" />
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        {isExpanded ? (
+          <div className="space-y-4">
+            {/* Social Links */}
+            <div className="flex justify-around">
+              <Link href="https://x.com/Mees_nz" className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                <Twitter className="h-5 w-5" />
               </Link>
-              <Link href="https://facebook.com/profile.php?id=100090089754837&mibextid=LQQJ4d" target="_blank" rel="noopener noreferrer" onClick={handleLinkClick}>
-                <SiFacebook className="h-5 w-5" />
-              </Link>
-              <Link href="https://whatsapp.com/channel/0029VafFHO8IyPtbwtGq7K1G" target="_blank" rel="noopener noreferrer" onClick={handleLinkClick}>
+              <Link href="https://www.whatsapp.com/channel/0029VafFHO8IyPtbwtGq7K1G" className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
                 <SiWhatsapp className="h-5 w-5" />
               </Link>
+              <Link href="https://www.facebook.com/people/Mees/100090089754837/?mibextid=LQQJ4d" className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                <SiFacebook className="h-5 w-5" />
+              </Link>
+          
             </div>
+            {/* Download Button */}
+            <Button variant="outline" className="w-full" onClick={() => window.open('your-download-link', '_blank')}>
+              <Download className="h-4 w-4 mr-2" />
+              Download App
+            </Button>
           </div>
-        </div>
-      )}
+        ) : (
+          <Button variant="ghost" size="icon" className="w-full" onClick={() => window.open('your-download-link', '_blank')}>
+            <Download className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
     </div>
-  );
+  ));
+  SidebarContent.displayName = 'SidebarContent';
+
+  if (['/admin', '/home', '/admin/dashboard'].includes(pathname)) {
+    return null;
+  }
 
   return (
     <>
-      {pathname !== '/admin' && pathname !== '/home' && pathname !== '/admin/dashboard' && (
-        <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-40 lg:hidden"
+        onClick={() => {
+          setIsOpen(true);
+          setIsExpanded(true);
+        }}
+      >
+        <Menu className="h-6 w-6 text-purple-600" />
+      </Button>
+
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side="left" className="p-0 w-64">
+          <div className="relative h-full">
+            <SidebarContent />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleExpanded}
+              className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              {isExpanded ? <ChevronLeftCircle className="h-4 w-4" /> : <ChevronRightCircle className="h-4 w-4" />}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <aside className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
+        <div className="relative">
+          <SidebarContent />
           <Button
             variant="ghost"
             size="icon"
-            className="fixed top-4 left-4 z-40 lg:hidden"
-            onClick={() => setIsOpen(true)}
+            onClick={toggleExpanded}
+            className="absolute -right-3 top-6 hidden lg:flex h-6 w-6 items-center justify-center rounded-full border bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <Menu className="h-6 w-6 text-purple-600" />
+            {isExpanded ? <ChevronLeftCircle className="h-4 w-4" /> : <ChevronRightCircle className="h-4 w-4" />}
           </Button>
-
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetContent 
-              side="left" 
-              className="p-0 w-[280px] h-full overflow-hidden"
-              style={{ background: 'transparent', boxShadow: 'none' }}
-            >
-              <div className="h-[100vh] w-full bg-white dark:bg-gray-900 overflow-hidden">
-                <SidebarContent />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <aside className={cn("hidden lg:block h-screen fixed top-0 left-0 z-30", className)}>
-            <SidebarContent />
-          </aside>
-        </>
-      )}
+        </div>
+      </aside>
     </>
   );
 }
