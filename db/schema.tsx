@@ -46,10 +46,10 @@ import {
 
   export const chatNeon = pgTable("chat_neon", {
     id:serial('id').primaryKey(),
-    chatId: varchar("chat_id", { length: 255 }).notNull(),
+    chatId: varchar("chat_id", { length: 255 }).notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     userId: varchar("user_id", { length: 255 }).notNull(),
-    path: text("path"), // Ensure path is defined here
+    path: text("path").notNull().unique(), // Ensure path is defined here
     title: varchar("title", { length: 255 }),
     messages: jsonb("messages").notNull(),
   });

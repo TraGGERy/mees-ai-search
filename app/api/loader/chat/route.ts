@@ -19,12 +19,12 @@ export async function GET() {
       .from(chatNeon)
       .where(eq(chatNeon.userId, user.id))
       .orderBy(desc(chatNeon.createdAt))
-      .limit(10);
+      .limit(30);
 
     return NextResponse.json(chats);
 
   } catch (error) {
     console.error('Error fetching chats:', error);
-    return NextResponse.json({ error: 'Failed to fetch chats', details: error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch chats' }, { status: 500 });
   }
 } 
