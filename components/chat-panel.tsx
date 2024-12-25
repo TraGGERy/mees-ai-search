@@ -47,6 +47,7 @@ export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
 
   const [isComposing, setIsComposing] = useState(false) // Composition state
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
+  const [isSubmitting, setIsSubmitting] = useState(false); // Flag to track submission state
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -88,17 +89,21 @@ export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    try {
-      await handleQuerySubmit(input, formData)
-    } catch (error) {
-      console.error('Error submitting form:', error)
-      toast.error(`${error}`)
+    e.preventDefault();
+    if (isSubmitting) return; // Prevent further submissions if already submitting
+    setIsSubmitting(true); // Set the flag to true
 
-      handleClear()
+    const formData = new FormData(e.currentTarget);
+    try {
+      await handleQuerySubmit(input, formData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error(`${error}`);
+      handleClear();
+    } finally {
+      setIsSubmitting(false); // Reset the flag after submission
     }
-  }
+  };
 
   // if query is not empty, submit the query
   useEffect(() => {
@@ -208,12 +213,12 @@ export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
                     !enterDisabled
                   ) {
                     if (input.trim().length === 0) {
-                      e.preventDefault()
-                      return
+                      e.preventDefault();
+                      return;
                     }
-                    e.preventDefault()
-                    const textarea = e.target as HTMLTextAreaElement
-                    textarea.form?.requestSubmit()
+                    e.preventDefault();
+                    const textarea = e.target as HTMLTextAreaElement;
+                    textarea.form?.requestSubmit();
                   }
                 }}
                 onHeightChange={height => {
