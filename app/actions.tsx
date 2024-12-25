@@ -199,8 +199,10 @@ export const AI = createAI<AIState, UIState>({
       title,
       messages: updatedMessages
     }
-    await saveChat(chat)
-    await saveChatNeon(chat)
+    console.log('Saving chat to Redis:', chat);
+    await saveChat(chat);
+    console.log('Saving chat to Neon:', chat);
+    await saveChatNeon(chat);
   }
 })
 
