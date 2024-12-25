@@ -9,6 +9,7 @@ import { chatNeon } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import path from 'path'
 import { currentUser } from '@clerk/nextjs/server'
+import { generateId } from 'ai'
 
 
 async function getRedis(): Promise<RedisWrapper> {
@@ -27,25 +28,30 @@ export async function chatExists(chatId: string): Promise<boolean> {
 //to save chats to neon database
 export async function saveChatNeon(chat: Chat){
    
-  const { id: chatId,createdAt, userId, path, title, messages } = chat;
+  let { id: chatId,createdAt, userId, path, title, messages } = chat;
   
-  //check for if the chatId exist 
-  const exists = await chatExists(chatId);
-  if(!exists){ 
-  await db.insert(chatNeon).values({
-    
-    chatId,
-    createdAt,
-    userId,
-    path,
-    title,
-    messages: JSON.stringify(messages), // Store messages as JSON
-  });
-  console.log(`Chat with path  saved successfully.`);
-}else{
-  //update the chat if it exist
-  console.log(`Chat with path already exists. Skipping save.`);
-}
+  // Check if the chatId exists and generate a new one if it does
+  let exists = await chatExists(chatId);
+  while (exists) {
+    chatId = generateId(); // Generate a new chatId
+    exists = await chatExists(chatId); // Check again
+  }
+
+  // Now save the chat with the unique chatId
+  try {
+    await db.insert(chatNeon).values({
+      chatId,
+      createdAt,
+      userId,
+      path,
+      title,
+      messages: JSON.stringify(messages), // Store messages as JSON
+    });
+    console.log(`Chat with ID ${chatId} saved successfully.`);
+  } catch (error) {
+    console.error(`Error saving chat with ID ${chatId}:`, error);
+    throw new Error('Failed to save chat to the database.');
+  }
 }
 
 
