@@ -25,6 +25,7 @@ import { db } from '@/db/db'
 import { chatNeon } from '@/db/schema'
 import { saveChatNeon } from '@/lib/actions/chat'
 import { currentUser } from '@clerk/nextjs/server'
+import { v4 as uuidv4 } from 'uuid';
 
 const MAX_MESSAGES = 6
 
