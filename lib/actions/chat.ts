@@ -82,7 +82,7 @@ export async function saveChatNeon(chat: Chat) {
     });
     console.log(`Chat with path ${path} saved successfully.`);
   } catch (error) {
-    if (error === '23505') { // Unique violation error code for PostgreSQL
+    if (error  === '23505') { // Unique violation error code for PostgreSQL
       console.error(`Unique constraint violation: Chat with path ${path} already exists.`);
     } else {
       console.error(`Error saving chat with path ${path}:`, error);

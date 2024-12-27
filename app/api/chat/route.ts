@@ -1,46 +1,15 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import OpenAI from 'openai';
-import { NextResponse } from 'next/server';
-import { PERSONAS } from '@/lib/chatlib/personas';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export const runtime = 'edge';
+import { openai } from "@ai-sdk/openai";
+import { convertToCoreMessages, streamText } from "ai";
 
 export async function POST(req: Request) {
-  try {
-    const { messages, persona = 'research' } = await req.json();
-    
-    const selectedPersona = PERSONAS.find(p => p.id === persona);
-    const systemMessage = {
-      role: 'system',
-      content: selectedPersona?.systemPrompt || PERSONAS[0].systemPrompt,
-    };
+  const { messages } = await req.json();
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      stream: true,
-      messages: [systemMessage, ...messages.map((m: any) => ({
-        content: m.content,
-        role: m.role,
-      }))],
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
+  const result = await streamText({
+    model: openai("gpt-4o-mini"),
+    system:
+      "As Mees AI's research agent, gather the most up-to-date and scholarly information on the user's topic. Ask for a detailed description of their research question or problem, and inquire about any key areas they need help with. If the user has relevant scholarly sources, recent studies, or images, request them to upload for additional context. Ensure your responses are clear, well-structured, and brief, providing insightful answers without using markdown or lists",
+    messages: convertToCoreMessages(messages),
+  });
 
-    const stream = OpenAIStream(response);
-    return new StreamingTextResponse(stream);
-  } catch (error: any) {
-    console.error('[Chat API Error]:', error);
-    return NextResponse.json(
-      {
-        error: {
-          message: error.message,
-          code: error.code,
-        },
-      },
-      { status: error.status || 500 }
-    );
-  }}
+  return result.toDataStreamResponse();
+}
