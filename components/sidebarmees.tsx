@@ -8,21 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/setui/ui/button";
 import { ScrollArea } from "@/components/setui/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/setui/ui/sheet";
-import { 
-  Home, 
-  Menu, 
-  ChevronRight, 
-  MessageSquare, 
-  FileText, 
-  ChevronLeftCircle, 
-  ChevronRightCircle, 
-  User, 
-  Sparkles, 
-  Settings, 
-  Twitter, 
-  Github,  
-  Download 
-} from 'lucide-react';
+import { Home, Menu, ChevronRight, MessageSquare, FileText, ChevronLeftCircle, ChevronRightCircle, User, Sparkles, Settings, Twitter, Github, Download } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { SignInButton } from '@clerk/nextjs';
 import Image from "next/image";
@@ -216,7 +202,7 @@ export function Sidebarmees({ className }: { className?: string }) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-40 lg:hidden"
+        className="fixed top-2 left-2 z-50 lg:hidden"
         onClick={() => {
           setIsOpen(true);
           setIsExpanded(true);
@@ -226,7 +212,7 @@ export function Sidebarmees({ className }: { className?: string }) {
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side="left" className="p-0 w-64 mt-14">
           <div className="relative h-full">
             <SidebarContent />
             <Button
