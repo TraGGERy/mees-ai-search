@@ -208,120 +208,122 @@ export default function Home() {
         {/* Pricing Section */}
          {/* Pricing Section */}
          <section id="pricing" className="py-20 md:py-32 bg-black">
-          <div className="container">
-            <motion.div
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="space-y-16"
-            >
-              <motion.div variants={fadeIn} className="text-center space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold">Simple, Transparent Pricing</h2>
-                <p className="text-white/70 max-w-2xl mx-auto">
-                  Choose the perfect plan for your needs. No hidden fees.
-                </p>
-              </motion.div>
+  <div className="container">
+    <motion.div
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true }}
+      variants={stagger}
+      className="space-y-16"
+    >
+      <motion.div variants={fadeIn} className="text-center space-y-4">
+        <h2 className="text-3xl md:text-5xl font-bold text-white">Simple, Transparent Pricing</h2>
+        <p className="text-white/70 max-w-2xl mx-auto">
+          Choose the perfect plan for your needs. No hidden fees.
+        </p>
+      </motion.div>
 
-              <motion.div 
-                variants={stagger}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
-              >
-                {[
-                  {
-                    title: "Free",
-                    price: "0",
-                    description: "Perfect for trying out Mees AI",
-                    features: [
-                      "Basic AI models",
-                      "Two AI Models",
-                      "Standard support",
-                      "Limited requests per day"
-                    ],
-                    cta: "Start for Free",
-                    popular: false
-                  },
-                  {
-                    title: "Pro",
-                    price: "9.5",
-                    description: "Ideal for individuals and small teams",
-                    features: [
-                      "All AI models",
-                      "Unlimited requests",
-                      "Priority support",
-                      "Custom integrations",
-                      "Advanced analytics"
-                    ],
-                    cta: "Upgrade to Pro",
-                    popular: true
-                  },
-                  {
-                    title: "Yearly",
-                    price: "115",
-                    description: "Best value for power users",
-                    features: [
-                      "Everything in Pro",
-                      "Custom AI models",
-                      "Dedicated support",
-                      "SLA guarantee",
-                      "Early access to new features"
-                    ],
-                    cta: "Upgrade to Pro",
-                    popular: false
-                  }
-                ].map((plan, index) => (
-                  <motion.div
-                    key={index}
-                    variants={fadeIn}
-                    className="relative group"
-                  >
-                    <Card className={cn(
-                      "relative overflow-hidden bg-gradient-to-b from-white/10 to-white/5 border-2",
-                      plan.popular ? "border-purple-500" : "border-white/20"
-                    )}>
-                      {plan.popular && (
-                        <div className="absolute -top-5 -right-5">
-                          <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg transform rotate-45 translate-x-4 translate-y-4">
-                            POPULAR
-                          </div>
-                        </div>
-                      )}
-                      <CardHeader>
-                        <CardTitle className="text-2xl font-bold">{plan.title}</CardTitle>
-                        <CardDescription className="text-white/60">{plan.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="text-4xl font-bold">
-                          ${plan.price}
-                          <span className="text-lg font-normal text-white/70">/mo</span>
-                        </div>
-                        <ul className="space-y-2">
-                          {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <Check className="h-5 w-5 text-purple-500" />
-                              <span className="text-white/80">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                      <CardFooter>
-                        <a href='/pricing'>
-                        <Button className={cn(
-                          "w-full text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300",
-                          plan.popular
-                            ? "bg-purple-600 hover:bg-purple-700"
-                            : "bg-white/10 hover:bg-white/20"
-                        )}>
-                          {plan.cta}
-                        </Button> </a>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
+      <motion.div 
+        variants={stagger}
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+      >
+        {[
+          {
+            title: "Free",
+            price: "0",
+            description: "Great for exploring Mees AI",
+            features: [
+              "Access to basic AI models",
+              "Two AI models",
+              "Community support",
+              "Five free requests daily"
+            ],
+            cta: "Start for Free",
+            popular: false
+          },
+          {
+            title: "Pro",
+            price: "9.5",
+            description: "Perfect for individuals and small teams",
+            features: [
+              "Access to advanced AI models",
+              "Unlimited requests",
+              "Priority support",
+              "Custom integrations",
+              "Detailed analytics"
+            ],
+            cta: "Upgrade to Pro",
+            popular: true
+          },
+          {
+            title: "Yearly",
+            price: "110",
+            description: "Best value for power users",
+            features: [
+              "Everything in Pro",
+              "Exclusive custom AI models",
+              "Dedicated support",
+              "Service-level agreement (SLA)",
+              "Early access to new features"
+            ],
+            cta: "Upgrade to Yearly",
+            popular: false
+          }
+        ].map((plan, index) => (
+          <motion.div
+            key={index}
+            variants={fadeIn}
+            className="relative group"
+          >
+            <Card className={cn(
+              "relative overflow-hidden bg-black border-2",
+              plan.popular ? "border-purple-500" : "border-white/20"
+            )}>
+              {plan.popular && (
+                <div className="absolute -top-5 -right-5">
+                  <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg transform rotate-45 translate-x-4 translate-y-4">
+                    POPULAR
+                  </div>
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-white">{plan.title}</CardTitle>
+                <CardDescription className="text-white/60">{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-4xl font-bold text-white">
+                  ${plan.price}
+                  <span className="text-lg font-normal text-white/70">/mo</span>
+                </div>
+                <ul className="space-y-2">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <Check className="h-5 w-5 text-purple-500" />
+                      <span className="text-white/80">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <a href='/pricing'>
+                  <Button className={cn(
+                    "w-full text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300",
+                    plan.popular
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : "bg-white/10 hover:bg-white/20"
+                  )}>
+                    {plan.cta}
+                  </Button> 
+                </a>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+    </motion.div>
+  </div>
+</section>
+
 
         {/* Testimonials Section */}
         <section id="reviews" className="py-20 md:py-32">
