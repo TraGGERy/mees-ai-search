@@ -1,73 +1,54 @@
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Clapperboard, Carrot, TreesIcon as Lungs, Smartphone } from 'lucide-react'
+import { Card } from "@/components/ui/card";
+import { Clapperboard, Carrot, TreesIcon as Lungs, Smartphone } from "lucide-react";
 
 const exampleMessages = [
   {
-    heading: 'The next James Bond',
-    message: 'The next James Bond',
-    icon: Clapperboard
+    heading: "James Bond",
+    message: "The next James Bond",
+    icon: Clapperboard,
   },
   {
-    heading: 'Vegetables currently in season',
-    message: 'Vegetables currently in season',
-    icon: Carrot
+    heading: "Seasonal Veggies",
+    message: "Vegetables in season",
+    icon: Carrot,
   },
   {
-    heading: 'Breathwork benefits and techniques',
-    message: 'Breathwork benefits and techniques',
-    icon: Lungs
+    heading: "Breathwork",
+    message: "Breathwork benefits",
+    icon: Lungs,
   },
   {
-    heading: 'Rumours about the new iPhone',
-    message: 'Rumours about the new iPhone',
-    icon: Smartphone
-  }
-]
+    heading: "New iPhone",
+    message: "New iPhone rumours",
+    icon: Smartphone,
+  },
+];
 
 export function EmptyScreen({
   submitMessage,
-  className
+  className,
 }: {
-  submitMessage: (message: string) => void
-  className?: string
+  submitMessage: (message: string) => void;
+  className?: string;
 }) {
   return (
-    <div className="top-8 p-3">
-      <div className="mx-auto max-w-3xl">
-        <div className="mx-auto w-full">
-          <div className="p-1">
-            <div className="grid grid-cols-2 gap-2">
-              {exampleMessages.map((message, index) => (
-                <Card 
-                  key={index} 
-                  className="group relative overflow-hidden border-0 hover:bg-zinc-800/50"
-                >
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-2 text-sm w-full justify-start hover:bg-transparent"
-                    onClick={() => submitMessage(message.message)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="mt-1 p-1.5 rounded-lg bg-zinc-800/50 group-hover:bg-zinc-800">
-                        <message.icon className="h-4 w-4 text-purple-400" />
-                      </div>
-                      <div className="flex flex-col items-start">
-                        <div className="flex items-center space-x-2">
-                          <div className="h-px w-3 bg-gradient-to-r from-purple-400/0 via-purple-400/50 to-purple-400/0" />
-                          <div className="h-px w-3 bg-gradient-to-r from-purple-400/50 to-purple-400/0" />
-                        </div>
-                        <span className="font-medium mt-0.5">{message.heading}</span>
-                      </div>
-                    </div>
-                  </Button>
-                </Card>
-              ))}
+    <div className={`top-8 p-4 ${className}`}>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+        {exampleMessages.map((message, index) => (
+          <Card
+            key={index}
+            onClick={() => submitMessage(message.message)}
+            className="group flex items-center p-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-sm transition-all cursor-pointer"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-purple-600/10 group-hover:bg-purple-600/20">
+              <message.icon className="h-5 w-5 text-purple-500" />
             </div>
-          </div>
-        </div>
+            <span className="ml-2 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
+              {message.heading}
+            </span>
+          </Card>
+        ))}
       </div>
     </div>
-  )
+  );
 }
-
