@@ -207,7 +207,7 @@ export default function Home() {
 
         {/* Pricing Section */}
          {/* Pricing Section */}
-         <section id="pricing" className="py-20 md:py-32 bg-white/5">
+         <section id="pricing" className="py-20 md:py-32 bg-black">
           <div className="container">
             <motion.div
               initial="initial"
