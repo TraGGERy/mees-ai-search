@@ -108,7 +108,7 @@ export default function ChatComponent() {
               <div className="text-center space-y-3">
                 <Bot className="h-12 w-12 mx-auto text-purple-600" />
                 <h2 className="text-2xl font-semibold text-inherit">How can I help you today?</h2>
-                <p className="text-base text-gray-500 dark:text-gray-400">I'm Mees AI, your research assistant.</p>
+                <p className="text-base text-gray-500 dark:text-gray-400">I&apos;m Mees AI, your research assistant.</p>
               </div>
             </div>
           ) : (
