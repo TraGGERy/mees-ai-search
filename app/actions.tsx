@@ -172,34 +172,37 @@ export const AI = createAI<AIState, UIState>({
 
     const { chatId, messages } = state
     const createdAt = new Date()
-    const user = await currentUser()
-    
-    // Log the user info for debugging
-    console.log('Current user:', user?.id || 'no user')
-    
-    // Make sure we're getting the actual user ID
-    const userId = user?.id || 'anonymous'
-    console.log('Using userId:', userId)
-
+    const user = await currentUser();
+    const userId = user ? user.id : 'anonymous';
     const path = `/search/${chatId}`
     const title =
       messages.length > 0
         ? JSON.parse(messages[0].content)?.input?.substring(0, 100) ||
           'Untitled'
         : 'Untitled'
+    // Add an 'end' message at the end to determine if the history needs to be reloaded
+    const updatedMessages: AIMessage[] = [
+      ...messages,
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: `end`,
+        type: 'end'
+      }
+    ]
 
     const chat: Chat = {
       id: chatId,
       createdAt,
-      userId,  // This should now be the actual user ID
+      userId,
       path,
       title,
       messages: updatedMessages
     }
-
-    console.log('Saving chat with userId:', userId)
-    await saveChat(chat, userId)  // Pass userId explicitly here
-    await saveChatNeon(chat)
+    console.log('Saving chat to Redis:', chat);
+    await saveChat(chat);
+    console.log('Saving chat to Neon:', chat);
+    await saveChatNeon(chat);
   }
 })
 
