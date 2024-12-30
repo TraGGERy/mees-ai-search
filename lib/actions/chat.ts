@@ -93,11 +93,32 @@ export async function saveChatNeon(chat: Chat) {
 
 
 export async function getChats(userId?: string | null) {
+  console.log("Getting chats for userId:", userId); // Add debugging
+
   if (!userId) {
+    console.log("No userId provided, returning empty array");
     return []
   }
 
   try {
+    // First try to get chats from Neon DB
+    const neonChats = await db
+      .select()
+      .from(chatNeon)
+      .where(eq(chatNeon.userId, userId))
+      .execute();
+
+    console.log("Neon chats found:", neonChats.length);
+
+    if (neonChats.length > 0) {
+      return neonChats.map(chat => ({
+        ...chat,
+        messages: JSON.parse(chat.messages as string),
+        createdAt: new Date(chat.createdAt)
+      }));
+    }
+
+    // Fallback to Redis if no Neon results
     const redis = await getRedis()
     const chats = await redis.zrange(`user:chat:${userId}`, 0, -1, {
       rev: true
@@ -191,6 +212,12 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
     const redis = await getRedis()
     const pipeline = redis.pipeline()
 
+    console.log('Saving chat to Redis:', {
+      chatId: chat.id,
+      userId: userId,
+      key: `chat:${chat.id}`
+    });
+
     const chatToSave = {
       ...chat,
       messages: JSON.stringify(chat.messages)
@@ -200,9 +227,11 @@ export async function saveChat(chat: Chat, userId: string = 'anonymous') {
     pipeline.zadd(`user:chat:${userId}`, Date.now(), `chat:${chat.id}`)
 
     const results = await pipeline.exec()
+    console.log('Chat saved to Redis:', results);
 
     return results
   } catch (error) {
+    console.error('Error saving chat:', error);
     throw error
   }
 }
