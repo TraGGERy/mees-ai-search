@@ -19,67 +19,80 @@ export async function POST(req: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
 
-    console.log("Event:", event.type);
+    console.log("Webhook Event Received:", {
+      type: event.type,
+      id: event.id,
+    });
 
     // Only handle 'invoice.payment_succeeded' event
     if (event.type !== "invoice.payment_succeeded") {
+      console.log("Skipping non-invoice event:", event.type);
       return NextResponse.json({
         status: "Ignored",
         message: "Only handling invoice.payment_succeeded events.",
       });
     }
 
-    const invoice = event.data.object as Stripe.Invoice; // Correctly casting to Invoice object
-    const userId = invoice.customer as string; // Stripe customer ID
-    const email = invoice.customer_email || ""; // Default fallback if email is null
-    const subscriptionStatus = invoice.status; // Assuming status is 'paid' when payment is successful
-    const receiptUrl = invoice.hosted_invoice_url || null; // Extract the receipt URL
-    const amountPaid = invoice.amount_paid / 100;
-    let currentPlan = "Pro"; // Assume "Pro" plan
-    if (amountPaid >= 7.99 && amountPaid <= 20) {
-      currentPlan = "Monthly";
-    } else if (amountPaid > 100) {
-      currentPlan = "Yearly";
-    }
-    const nextInvoiceDate = new Date(new Date().setDate(new Date().getDate() + 30)); // Set next invoice date to 30 days from now
-
-    // Insert the event data into the subscriptionEvents table
-    await db.insert(subscriptionEvents).values({
-      eventId: event.id,
-      eventPayload: event,
-      email: email,
+    const invoice = event.data.object as Stripe.Invoice;
+    
+    // Log the important data we're about to save
+    console.log("Processing invoice data:", {
+      customerId: invoice.customer,
+      email: invoice.customer_email,
+      status: invoice.status,
+      amountPaid: invoice.amount_paid,
     });
 
-    // Check if the user already exists in the subscribedUsers table
-    const existingUser = await db
-      .select()
-      .from(subscribedUsers)
-      .where(eq(subscribedUsers.email, email))
-      .limit(1);
-
-    if (existingUser.length > 0) {
-      // User exists, update their subscription data
-      await db
-        .update(subscribedUsers)
-        .set({
-          type: event.type,
-          subscriptionStatus: subscriptionStatus || null,
-          currentPlan: currentPlan || null,
-          nextInvoiceDate: nextInvoiceDate || null,
-          InvoicePdfUrl: receiptUrl || null, // Save the receipt URL
-        })
-        .where(eq(subscribedUsers.email, email));
-    } else {
-      // User doesn't exist, insert a new record
-      await db.insert(subscribedUsers).values({
-        email: email,
-        userId: userId, // Set the Stripe customer ID as userId
-        type: event.type,
-        subscriptionStatus: subscriptionStatus || null,
-        currentPlan: currentPlan || null,
-        nextInvoiceDate: nextInvoiceDate || null,
-        InvoicePdfUrl: receiptUrl || null, // Save the receipt URL
+    // First, try to save the event
+    try {
+      await db.insert(subscriptionEvents).values({
+        eventId: event.id,
+        eventPayload: event,
+        email: invoice.customer_email || "",
       });
+      console.log("Successfully saved event to subscriptionEvents");
+    } catch (dbError) {
+      console.error("Failed to save to subscriptionEvents:", dbError);
+      throw dbError;
+    }
+
+    // Then, handle the user subscription
+    try {
+      const existingUser = await db
+        .select()
+        .from(subscribedUsers)
+        .where(eq(subscribedUsers.email, invoice.customer_email || ""))
+        .limit(1);
+
+      console.log("Existing user check result:", existingUser);
+
+      if (existingUser.length > 0) {
+        await db
+          .update(subscribedUsers)
+          .set({
+            type: event.type,
+            subscriptionStatus: invoice.status || null,
+            currentPlan: determinePlan(invoice.amount_paid),
+            nextInvoiceDate: calculateNextInvoiceDate(),
+            InvoicePdfUrl: invoice.hosted_invoice_url || null,
+          })
+          .where(eq(subscribedUsers.email, invoice.customer_email || ""));
+        console.log("Successfully updated existing user");
+      } else {
+        await db.insert(subscribedUsers).values({
+          email: invoice.customer_email || "",
+          userId: invoice.customer as string,
+          type: event.type,
+          subscriptionStatus: invoice.status || null,
+          currentPlan: determinePlan(invoice.amount_paid),
+          nextInvoiceDate: calculateNextInvoiceDate(),
+          InvoicePdfUrl: invoice.hosted_invoice_url || null,
+        });
+        console.log("Successfully created new user");
+      }
+    } catch (dbError) {
+      console.error("Failed to save to subscribedUsers:", dbError);
+      throw dbError;
     }
 
     return NextResponse.json({
@@ -88,6 +101,28 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error processing Stripe webhook:", error);
-    return NextResponse.json({ status: "Failed", error: error });
+    // Return a 400 error instead of 200 for webhook processing failures
+    return new NextResponse(
+      JSON.stringify({ 
+        status: "Failed", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      }), 
+      { status: 400 }
+    );
   }
+}
+
+// Helper functions
+function determinePlan(amountPaid: number): string {
+  const amount = amountPaid / 100;
+  if (amount >= 7.99 && amount <= 20) {
+    return "Monthly";
+  } else if (amount > 100) {
+    return "Yearly";
+  }
+  return "Pro";
+}
+
+function calculateNextInvoiceDate(): Date {
+  return new Date(new Date().setDate(new Date().getDate() + 30));
 }

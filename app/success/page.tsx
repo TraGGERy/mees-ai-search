@@ -42,72 +42,58 @@ const Success = () => {
       if (!user?.primaryEmailAddress?.emailAddress) return;
 
       const email = user.primaryEmailAddress.emailAddress;
+      console.log("Attempting verification for email:", email); // Debug log
 
       setDbState(prev => ({ ...prev, loading: true, error: null }));
 
       try {
-        // Query the subscribedUsers table
-        const existingUser = await db
-          .select()
-          .from(subscribedUsers)
-          .where(eq(subscribedUsers.email, email))
-          .limit(1);
+        let retryCount = 0;
+        const maxRetries = 3;
 
-        if (!mounted) return;
+        while (retryCount < maxRetries) {
+          try {
+            const response = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email,
+                userId: user.id,
+              }),
+            });
 
-        if (existingUser.length > 0) {
-          const userData = existingUser[0] as SubscribedUser;
+            const data = await response.json();
+            console.log("API Response:", data); // Debug log
 
-          // Insert into userSubscriptions with retry mechanism
-          let retryCount = 0;
-          const maxRetries = 3;
-
-          while (retryCount < maxRetries) {
-            try {
-              await db.insert(userSubscriptions).values({
-                clerkUserId: user.id,
-                stripeUserId: userData.userId,
-                email: email,
-                type: userData.type || "payment_success",
-                subscriptionStatus: userData.subscriptionStatus,
-                currentPlan: userData.currentPlan,
-                nextInvoiceDate: userData.nextInvoiceDate,
-                invoicePdfUrl: userData.InvoicePdfUrl,
-              });
-              
-              if (mounted) {
-                setIsEmailMatched(true);
-                setDbState(prev => ({ ...prev, loading: false, success: true }));
-              }
-              break; // Success, exit retry loop
-              
-            } catch (insertError) {
-              retryCount++;
-              if (retryCount === maxRetries) {
-                throw insertError; // Throw error after max retries
-              }
-              // Wait before retrying (exponential backoff)
-              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to verify payment');
             }
-          }
-        } else {
-          if (mounted) {
-            setIsEmailMatched(false);
-            setDbState(prev => ({
-              ...prev,
-              loading: false,
-              error: "No matching email found"
-            }));
+
+            if (mounted) {
+              setIsEmailMatched(true);
+              setDbState(prev => ({ ...prev, loading: false, success: true }));
+            }
+            break;
+
+          } catch (error) {
+            console.error(`Attempt ${retryCount + 1} failed:`, error); // Debug log
+            retryCount++;
+            if (retryCount === maxRetries) {
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           }
         }
       } catch (error) {
         if (mounted) {
-          console.error("Error during payment processing:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error("Final error during payment processing:", errorMessage);
           setIsEmailMatched(false);
           setDbState(prev => ({
             ...prev,
             loading: false,
-            error: "Failed to process payment verification"
+            error: errorMessage
           }));
         }
       }
