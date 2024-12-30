@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import { ModeToggle } from './mode-toggle'
 import { IconLogo } from './ui/icons'
 import { cn } from '@/lib/utils'
-import HistoryContainer from './history-container'
 import { toast, Toaster } from "sonner";
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSettings, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
