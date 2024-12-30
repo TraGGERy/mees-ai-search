@@ -13,6 +13,7 @@ import { useUser } from '@clerk/nextjs';
 import { SignInButton } from '@clerk/nextjs';
 import Image from "next/image";
 import { SiFacebook, SiWhatsapp } from "react-icons/si";
+import HistoryContainer from './history-container'
 
 // Lazy load heavy components
 const ClientHistoryList = dynamic(() => import('./client-history-list').then(mod => mod.ClientHistoryList), {

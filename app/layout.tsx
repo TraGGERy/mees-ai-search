@@ -124,6 +124,7 @@ export default function RootLayout({
                 {children}
               </Suspense>
             </ErrorBoundary>
+            <Sidebar></Sidebar>
             <Sidebarmees />
             <Footer />
             <Toaster />
