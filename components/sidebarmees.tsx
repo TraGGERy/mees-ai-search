@@ -193,7 +193,7 @@ export function Sidebarmees({ className }: { className?: string }) {
   ));
   SidebarContent.displayName = 'SidebarContent';
 
-  if (['/admin', '/home', '/admin/dashboard'].includes(pathname)) {
+  if (['/admin', '/home', '/admin/dashboard','/chat'].includes(pathname)) {
     return null;
   }
 
