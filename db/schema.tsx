@@ -89,4 +89,14 @@ export const waitlist = pgTable("waitlist", {
   status: varchar("status", { length: 50 }).default('pending').notNull(), // pending, contacted, etc.
 });
 
+export const userChats = pgTable("user_chats", {
+  id: serial("id").primaryKey(),
+  chatId: varchar("chat_id", { length: 255 }).notNull().unique(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  messages: jsonb("messages").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 
