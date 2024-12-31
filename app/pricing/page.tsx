@@ -65,7 +65,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <StripeCheckout priceId="price_1Qc4B12KdoaMaPemXw63p6Nz" />
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!} />
             </div>
           </div>
 
