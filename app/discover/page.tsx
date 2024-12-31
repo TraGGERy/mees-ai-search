@@ -54,7 +54,8 @@ export default function DiscoverPage() {
       setNews(newsWithSummaries);
     } catch (error) {
       console.error("Error fetching news from database:", error);
-      // Add error state handling
+      // Provide user feedback
+      alert("Failed to fetch news. Please try again later.");
       setNews([]);
     } finally {
       setIsLoading(false);
@@ -65,7 +66,18 @@ export default function DiscoverPage() {
     fetchNewsFromDB();
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Debounce function for search input
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const handleSearch = debounce((e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -80,7 +92,7 @@ export default function DiscoverPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, 300);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
