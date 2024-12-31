@@ -53,7 +53,7 @@ export default function Price() {
                 <h2 className="text-2xl font-semibold text-purple-900">Pro Plan (Monthly)</h2>
               </div>
               <p className="text-center text-4xl font-bold text-purple-900 mb-6">
-                $9.50 <span className="text-xl font-medium text-purple-600">/month</span>
+                ${process.env.NEXT_PUBLIC_MONTHLY_PRICE} <span className="text-xl font-medium text-purple-600">/month</span>
               </p>
               <ul className="text-purple-700 space-y-3">
                 <li className="flex items-center"><FontAwesomeIcon icon={['fas', 'check-circle']} className="text-green-500 mr-2" /> ChatGPT-4o</li>
@@ -65,7 +65,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <StripeCheckout priceId="price_1Q69sZ2KdoaMaPemQhWJFENM" />
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!} />
             </div>
           </div>
 
@@ -77,7 +77,7 @@ export default function Price() {
                 <h2 className="text-2xl font-semibold text-purple-900">Pro Plan (Yearly)</h2>
               </div>
               <p className="text-center text-4xl font-bold text-purple-900 mb-6">
-                $110.00 <span className="text-xl font-medium text-purple-600">/year</span>
+                ${process.env.NEXT_PUBLIC_YEARLY_PRICE} <span className="text-xl font-medium text-purple-600">/year</span>
               </p>
               <ul className="text-purple-700 space-y-3">
                 <li className="flex items-center"><FontAwesomeIcon icon={['fas', 'check-circle']} className="text-green-500 mr-2" /> ChatGPT-4o</li>
@@ -89,7 +89,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <StripeCheckout priceId="price_1Q69xX2KdoaMaPemyKYbv6MO" />
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID!} />
             </div>
           </div>
 

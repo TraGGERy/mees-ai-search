@@ -92,6 +92,7 @@
     "rehype-katex": "^6.0.0",
     "remark-gfm": "^3.0.1",
     "remark-math": "^5.1.1",
+    "rss-parser": "^3.13.0",
     "sonner": "^1.4.41",
     "stripe": "17.4.0",
     "tailwind-merge": "^2.2.2",
