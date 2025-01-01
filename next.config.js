@@ -20,14 +20,7 @@ const nextConfig = {
     }
     return config;
   },
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        'punycode': false
-      }
-    }
-  }
-};
+}
 
 module.exports = withPWA(nextConfig) 
 
