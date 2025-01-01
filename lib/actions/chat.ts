@@ -28,40 +28,38 @@ export async function chatExists(chatId: string): Promise<boolean> {
 
 export async function saveChatNeon(chat: Chat) {
   try {
-    const { id: chatId, createdAt, userId, path, title, messages } = chat;
-    
-    // Check if the chat already exists
-    const exists = await chatExists(chatId);
-    
-    if (!exists) {
-      // Insert new chat
-      await db.insert(chatNeon).values({
-        chatId,
-        createdAt,
-        userId,
-        path,
-        title,
-        messages: JSON.stringify(messages), // Convert messages to JSON string
-      });
-      console.log(`Chat ${chatId} saved successfully to Neon.`);
-    } else {
-      // Update existing chat
-      await db
-        .update(chatNeon)
-        .set({
-          title,
-          messages: JSON.stringify(messages),
-          createdAt // Update timestamp
-        })
-        .where(eq(chatNeon.chatId, chatId))
-        .execute();
-      console.log(`Chat ${chatId} updated successfully in Neon.`);
+    // Ensure the data matches your schema
+    const chatData = {
+      chatId: chat.id,
+      userId: chat.userId || 'anonymous',
+      path: chat.path || `/search/${chat.id}`,
+      title: chat.title || 'Untitled',
+      messages: Array.isArray(chat.messages) 
+        ? JSON.stringify(chat.messages) 
+        : JSON.stringify([]),
+      createdAt: chat.createdAt || new Date()
     }
 
-    return { success: true };
+    // Use upsert to handle both insert and update cases
+    await db
+      .insert(chatNeon)
+      .values(chatData)
+      .onConflictDoUpdate({
+        target: chatNeon.chatId,
+        set: {
+          messages: chatData.messages,
+          title: chatData.title,
+          path: chatData.path
+        }
+      })
+      .execute()
+
+    console.log('Chat saved to Neon successfully:', chat.id)
+    return true
   } catch (error) {
-    console.error('Error saving chat to Neon:', error);
-    throw new Error('Failed to save chat to Neon database');
+    console.error('Error saving chat to Neon:', error)
+    // Don't throw, return false to indicate failure
+    return false
   }
 }
 

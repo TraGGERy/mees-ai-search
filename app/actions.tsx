@@ -107,14 +107,21 @@ async function submit(
     })
   }
 
-  // Run the agent workflow
-  workflow(
-    { uiStream, isCollapsed, isGenerating },
-    aiState,
-    messages,
-    skip ?? false,
-    model
-  )
+  try {
+    // Run the agent workflow
+    workflow(
+      { uiStream, isCollapsed, isGenerating },
+      aiState,
+      messages,
+      skip ?? false,
+      model
+    )
+  } catch (error) {
+    console.error('[Workflow Error]', error)
+    // Optionally set a fallback state or UI:
+    // isGenerating.done(false);
+    // You could also show a user-friendly message here instead of a global error.
+  }
 
   return {
     id: generateId(),
