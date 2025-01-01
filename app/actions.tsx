@@ -108,19 +108,34 @@ async function submit(
   }
 
   try {
-    // Run the agent workflow
-    workflow(
+    // Set a longer timeout for the stream
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
+
+    await workflow(
       { uiStream, isCollapsed, isGenerating },
       aiState,
       messages,
       skip ?? false,
       model
     )
+
+    clearTimeout(timeoutId)
   } catch (error) {
-    console.error('[Workflow Error]', error)
-    // Optionally set a fallback state or UI:
-    // isGenerating.done(false);
-    // You could also show a user-friendly message here instead of a global error.
+    console.error('[Stream Error]:', error)
+    
+    // Handle connection errors gracefully
+    if (error.message?.includes('Connection closed')) {
+      uiStream.append(
+        <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+          Connection interrupted. Your results may be incomplete.
+        </div>
+      )
+    }
+    
+    // Ensure we always clean up
+    uiStream.done()
+    isGenerating.done(false)
   }
 
   return {
