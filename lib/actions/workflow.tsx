@@ -31,104 +31,122 @@ export async function workflow(
   // Display spinner
   uiStream.append(<Spinner />)
 
-  let action = { object: { next: 'proceed' } }
-  // If the user does not skip the task, run the task manager
-  if (!skip) action = (await taskManager(messages, model)) ?? action
+  try {
+    // If user did not skip the task, run the manager
+    let action = { object: { next: 'proceed' } }
+    if (!skip) {
+      action = (await taskManager(messages, model)) ?? action
+    }
 
-  if (action.object.next === 'inquire') {
-    // Generate inquiry
-    const inquiry = await inquire(uiStream, messages, model)
+    // Possibly run "inquire"
+    if (action.object.next === 'inquire') {
+      // Generate inquiry
+      const inquiry = await inquire(uiStream, messages, model)
+      uiStream.done()
+
+      aiState.done({
+        ...aiState.get(),
+        messages: [
+          ...aiState.get().messages,
+          {
+            id: generateId(),
+            role: 'assistant',
+            content: `inquiry: ${inquiry?.question}`,
+            type: 'inquiry'
+          }
+        ]
+      })
+
+      isCollapsed.done(false)
+      isGenerating.done(false)
+      return
+    }
+
+    // Set the collapsed state to true
+    isCollapsed.done(true)
+
+    // Remove the spinner
+    uiStream.update(null)
+
+    // Decide on researcher
+    const useOllama = model.startsWith('ollama')
+    const { text, toolResults } = useOllama
+      ? await researcherWithOllama(uiStream, messages, model)
+      : await researcher(uiStream, messages, model)
+
+    aiState.update({
+      ...aiState.get(),
+      messages: [
+        ...aiState.get().messages,
+        ...toolResults.map((toolResult: any) => ({
+          id,
+          role: 'tool',
+          content: JSON.stringify(toolResult.result),
+          name: toolResult.toolName,
+          type: 'tool'
+        })),
+        {
+          id,
+          role: 'assistant',
+          content: text,
+          type: 'answer'
+        }
+      ]
+    })
+
+    const messagesWithAnswer: CoreMessage[] = [
+      ...messages,
+      {
+        role: 'assistant',
+        content: text
+      }
+    ]
+
+    // Generate related queries
+    const relatedQueries = await querySuggestor(
+      uiStream,
+      messagesWithAnswer,
+      model
+    )
+
+    // Add follow-up panel
+    uiStream.append(
+      <Section title="Follow-up">
+        <FollowupPanel />
+      </Section>
+    )
+
     uiStream.done()
+    isGenerating.done(false)
+
     aiState.done({
       ...aiState.get(),
       messages: [
         ...aiState.get().messages,
         {
-          id: generateId(),
+          id,
           role: 'assistant',
-          content: `inquiry: ${inquiry?.question}`,
-          type: 'inquiry'
+          content: JSON.stringify(relatedQueries),
+          type: 'related'
+        },
+        {
+          id,
+          role: 'assistant',
+          content: 'followup',
+          type: 'followup'
         }
       ]
     })
-
-    isCollapsed.done(false)
+  } catch (err) {
+    console.error('[Workflow Error Caught]:', err)
+    // Gracefully finalize any partial UI
+    uiStream.append(
+      <div className="p-4 text-sm font-medium text-red-600">
+        Minor workflow error—continuing…
+      </div>
+    )
+    uiStream.done()
     isGenerating.done(false)
-    return
+    // Do NOT throw again—this ensures no “Something went wrong” error page.
   }
-
-  // Set the collapsed state to true
-  isCollapsed.done(true)
-
-  // Remove the spinner
-  uiStream.update(null)
-
-  const useOllama = model.startsWith('ollama')
-  // Select the appropriate researcher function based on the environment variables
-  const { text, toolResults } = useOllama
-    ? await researcherWithOllama(uiStream, messages, model)
-    : await researcher(uiStream, messages, model)
-
-  aiState.update({
-    ...aiState.get(),
-    messages: [
-      ...aiState.get().messages,
-      ...toolResults.map((toolResult: any) => ({
-        id,
-        role: 'tool',
-        content: JSON.stringify(toolResult.result),
-        name: toolResult.toolName,
-        type: 'tool'
-      })),
-      {
-        id,
-        role: 'assistant',
-        content: text,
-        type: 'answer'
-      }
-    ]
-  })
-
-  const messagesWithAnswer: CoreMessage[] = [
-    ...messages,
-    {
-      role: 'assistant',
-      content: text
-    }
-  ]
-
-  // Generate related queries
-  const relatedQueries = await querySuggestor(
-    uiStream,
-    messagesWithAnswer,
-    model
-  )
-  // Add follow-up panel
-  uiStream.append(
-    <Section title="Follow-up">
-      <FollowupPanel />
-    </Section>
-  )
-
-  uiStream.done()
-  isGenerating.done(false)
-
-  aiState.done({
-    ...aiState.get(),
-    messages: [
-      ...aiState.get().messages,
-      {
-        id,
-        role: 'assistant',
-        content: JSON.stringify(relatedQueries),
-        type: 'related'
-      },
-      {
-        id,
-        role: 'assistant',
-        content: 'followup',
-        type: 'followup'
-      }
-    ]
-  })
 }
