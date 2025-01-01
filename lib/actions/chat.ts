@@ -228,7 +228,9 @@ export async function getChatNeon(chatId: string): Promise<Chat | null> {
     let messages: any[] = []
     if (data.messages) {
       try {
-        messages = JSON.parse(data.messages)
+        messages = typeof data.messages === 'string' 
+          ? JSON.parse(data.messages) 
+          : data.messages || []
       } catch {
         messages = []
       }
