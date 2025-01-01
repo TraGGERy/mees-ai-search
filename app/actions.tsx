@@ -121,11 +121,11 @@ async function submit(
     )
 
     clearTimeout(timeoutId)
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Stream Error]:', error)
     
     // Handle connection errors gracefully
-    if (error.message?.includes('Connection closed')) {
+    if (typeof error === 'object' && error?.message?.includes('Connection closed')) {
       uiStream.append(
         <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
           Connection interrupted. Your results may be incomplete.
