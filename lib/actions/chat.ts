@@ -117,34 +117,25 @@ export async function getChats(userId?: string | null) {
 export async function getChat(id: string, userId: string = 'anonymous') {
   try {
     const redis = await getRedis()
-    console.log('Attempting to fetch chat:', id)
-    
     const chat = await redis.hgetall<Chat>(`chat:${id}`)
-    console.log('Retrieved chat data:', chat)
 
     if (!chat || Object.keys(chat).length === 0) {
-      console.log('No chat found for ID:', id)
+      console.log('[getChat] No chat found in Redis:', id)
       return null
     }
 
-    // Parse the messages if they're stored as a string
+    // Parse messages
     if (typeof chat.messages === 'string') {
       try {
         chat.messages = JSON.parse(chat.messages)
-      } catch (error) {
-        console.error('Error parsing messages:', error)
+      } catch {
         chat.messages = []
       }
     }
 
-    // Ensure messages is always an array
-    if (!Array.isArray(chat.messages)) {
-      chat.messages = []
-    }
-
     return chat
   } catch (error) {
-    console.error('Error in getChat:', error)
+    console.error('[getChat] Error:', error)
     return null
   }
 }
@@ -220,33 +211,41 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
   return payload
 }
 
-export async function getChatNeon(chatId: string) {
+export async function getChatNeon(chatId: string): Promise<Chat | null> {
   try {
-    const chat = await db
+    const result = await db
       .select()
       .from(chatNeon)
       .where(eq(chatNeon.chatId, chatId))
-      .execute();
+      .execute()
 
-    if (!chat || chat.length === 0) {
-      return null;
+    if (!result || result.length === 0) {
+      console.log('[getChatNeon] No chat found in Neon:', chatId)
+      return null
     }
 
-    // Transform the data to match Chat type
-    const chatData = chat[0];
+    const data = result[0]
+    let messages: any[] = []
+    if (data.messages) {
+      try {
+        messages = JSON.parse(data.messages)
+      } catch {
+        messages = []
+      }
+    }
+
     return {
-      id: chatData.chatId, // Use chatId instead of id
-      userId: chatData.userId,
-      path: chatData.path,
-      title: chatData.title || '',
-      messages: typeof chatData.messages === 'string' 
-        ? JSON.parse(chatData.messages) 
-        : chatData.messages,
-      createdAt: chatData.createdAt
-    };
+      id: data.chatId,
+      userId: data.userId || 'anonymous',
+      title: data.title || '',
+      path: data.path || `/search/${chatId}`,
+      messages,
+      createdAt: data.createdAt || new Date(),
+      sharePath: undefined,
+    }
   } catch (error) {
-    console.error('Error fetching chat from Neon:', error);
-    return null;
+    console.error('[getChatNeon] Error:', error)
+    return null
   }
 }
 
