@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { StreamableValue, useStreamableValue } from 'ai/rsc'
 import { toast } from 'sonner'
-import { AiOutlineSound, AiOutlineCopy, AiOutlineLike, AiOutlineDislike, AiOutlineSync, AiOutlineDown, AiOutlineStop } from "react-icons/ai"
+import { AiOutlineSound, AiOutlineCopy, AiOutlineLike, AiOutlineDislike, AiOutlineSync, AiOutlineDown, AiOutlineStop, AiOutlineDownload } from "react-icons/ai"
 import { IconSearch } from '@tabler/icons-react'
 import { Section } from './section'
 import { BotMessage } from './message'
@@ -99,6 +99,46 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
     setFeedbackType(null)
   }
 
+  const downloadAsDoc = () => {
+    try {
+      // Create content with basic HTML formatting
+      const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset="utf-8">
+          <title>Mees AI Response</title>
+        </head>
+        <body>
+          <div>
+            ${content.replace(/\n/g, '<br>')}
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Create blob with MS Word mime type
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mees-ai-response-${new Date().toISOString().slice(0,10)}.doc`;
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Document downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download document');
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       {content.length > 0 ? (
@@ -154,6 +194,14 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
                   className="p-2 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors duration-200"
                 >
                   <AiOutlineSync className="h-5 w-5" />
+                </button>
+
+                <button
+                  onClick={downloadAsDoc}
+                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors duration-200"
+                  title="Download as DOC"
+                >
+                  <AiOutlineDownload className="h-5 w-5" />
                 </button>
               </div>
             </div>

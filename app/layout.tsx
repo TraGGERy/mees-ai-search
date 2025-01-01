@@ -13,11 +13,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import { Sidebarmees } from '@/components/sidebarmees'
-import ErrorBoundary from '@/components/error-boundary'
 import Loading from '@/components/loading';
 import { Suspense } from 'react';
 import { initializeErrorHandling } from '@/app/lib/error-handler'
-import GlobalError from '@/components/error-boundary'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -124,11 +122,9 @@ export default function RootLayout({
         >
           <AppStateProvider>
             <Header />
-            <ErrorBoundary>
-              <Suspense fallback={<Loading />}>
-                {children}
-              </Suspense>
-            </ErrorBoundary>
+            <Suspense fallback={<Loading />}>
+              {children}
+            </Suspense>
             
             <Sidebarmees />
             <Footer />
