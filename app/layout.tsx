@@ -16,6 +16,8 @@ import { Sidebarmees } from '@/components/sidebarmees'
 import ErrorBoundary from '@/components/error-boundary'
 import Loading from '@/components/loading';
 import { Suspense } from 'react';
+import { initializeErrorHandling } from '@/app/lib/error-handler'
+import GlobalError from '@/components/error-boundary'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -64,7 +66,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  
+  // Initialize error handling
+  if (typeof window !== 'undefined') {
+    initializeErrorHandling();
+  }
+
   return (
 
     <ClerkProvider>
