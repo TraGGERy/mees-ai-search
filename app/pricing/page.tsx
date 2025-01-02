@@ -65,7 +65,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID} />
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID || ''} />
             </div>
           </div>
 
@@ -89,7 +89,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID} />
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID || ''} />
             </div>
           </div>
 
