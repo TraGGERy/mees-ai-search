@@ -53,7 +53,7 @@ export default function Home() {
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
             <Button className="hidden md:inline-flex bg-purple-600 hover:bg-purple-700">
-              Get Started
+              <Link href="/">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function Home() {
               <Link className="text-white/70 hover:text-white transition-colors" href="#reviews">Reviews</Link>
               <Link className="text-white/70 hover:text-white transition-colors" href="#contact">Contact</Link>
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                <a href="/">Get Started</a>
+                <Link href="/">Get Started</Link>
               </Button>
             </nav>
           </motion.div>
@@ -104,7 +104,7 @@ export default function Home() {
               </motion.div>
               <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-                  Get Started Free
+                  <Link href="/">Get Started Free</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-purple-600 text-purple-400 hover:bg-purple-600/10">
                   Watch Demo
@@ -420,7 +420,7 @@ export default function Home() {
             </motion.p>
             <motion.div variants={fadeIn}>
               <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90">
-                Get Started Free
+                <Link href="/">Get Started Free</Link>
               </Button>
             </motion.div>
           </motion.div>
