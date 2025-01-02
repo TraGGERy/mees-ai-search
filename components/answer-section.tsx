@@ -131,7 +131,9 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
     if (isGenerating || !content) return;
     
     setIsGenerating(true);
-    const loadingToast = toast.loading('Preparing document...');
+    const loadingToastId = toast.loading('Preparing document...', {
+      duration: 3000  // Will dismiss after 3 seconds
+    });
     
     try {
       const images = extractImageUrls(content);
@@ -197,15 +199,16 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      // Make sure to dismiss the loading toast before showing success
-      toast.dismiss(loadingToast);
-      toast.success('Document downloaded successfully');
+      toast.success('Document downloaded successfully', {
+        duration: 3000  // Success message shows for 3 seconds
+      });
     } catch (error) {
       console.error('Document generation failed:', error);
-      toast.dismiss(loadingToast);
-      toast.error('Failed to generate document');
+      toast.error('Failed to generate document', {
+        duration: 3000  // Error message shows for 3 seconds
+      });
     } finally {
-      setIsGenerating(false); // Reset generating state
+      setIsGenerating(false);
     }
   };
 
