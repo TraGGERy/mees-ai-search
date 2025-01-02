@@ -1,48 +1,50 @@
-import { Suspense } from 'react'
-import { notFound } from 'next/navigation'
-import { Chat } from '@/components/chat'
-import { getChat, getChatNeon } from '@/lib/actions/chat'
-import { AI } from '@/app/actions'
-import ChatSkeleton from '@/components/chat-skeleton'
+import { notFound, redirect } from 'next/navigation';
+import { Chat } from '@/components/chat';
+import { getChat } from '@/lib/actions/chat';
+import { AI } from '@/app/actions';
+import { currentUser } from '@clerk/nextjs/server'; // Import Clerk for user authentication
 
-interface SearchPageProps {
+export const maxDuration = 60;
+
+export interface SearchPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default function SearchPage({ params }: SearchPageProps) {
-  // You don’t need to do data fetching here in the top-level
-  // since we can do it within a nested component and wrap in <Suspense>.
-  return (
-    <Suspense fallback={<ChatSkeleton />}>
-      <ChatWrapper chatId={params.id} />
-    </Suspense>
-  )
+// Metadata function to get basic title info for SEO
+export async function generateMetadata({ params }: SearchPageProps) {
+  const chat = await getChat(params.id, 'anonymous'); // Use anonymous to load general metadata
+  return {
+    title: chat?.title?.toString().slice(0, 50) || 'Search',
+  };
 }
 
-async function ChatWrapper({ chatId }: { chatId: string }) {
-  // 1. Attempt to fetch from Redis
-  let chat = await getChat(chatId, 'anonymous')
+export default async function SearchPage({ params }: SearchPageProps) {
+  const user = await currentUser();
+  const userId = user?.id || 'anonymous';
 
-  // 2. If not found in Redis, try Neon
+  // Fetch the chat with the actual userId or 'anonymous' as fallback
+  const chat = await getChat(params.id, userId);
+
+  // Check if chat exists
   if (!chat) {
-    chat = await getChatNeon(chatId)
+    redirect('/');
   }
 
-  // 3. If truly not found, call notFound
-  if (!chat) {
-    return notFound()
+  // Allow access if the chat is shared publicly, or if the user is the chat owner
+  if (!chat.shared && chat.userId !== userId) {
+    notFound();
   }
-
-  // Optional: Additional checks (like user permissions)
-  // if (chat.userId !== currentUser) {
-  //   return notFound()
-  // }
 
   return (
-    <AI initialAIState={{ chatId: chat.id, messages: chat.messages }}>
-      <Chat id={chatId} />
+    <AI
+      initialAIState={{
+        chatId: chat.id,
+        messages: chat.messages,
+      }}
+    >
+      <Chat id={params.id} />
     </AI>
-  )
+  );
 }

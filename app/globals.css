@@ -64,13 +64,6 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 14.9%;
   }
-  .custom-sheet {
-    --sheet-background: transparent !important;
-  }
-  
-  [data-overlay-ref] {
-    background-color: transparent !important;
-  }
 }
 
 @layer base {
