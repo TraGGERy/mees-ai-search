@@ -21,9 +21,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/updic/ui/table";
 import { Loader2, Trash2, Edit2, Plus, Download, Search } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/updic/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
