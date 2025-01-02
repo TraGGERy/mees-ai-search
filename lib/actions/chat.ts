@@ -6,63 +6,11 @@ import { type Chat } from '@/lib/types'
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
 import { db } from '@/db/db'
 import { chatNeon } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
-import path from 'path'
-import { currentUser } from '@clerk/nextjs/server'
-import { kv } from '@vercel/kv'
-
+import { sql } from 'drizzle-orm'
 
 async function getRedis(): Promise<RedisWrapper> {
   return await getRedisClient()
 }
-// Function to check if a chat with the given chatId exists
-export async function chatExists(chatId: string): Promise<boolean> {
-  const existingChat = await db
-    .select()
-    .from(chatNeon)
-    .where(eq(chatNeon.chatId, chatId))
-    .execute();
-
-  return existingChat.length > 0;
-}
-
-export async function saveChatNeon(chat: Chat) {
-  try {
-    // Ensure the data matches your schema
-    const chatData = {
-      chatId: chat.id,
-      userId: chat.userId || 'anonymous',
-      path: chat.path || `/search/${chat.id}`,
-      title: chat.title || 'Untitled',
-      messages: Array.isArray(chat.messages) 
-        ? JSON.stringify(chat.messages) 
-        : JSON.stringify([]),
-      createdAt: chat.createdAt || new Date()
-    }
-
-    // Use upsert to handle both insert and update cases
-    await db
-      .insert(chatNeon)
-      .values(chatData)
-      .onConflictDoUpdate({
-        target: chatNeon.chatId,
-        set: {
-          messages: chatData.messages,
-          title: chatData.title,
-          path: chatData.path
-        }
-      })
-      .execute()
-
-    console.log('Chat saved to Neon successfully:', chat.id)
-    return true
-  } catch (error) {
-    console.error('Error saving chat to Neon:', error)
-    // Don't throw, return false to indicate failure
-    return false
-  }
-}
-
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -113,29 +61,28 @@ export async function getChats(userId?: string | null) {
 }
 
 export async function getChat(id: string, userId: string = 'anonymous') {
-  try {
-    const redis = await getRedis()
-    const chat = await redis.hgetall<Chat>(`chat:${id}`)
+  const redis = await getRedis()
+  const chat = await redis.hgetall<Chat>(`chat:${id}`)
 
-    if (!chat || Object.keys(chat).length === 0) {
-      console.log('[getChat] No chat found in Redis:', id)
-      return null
-    }
-
-    // Parse messages
-    if (typeof chat.messages === 'string') {
-      try {
-        chat.messages = JSON.parse(chat.messages)
-      } catch {
-        chat.messages = []
-      }
-    }
-
-    return chat
-  } catch (error) {
-    console.error('[getChat] Error:', error)
+  if (!chat) {
     return null
   }
+
+  // Parse the messages if they're stored as a string
+  if (typeof chat.messages === 'string') {
+    try {
+      chat.messages = JSON.parse(chat.messages)
+    } catch (error) {
+      chat.messages = []
+    }
+  }
+
+  // Ensure messages is always an array
+  if (!Array.isArray(chat.messages)) {
+    chat.messages = []
+  }
+
+  return chat
 }
 
 export async function clearChats(
@@ -209,43 +156,28 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
   return payload
 }
 
-export async function getChatNeon(chatId: string): Promise<Chat | null> {
+export async function saveChatNeon(chat: Chat, userId: string = 'anonymous') {
   try {
-    const result = await db
-      .select()
-      .from(chatNeon)
-      .where(eq(chatNeon.chatId, chatId))
-      .execute()
-
-    if (!result || result.length === 0) {
-      console.log('[getChatNeon] No chat found in Neon:', chatId)
-      return null
-    }
-
-    const data = result[0]
-    let messages: any[] = []
-    if (data.messages) {
-      try {
-        messages = typeof data.messages === 'string' 
-          ? JSON.parse(data.messages) 
-          : data.messages || []
-      } catch {
-        messages = []
-      }
-    }
-
-    return {
-      id: data.chatId,
-      userId: data.userId || 'anonymous',
-      title: data.title || '',
-      path: data.path || `/search/${chatId}`,
-      messages,
-      createdAt: data.createdAt || new Date(),
-      sharePath: undefined,
-    }
-  } catch (error) {
-    console.error('[getChatNeon] Error:', error)
-    return null
+    await db
+      .insert(chatNeon)
+      .values({
+        chatId: chat.id,
+        userId: chat.userId,
+        path: `/chat/${chat.id}`,
+        title: chat.title || 'Untitled Chat',
+        messages: JSON.stringify(chat.messages),
+      })
+      .onConflictDoUpdate({
+        target: chatNeon.chatId,
+        set: {
+          userId: sql`excluded.user_id`,
+          path: sql`excluded.path`,
+          title: sql`excluded.title`,
+          messages: sql`excluded.messages`,
+        },
+      })
+  } catch (err) {
+    console.error('saveChatNeon error:', err)
+    throw err
   }
 }
-

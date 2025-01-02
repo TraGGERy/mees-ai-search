@@ -1,6 +1,9 @@
 "use client";
 
-import { Send } from "lucide-react";
+import { Send, StopCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ChatInputProps {
   input: string;
@@ -15,25 +18,46 @@ export function ChatInput({
   handleInputChange,
   handleSubmit,
   isLoading,
+  onStop,
 }: ChatInputProps) {
   return (
-    <div className="p-4">
-      <form onSubmit={handleSubmit} className="relative">
-        <input
-          type="text"
+    <form onSubmit={handleSubmit} className="border-t bg-background p-4">
+      <div className="flex flex-col gap-4">
+        <Textarea
+          placeholder="Type your message..."
           value={input}
-          onChange={(e) => handleInputChange(e as any)}
-          placeholder="Type a message..."
-          className="w-full rounded-full pl-6 pr-16 py-4 border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-gray-100 text-black placeholder-gray-500"
+          onChange={handleInputChange}
+          disabled={isLoading}
+          className="min-h-[80px] resize-none"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
         />
-        <button
-          type="submit"
-          disabled={isLoading || !input.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-        >
-          <Send className="h-5 w-5" />
-        </button>
-      </form>
-    </div>
+        <div className="flex justify-end gap-2">
+          {isLoading && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onStop}
+              className="flex items-center gap-2"
+            >
+              <StopCircle className="h-4 w-4" />
+              Stop
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            className="bg-purple-500 hover:bg-purple-600"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Send
+          </Button>
+        </div>
+      </div>
+    </form>
   );
 }

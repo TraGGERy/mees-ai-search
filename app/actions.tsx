@@ -25,7 +25,6 @@ import { db } from '@/db/db'
 import { chatNeon } from '@/db/schema'
 import { saveChatNeon } from '@/lib/actions/chat'
 import { currentUser } from '@clerk/nextjs/server'
-import { v4 as uuidv4 } from 'uuid'
 
 const MAX_MESSAGES = 6
 
@@ -107,36 +106,14 @@ async function submit(
     })
   }
 
-  try {
-    // Set a longer timeout for the stream
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
-
-    await workflow(
-      { uiStream, isCollapsed, isGenerating },
-      aiState,
-      messages,
-      skip ?? false,
-      model
-    )
-
-    clearTimeout(timeoutId)
-  } catch (error: any) {
-    console.error('[Stream Error]:', error)
-    
-    // Handle connection errors gracefully
-    if (typeof error === 'object' && error?.message?.includes('Connection closed')) {
-      uiStream.append(
-        <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
-          Connection interrupted. Your results may be incomplete.
-        </div>
-      )
-    }
-    
-    // Ensure we always clean up
-    uiStream.done()
-    isGenerating.done(false)
-  }
+  // Run the agent workflow
+  workflow(
+    { uiStream, isCollapsed, isGenerating },
+    aiState,
+    messages,
+    skip ?? false,
+    model
+  )
 
   return {
     id: generateId(),
@@ -221,10 +198,8 @@ export const AI = createAI<AIState, UIState>({
       title,
       messages: updatedMessages
     }
-    console.log('Saving chat to Redis:', chat);
-    await saveChat(chat);
-    console.log('Saving chat to Neon:', chat);
-    await saveChatNeon(chat);
+    await saveChat(chat)
+    await saveChatNeon(chat)
   }
 })
 

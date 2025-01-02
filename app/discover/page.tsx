@@ -32,31 +32,32 @@ export default function DiscoverPage() {
   const fetchNewsFromDB = async () => {
     setIsLoading(true);
     try {
+      // Fetch articles using Drizzle ORM
       const articlesFromDB = await db.select().from(articles);
-      
-      // Move the sorting to the database query for better performance
+
+      // Map and process the articles
       const newsWithSummaries = await Promise.all(
-        articlesFromDB
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .map(async (article) => ({
-            id: article.id,
-            title: article.title,
-            summary: article.summary,
-            url: article.url,
-            imageUrl: article.imageUrl ?? "/default-image.jpg",
-            source: article.source,
-            date: new Date(article.date).toLocaleDateString(),
-            category: article.category ?? "Uncategorized",
-            aiSummary: await generateSummary(article.summary),
-          }))
+        articlesFromDB.map(async (article) => ({
+          id: article.id,
+          title: article.title,
+          summary: article.summary,
+          url: article.url,
+          imageUrl: article.imageUrl ?? "/default-image.jpg", // Handle null image URLs
+          source: article.source,
+          date: new Date(article.date).toLocaleDateString(), // Format date to display only the date
+          category: article.category ?? "Uncategorized", // Handle null categories
+          aiSummary: await generateSummary(article.summary),
+        }))
       );
 
-      setNews(newsWithSummaries);
+      // Sort the articles by date in descending order
+      const sortedNews = newsWithSummaries.sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      setNews(sortedNews);
     } catch (error) {
       console.error("Error fetching news from database:", error);
-      // Provide user feedback
-      alert("Failed to fetch news. Please try again later.");
-      setNews([]);
     } finally {
       setIsLoading(false);
     }
@@ -66,33 +67,18 @@ export default function DiscoverPage() {
     fetchNewsFromDB();
   }, []);
 
-  // Debounce function for search input
-  const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        func(...args);
-      }, delay);
-    };
-  };
-
-  const handleSearch = debounce((e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const filteredNews = news.filter((article) =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.summary.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setNews(filteredNews);
-    } catch (error) {
-      console.error("Error during search:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, 300);
+    const filteredNews = news.filter((article) =>
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.summary.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    setNews(filteredNews);
+    setIsLoading(false);
+  };
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);

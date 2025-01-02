@@ -36,15 +36,17 @@ export function ClientHistoryList() {
 
   return (
     <div className="space-y-2">
-      {data.map((chat: any) => (
-        <Link
-          key={chat.chatId}
-          href={`/search/${chat.chatId}`}
-          className="block text-white-600 hover:underline"
-        >
-          {chat.title || 'Untitled Chat'}
-        </Link>
-      ))}
+      {data
+        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .map((chat: any) => (
+          <Link
+            key={chat.chatId}
+            href={`/search/${chat.chatId}`}
+            className="block text-white-600 hover:underline"
+          >
+            {chat.title || 'Untitled Chat'}
+          </Link>
+        ))}
     </div>
   );
 }
