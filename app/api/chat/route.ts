@@ -12,12 +12,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { messages, chatId } = await req.json();
+    const { messages, chatId, systemPrompt } = await req.json();
+
+    // Add the system prompt as the first message
+    const messagesWithSystem = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
 
     const result = await streamText({
       model: openai("gpt-3.5-turbo"),
       system: "As Mees AI's research agent...",
-      messages: convertToCoreMessages(messages),
+      messages: convertToCoreMessages(messagesWithSystem),
     });
 
     // Check if chat exists
@@ -30,7 +36,7 @@ export async function POST(req: Request) {
       await db
         .update(userChats)
         .set({
-          messages: messages,
+          messages: messagesWithSystem,
           updatedAt: new Date(),
         })
         .where(eq(userChats.chatId, chatId));
@@ -39,8 +45,8 @@ export async function POST(req: Request) {
       await db.insert(userChats).values({
         chatId,
         userId: user.id,
-        title: messages[0]?.content.substring(0, 100) || "New Chat",
-        messages: messages,
+        title: messagesWithSystem[0]?.content.substring(0, 100) || "New Chat",
+        messages: messagesWithSystem,
         createdAt: new Date(),
         updatedAt: new Date(),
       });

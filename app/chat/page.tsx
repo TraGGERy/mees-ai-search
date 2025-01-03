@@ -3,11 +3,12 @@
 import { useChat } from "ai/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Bot, Send, User, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Bot, Send, User, ChevronDown, ChevronUp, Copy, BookOpen, GraduationCap, Smile, Wheat } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import { useUser } from "@clerk/nextjs";
 import { nanoid } from "nanoid";
+import { personas, Persona } from '@/types/chat';
 
 interface ChatHistory {
   chatId: string;
@@ -28,6 +29,8 @@ export default function ChatComponent() {
     }
     return nanoid();
   });
+  const [selectedPersona, setSelectedPersona] = useState<Persona>(personas[0]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const {
     messages,
@@ -40,6 +43,7 @@ export default function ChatComponent() {
     api: "/api/chat",
     body: {
       chatId: currentChatId,
+      systemPrompt: selectedPersona.systemPrompt
     },
     id: currentChatId,
     initialMessages: [],
@@ -100,6 +104,44 @@ export default function ChatComponent() {
         </div>
       </div>
 
+      {/* Compact Dropdown Persona Selector */}
+      <div className="flex-none p-2 border-b border-gray-200 dark:border-gray-800">
+        <div className="relative max-w-[200px]">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedPersona.name}</span>
+            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
+              {personas.map((persona) => (
+                <button
+                  key={persona.id}
+                  onClick={() => {
+                    setSelectedPersona(persona);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  {persona.id === 'researcher' && <BookOpen className="h-4 w-4 text-purple-500" />}
+                  {persona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-blue-500" />}
+                  {persona.id === 'friend' && <Smile className="h-4 w-4 text-yellow-500" />}
+                  {persona.id === 'farmer' && <Wheat className="h-4 w-4 text-green-500" />}
+                  
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900 dark:text-white">{persona.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{persona.role}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4">
@@ -117,18 +159,30 @@ export default function ChatComponent() {
                 <div key={message.id} className="group">
                   <div className="flex items-start gap-4 max-w-3xl">
                     {message.role === "assistant" ? (
-                      <div className="w-8 h-8 rounded-sm bg-purple-600 flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-5 w-5 text-white" />
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        {selectedPersona.id === 'researcher' && <BookOpen className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'friend' && <Smile className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'farmer' && <Wheat className="h-4 w-4 text-white" />}
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-sm bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                        <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       </div>
                     )}
                     <div className="flex-1 space-y-2 overflow-hidden">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-inherit">
-                          {message.role === "assistant" ? "Mees AI" : "You"}
+                        <span className="text-sm font-medium text-inherit flex items-center gap-2">
+                          {message.role === "assistant" ? (
+                            <>
+                              {selectedPersona.name}
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {selectedPersona.role}
+                              </span>
+                            </>
+                          ) : (
+                            "You"
+                          )}
                         </span>
                         <button 
                           onClick={() => navigator.clipboard.writeText(message.content)}
@@ -137,7 +191,7 @@ export default function ChatComponent() {
                           <Copy className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="prose prose-sm max-w-none text-inherit dark:prose-invert">
+                      <div className="prose prose-sm max-w-none text-inherit dark:prose-invert bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 shadow-sm">
                         {message.content}
                       </div>
                     </div>
@@ -146,9 +200,12 @@ export default function ChatComponent() {
               ))}
               
               {isLoading && (
-                <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-sm bg-purple-600 flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-white" />
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-sm">
+                    {selectedPersona.id === 'researcher' && <BookOpen className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'friend' && <Smile className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'farmer' && <Wheat className="h-4 w-4 text-white" />}
                   </div>
                   <div className="flex gap-2">
                     <div className="w-2 h-2 rounded-full bg-purple-600/50 animate-bounce" />
