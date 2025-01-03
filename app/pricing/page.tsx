@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import '@/lib/utils/fontawesome';
-import Link from 'next/link';
 
 config.autoAddCss = false;
 
@@ -40,9 +39,9 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <Link href="/pricing" className="block w-full text-center bg-purple-600 text-white rounded-full py-3 font-medium hover:bg-purple-700 transition duration-300">
+              <a href="/" className="block w-full text-center bg-purple-600 text-white rounded-full py-3 font-medium hover:bg-purple-700 transition duration-300">
                 Get Started
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -66,9 +65,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <Link href="/pricing" className="block w-full text-center bg-purple-600 text-white rounded-full py-3 font-medium hover:bg-purple-700 transition duration-300">
-                Get Started Pro
-              </Link>
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID || ''} />
             </div>
           </div>
 
@@ -92,9 +89,7 @@ export default function Price() {
               </ul>
             </div>
             <div className="p-4">
-              <Link href="/pricing" className="block w-full text-center bg-purple-600 text-white rounded-full py-3 font-medium hover:bg-purple-700 transition duration-300">
-                Get Started Yearly
-              </Link>
+              <StripeCheckout priceId={process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID || ''} />
             </div>
           </div>
 
