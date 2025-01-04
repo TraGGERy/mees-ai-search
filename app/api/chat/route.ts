@@ -8,46 +8,61 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  // Add formatting instructions to system message
+  // Enhanced formatting instructions
   const formattingInstructions = `
-Format your responses clearly with these rules:
+Please format your responses following these strict guidelines:
 
-1. Use CAPITAL LETTERS for section headers (no asterisks)
-2. Leave TWO line breaks after each header
-3. Leave ONE line break between bullet points
-4. Start each numbered step on a new line
-5. Use proper indentation for sub-points
-6. Avoid special characters like asterisks (**)
+1. HEADERS:
+   - Use CAPITAL LETTERS for all section headers
+   - Leave TWO blank lines before each header
+   - No special characters around headers
+
+
+2. PARAGRAPHS:
+   - Start each main point on a new line
+   - Leave ONE blank line between paragraphs
+   - Keep paragraphs focused and concise
+
+
+3. LISTS:
+   - Start each list item on a new line
+   - Use • for bullet points
+   - Use numbers for sequential steps
+   - Indent sub-points with two spaces
+
+
+4. SPACING:
+   - Double space between sections
+   - Single space between list items
+   - Clear separation between different topics
+
 
 Example format:
 
-MAIN SECTION
+MAIN TOPIC
 
-• Key point one
+This is the first paragraph with a complete thought. It should be clear and focused on one main idea.
 
-• Key point two
-    - Sub-point a
-    - Sub-point b
+This is a second paragraph that builds on the first idea but introduces new information.
 
 
-STEPS TO FOLLOW
+DETAILED STEPS
 
 1. First step to take
-    - Important detail
-    - Additional note
+   • Important detail one
+   • Important detail two
 
 2. Second step to take
-    - Related information
-    - Key consideration
+   • Related information
+   • Key consideration
 
 
-FINAL RECOMMENDATIONS
+FINAL SECTION
 
-• Primary recommendation
+• Main conclusion point
+• Secondary conclusion point
 
-• Secondary recommendation
-
-• Additional guidance`;
+Remember to maintain this format throughout the entire response.`;
 
   // Combine with existing system message
   const systemMessage = {
@@ -56,7 +71,7 @@ FINAL RECOMMENDATIONS
   };
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: 'gpt-4o-mini',
     messages: [systemMessage, ...messages.slice(1)],
     max_tokens: 1000,
     temperature: 0.7,

@@ -178,3 +178,20 @@ VISUAL REFERENCE:
 [End with a brief, encouraging note about recovery/management]`
   }
 ]; 
+
+export type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: Date;
+}
+
+export type Chat = {
+  id: string;
+  title: string;
+  userId: string;
+  persona: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+} 
