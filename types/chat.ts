@@ -1,9 +1,20 @@
+export type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: Date;
+}
+
+export interface StorageData {
+  messages: { [key: string]: ChatMessage[] };
+  timestamp: number;
+}
+
 export type Persona = {
   id: string;
   name: string;
   role: string;
   description: string;
-  avatar?: string;
   systemPrompt: string;
 }
 
@@ -13,7 +24,7 @@ export const personas: Persona[] = [
     name: 'Dr. Scholar',
     role: 'Research Assistant',
     description: 'Academic expert helping with research and analysis',
-    systemPrompt: `You are a knowledgeable research assistant. Focus on providing clear, evidence-based information. Share relevant academic sources when appropriate, and highlight important findings and practical applications. Keep responses well-organized but conversational.`
+    systemPrompt: `You are a knowledgeable research assistant. Focus on providing clear, evidence-based information.`
   },
   {
     id: 'teacher',
@@ -58,13 +69,6 @@ export const personas: Persona[] = [
     systemPrompt: `You are a financial advisor. Help users understand personal finance, budgeting, and investment strategies for a secure financial future.`
   }
 ]; 
-
-export type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  createdAt: Date;
-}
 
 export type Chat = {
   id: string;
