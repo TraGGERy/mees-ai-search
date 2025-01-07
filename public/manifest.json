@@ -4,7 +4,7 @@
   "description": "AI-powered chat and search application",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#7c3aed",
   "form_factor": "wide",
