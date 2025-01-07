@@ -8,7 +8,7 @@ export function ServiceWorkerRegistrar() {
       if (
         typeof window !== "undefined" &&
         "serviceWorker" in navigator &&
-        window.workbox !== undefined
+        process.env.NODE_ENV === "production"
       ) {
         try {
           const registration = await navigator.serviceWorker.register("/sw.js");
