@@ -6,76 +6,100 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, systemPrompt } = await req.json();
 
-  // Enhanced formatting instructions
+  // Enhanced formatting instructions with more specific rules
   const formattingInstructions = `
-Please format your responses following these strict guidelines:
+As an AI assistant, format all responses following these strict guidelines:
 
-1. HEADERS:
-   - Use CAPITAL LETTERS for all section headers
-   - Leave TWO blank lines before each header
-   - No special characters around headers
+FORMATTING RULES:
 
+1. Headers
+   • Use CAPITAL LETTERS for all section headers
+   • Make headers concise and descriptive
+   • Leave TWO blank lines before AND after each header
 
-2. PARAGRAPHS:
-   - Start each main point on a new line
-   - Leave ONE blank line between paragraphs
-   - Keep paragraphs focused and concise
+2. Paragraphs
+   • Keep paragraphs focused on a single topic
+   • Use clear topic sentences
+   • Leave ONE blank line between paragraphs
+   • Maximum 4-5 lines per paragraph
 
+3. Lists and Steps
+   • Start each new item on a fresh line
+   • Use • for general bullet points
+   • Use numbers for sequential steps
+   • Indent sub-points with two spaces
+   • Leave ONE blank line between major list items
 
-3. LISTS:
-   - Start each list item on a new line
-   - Use • for bullet points
-   - Use numbers for sequential steps
-   - Indent sub-points with two spaces
+4. Emphasis and Structure
+   • Important terms in quotes
+   • Key points on separate lines
+   • Use clear transitional phrases
+   • Maintain consistent indentation
 
+Example Format:
 
-4. SPACING:
-   - Double space between sections
-   - Single space between list items
-   - Clear separation between different topics
+OVERVIEW
 
+This is a clear introductory paragraph that sets up the main topic. It should be concise and engaging.
 
-Example format:
-
-MAIN TOPIC
-
-This is the first paragraph with a complete thought. It should be clear and focused on one main idea.
-
-This is a second paragraph that builds on the first idea but introduces new information.
-
-
-DETAILED STEPS
-
-1. First step to take
-   • Important detail one
-   • Important detail two
-
-2. Second step to take
-   • Related information
-   • Key consideration
+This second paragraph builds on the first idea with new information. Each paragraph focuses on one main point.
 
 
-FINAL SECTION
+DETAILED ANALYSIS
 
-• Main conclusion point
-• Secondary conclusion point
+1. First Major Point
+   • Supporting detail one
+   • Supporting detail two
+     - Sub-point with specific information
+     - Additional clarification
 
-Remember to maintain this format throughout the entire response.`;
+2. Second Major Point
+   • Key information
+   • Important considerations
 
-  // Combine with existing system message
-  const systemMessage = {
-    role: 'system',
-    content: formattingInstructions + '\n\n' + messages[0].content
-  };
+
+PRACTICAL APPLICATIONS
+
+• Primary application with clear explanation
+  - Specific example
+  - Real-world usage
+
+• Secondary application with details
+  - Implementation steps
+  - Best practices
+
+
+CONCLUSION
+
+Final summary paragraph with key takeaways. Keep it concise and actionable.
+
+Remember:
+• Maintain consistent spacing
+• Use clear transitions
+• Keep formatting uniform
+• Prioritize readability`;
+
+  // Combine with existing system message or use standalone
+  const finalSystemPrompt = systemPrompt 
+    ? `${formattingInstructions}\n\n${systemPrompt}`
+    : formattingInstructions;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [systemMessage, ...messages.slice(1)],
-    max_tokens: 1000,
+    model: 'gpt-4',
+    messages: [
+      {
+        role: 'system',
+        content: finalSystemPrompt
+      },
+      ...messages
+    ],
+    max_tokens: 1500, // Increased for more detailed responses
     temperature: 0.7,
     stream: true,
+    presence_penalty: 0.6, // Encourages more varied responses
+    frequency_penalty: 0.5, // Reduces repetition
   });
 
   const stream = OpenAIStream(response);

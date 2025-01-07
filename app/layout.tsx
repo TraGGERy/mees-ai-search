@@ -14,6 +14,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import { Sidebarmees } from '@/components/sidebarmees'
+import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -68,7 +69,15 @@ export default function RootLayout({
     <ClerkProvider>
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Mees AI" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <AdSense pId="7574084780651527"/>
+        <ServiceWorkerRegistrar />
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
        <Analytics />
