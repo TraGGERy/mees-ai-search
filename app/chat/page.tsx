@@ -3,12 +3,13 @@
 import { useChat } from "ai/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Bot, Send, User, ChevronDown, ChevronUp, Copy, BookOpen, GraduationCap, Smile, Wheat } from "lucide-react";
+import { Bot, Send, User, ChevronDown, ChevronUp, Copy, BookOpen, GraduationCap, Smile, Wheat, Code, Palette, BarChart, Cpu, Stethoscope, BadgeDollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import { useUser } from "@clerk/nextjs";
 import { nanoid } from "nanoid";
 import { personas, Persona } from '@/types/chat';
+import { IconCode } from "@tabler/icons-react";
 
 interface ChatHistory {
   chatId: string;
@@ -117,26 +118,36 @@ export default function ChatComponent() {
 
           {isDropdownOpen && (
             <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
-              {personas.map((persona) => (
-                <button
-                  key={persona.id}
-                  onClick={() => {
-                    setSelectedPersona(persona);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                >
-                  {persona.id === 'researcher' && <BookOpen className="h-4 w-4 text-purple-500" />}
-                  {persona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-blue-500" />}
-                  {persona.id === 'friend' && <Smile className="h-4 w-4 text-yellow-500" />}
-                  {persona.id === 'farmer' && <Wheat className="h-4 w-4 text-green-500" />}
-                  
-                  <div className="text-sm">
-                    <div className="font-medium text-gray-900 dark:text-white">{persona.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{persona.role}</div>
-                  </div>
-                </button>
-              ))}
+              {personas.map((persona) => {
+                console.log('Persona ID:', persona.id);
+                return (
+                  <button
+                    key={persona.id}
+                    onClick={() => {
+                      setSelectedPersona(persona);
+                      setIsDropdownOpen(false);
+                      const newChatId = nanoid();
+                      setCurrentChatId(newChatId);
+                      sessionStorage.setItem('currentChatId', newChatId);
+                      setMessages([]);
+                    }}
+                    className="w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  >
+                    {persona.id === 'researcher' && <BookOpen className="h-4 w-4 text-purple-500" />}
+                    {persona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-blue-500" />}
+                    {persona.id === 'friend' && <Smile className="h-4 w-4 text-yellow-500" />}
+                    {persona.id === 'farmer' && <Wheat className="h-4 w-4 text-green-500" />}
+                    {persona.id === 'techGuru' && <Cpu className="h-4 w-4 text-indigo-500" />}
+                    {persona.id === 'healthCoach' && <Stethoscope className="h-4 w-4 text-emerald-500" />}
+                    {persona.id === 'financialAdvisor' && <BadgeDollarSign className="h-4 w-4 text-cyan-500" />}
+                    
+                    <div className="text-sm">
+                      <div className="font-medium text-gray-900 dark:text-white">{persona.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{persona.role}</div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -164,6 +175,9 @@ export default function ChatComponent() {
                         {selectedPersona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-white" />}
                         {selectedPersona.id === 'friend' && <Smile className="h-4 w-4 text-white" />}
                         {selectedPersona.id === 'farmer' && <Wheat className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'techGuru' && <Cpu className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'healthCoach' && <Stethoscope className="h-4 w-4 text-white" />}
+                        {selectedPersona.id === 'financialAdvisor' && <BadgeDollarSign className="h-4 w-4 text-white" />}
                       </div>
                     ) : (
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -206,6 +220,9 @@ export default function ChatComponent() {
                     {selectedPersona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-white" />}
                     {selectedPersona.id === 'friend' && <Smile className="h-4 w-4 text-white" />}
                     {selectedPersona.id === 'farmer' && <Wheat className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'techGuru' && <Cpu className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'healthCoach' && <Stethoscope className="h-4 w-4 text-white" />}
+                    {selectedPersona.id === 'financialAdvisor' && <BadgeDollarSign className="h-4 w-4 text-white" />}
                   </div>
                   <div className="flex gap-2">
                     <div className="w-2 h-2 rounded-full bg-purple-600/50 animate-bounce" />
