@@ -32,6 +32,7 @@ export default function ChatComponent() {
   });
   const [selectedPersona, setSelectedPersona] = useState<Persona>(personas[0]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [personaMessages, setPersonaMessages] = useState<{ [key: string]: any[] }>({});
 
   const {
     messages,
@@ -93,6 +94,47 @@ export default function ChatComponent() {
     await handleSubmit(e);
   };
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      setPersonaMessages(prev => ({
+        ...prev,
+        [selectedPersona.id]: messages
+      }));
+    }
+  }, [messages, selectedPersona.id]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('personaMessages');
+    if (saved) {
+      const savedMessages = JSON.parse(saved);
+      setPersonaMessages(savedMessages);
+      if (savedMessages[selectedPersona.id]) {
+        setMessages(savedMessages[selectedPersona.id]);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(personaMessages).length > 0) {
+      localStorage.setItem('personaMessages', JSON.stringify(personaMessages));
+    }
+  }, [personaMessages]);
+
+  const handlePersonaChange = (persona: Persona) => {
+    setSelectedPersona(persona);
+    setIsDropdownOpen(false);
+    
+    if (personaMessages[persona.id]) {
+      setMessages(personaMessages[persona.id]);
+    } else {
+      setMessages([]);
+      setPersonaMessages(prev => ({
+        ...prev,
+        [persona.id]: []
+      }));
+    }
+  };
+
   return (
     <div className="flex flex-col h-[100dvh] bg-inherit">
       {/* Header */}
@@ -118,36 +160,26 @@ export default function ChatComponent() {
 
           {isDropdownOpen && (
             <div className="absolute mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
-              {personas.map((persona) => {
-                console.log('Persona ID:', persona.id);
-                return (
-                  <button
-                    key={persona.id}
-                    onClick={() => {
-                      setSelectedPersona(persona);
-                      setIsDropdownOpen(false);
-                      const newChatId = nanoid();
-                      setCurrentChatId(newChatId);
-                      sessionStorage.setItem('currentChatId', newChatId);
-                      setMessages([]);
-                    }}
-                    className="w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                  >
-                    {persona.id === 'researcher' && <BookOpen className="h-4 w-4 text-purple-500" />}
-                    {persona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-blue-500" />}
-                    {persona.id === 'friend' && <Smile className="h-4 w-4 text-yellow-500" />}
-                    {persona.id === 'farmer' && <Wheat className="h-4 w-4 text-green-500" />}
-                    {persona.id === 'techGuru' && <Cpu className="h-4 w-4 text-indigo-500" />}
-                    {persona.id === 'healthCoach' && <Stethoscope className="h-4 w-4 text-emerald-500" />}
-                    {persona.id === 'financialAdvisor' && <BadgeDollarSign className="h-4 w-4 text-cyan-500" />}
-                    
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900 dark:text-white">{persona.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{persona.role}</div>
-                    </div>
-                  </button>
-                );
-              })}
+              {personas.map((persona) => (
+                <button
+                  key={persona.id}
+                  onClick={() => handlePersonaChange(persona)}
+                  className="w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  {persona.id === 'researcher' && <BookOpen className="h-4 w-4 text-purple-500" />}
+                  {persona.id === 'teacher' && <GraduationCap className="h-4 w-4 text-blue-500" />}
+                  {persona.id === 'friend' && <Smile className="h-4 w-4 text-yellow-500" />}
+                  {persona.id === 'farmer' && <Wheat className="h-4 w-4 text-green-500" />}
+                  {persona.id === 'techGuru' && <Cpu className="h-4 w-4 text-indigo-500" />}
+                  {persona.id === 'healthCoach' && <Stethoscope className="h-4 w-4 text-emerald-500" />}
+                  {persona.id === 'financialAdvisor' && <BadgeDollarSign className="h-4 w-4 text-cyan-500" />}
+                  
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900 dark:text-white">{persona.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{persona.role}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </div>
