@@ -76,10 +76,14 @@ export const articles = pgTable("articles", {
 });
   
 
-export const userTries = pgTable('user_tries', {
-  userId: varchar('user_id', { length: 255 }).primaryKey(), // Clerk user ID
-  dailyTriesRemaining: integer('daily_tries_remaining').default(5).notNull(), // Number of tries remaining
-  lastResetDate: timestamp('last_reset_date').notNull(), // Timestamp of last reset
+export const userTries = pgTable("user_tries", {
+  userId: varchar("user_id", { length: 255 }).primaryKey(), // Clerk user ID
+  dailyTriesRemaining: integer("daily_tries_remaining")
+    .default(5)
+    .notNull(), // Number of free tries
+  lastResetDate: timestamp("last_reset_date")
+    .defaultNow()
+    .notNull(), // Timestamp of last reset
 });
 
 export const waitlist = pgTable("waitlist", {
