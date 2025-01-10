@@ -10,6 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import { nanoid } from "nanoid";
 import { personas, Persona } from '@/types/chat';
 import { IconCode } from "@tabler/icons-react";
+import ReactMarkdown from 'react-markdown';
 
 interface ChatHistory {
   chatId: string;
@@ -238,7 +239,9 @@ export default function ChatComponent() {
                         </button>
                       </div>
                       <div className="prose prose-sm max-w-none text-inherit dark:prose-invert bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 shadow-sm">
-                        {message.content}
+                        <ReactMarkdown>
+                          {message.content}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   </div>
