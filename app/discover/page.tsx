@@ -32,28 +32,27 @@ export default function DiscoverPage() {
   const fetchNewsFromDB = async () => {
     setIsLoading(true);
     try {
-      // Fetch articles using Drizzle ORM
       const articlesFromDB = await db.select().from(articles);
 
-      // Map and process the articles
       const newsWithSummaries = await Promise.all(
         articlesFromDB.map(async (article) => ({
           id: article.id,
-          title: article.title,
-          summary: article.summary,
+          title: article.title.trim(),
+          summary: article.summary.trim(),
           url: article.url,
-          imageUrl: article.imageUrl ?? "/default-image.jpg", // Handle null image URLs
-          source: article.source,
-          date: new Date(article.date).toLocaleDateString(), // Format date to display only the date
-          category: article.category ?? "Uncategorized", // Handle null categories
-          aiSummary: await generateSummary(article.summary),
+          imageUrl: article.imageUrl ?? "/default-image.jpg",
+          source: article.source.trim(),
+          date: new Date(article.date).toISOString().split('T')[0],
+          category: (article.category ?? "Uncategorized").trim(),
+          aiSummary: (await generateSummary(article.summary)).trim(),
         }))
       );
 
-      // Sort the articles by date in descending order
-      const sortedNews = newsWithSummaries.sort((a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      const sortedNews = newsWithSummaries.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA;
+      });
 
       setNews(sortedNews);
     } catch (error) {
