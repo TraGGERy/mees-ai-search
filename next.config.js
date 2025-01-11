@@ -26,7 +26,7 @@ module.exports = withPWA(nextConfig)
 
 module.exports = {
   images: {
-    domains: ['techcrunch.com','img.clerk.com', 'images.clerk.dev'],
+    domains: ['techcrunch.com','img.clerk.com', 'images.clerk.dev', ],
   },
 }
 
