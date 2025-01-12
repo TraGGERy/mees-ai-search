@@ -14,7 +14,7 @@ function Skeleton({
         scale: [1, 1.01, 1]
       }}
       transition={{
-        duration: 2,
+        duration: 3.5,
         repeat: Infinity,
         ease: "easeInOut"
       }}
