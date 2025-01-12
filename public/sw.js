@@ -16,6 +16,7 @@ const PRECACHE_ASSETS = [
 
 // Install event
 self.addEventListener("install", (event) => {
+  console.log('Service Worker installed');
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -28,6 +29,7 @@ self.addEventListener("install", (event) => {
 
 // Activate event
 self.addEventListener("activate", (event) => {
+  console.log('Service Worker activated');
   event.waitUntil(
     (async () => {
       // Clean up old caches
@@ -76,5 +78,29 @@ self.addEventListener("fetch", (event) => {
         throw error;
       }
     })()
+  );
+});
+
+self.addEventListener('push', function(event) {
+  const options = {
+    body: event.data.text(),
+    icon: '/icon.png',
+    badge: '/badge.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: '1'
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('New Article Available!', options)
+  );
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow('/discover')
   );
 }); 
