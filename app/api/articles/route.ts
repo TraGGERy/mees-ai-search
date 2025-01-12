@@ -2,6 +2,18 @@ import { db } from '@/db/db';
 import { notifications } from '@/db/schema';
 import { sendNotification } from '@/lib/notifications';
 import { NextResponse } from 'next/server';
+import webPush from 'web-push';
+
+const vapidKeys = {
+  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  privateKey: process.env.VAPID_PRIVATE_KEY!
+}
+
+webPush.setVapidDetails(
+  'mailto:your-email@example.com',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+)
 
 export async function POST(request: Request) {
   try {
