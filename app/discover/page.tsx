@@ -32,6 +32,13 @@ export default function DiscoverPage() {
   const fetchNewsFromDB = async () => {
     setIsLoading(true);
     try {
+      // Try to get cached articles first
+      const cachedNews = localStorage.getItem('cached_news');
+      if (cachedNews) {
+        setNews(JSON.parse(cachedNews));
+      }
+
+      // Fetch fresh articles from DB
       const articlesFromDB = await db.select().from(articles);
 
       const newsWithSummaries = await Promise.all(
@@ -54,9 +61,16 @@ export default function DiscoverPage() {
         return dateB - dateA;
       });
 
+      // Cache the articles in localStorage
+      localStorage.setItem('cached_news', JSON.stringify(sortedNews));
       setNews(sortedNews);
     } catch (error) {
       console.error("Error fetching news from database:", error);
+      // If there's an error and we have cached news, use that
+      const cachedNews = localStorage.getItem('cached_news');
+      if (cachedNews) {
+        setNews(JSON.parse(cachedNews));
+      }
     } finally {
       setIsLoading(false);
     }

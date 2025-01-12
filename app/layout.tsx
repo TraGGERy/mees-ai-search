@@ -15,6 +15,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SignInButton, SignOutButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import { Sidebarmees } from '@/components/sidebarmees'
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar'
+import NotificationHandler from './components/NotificationHandler'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -95,6 +96,7 @@ export default function RootLayout({
            
             <Footer />
             <Toaster />
+            <NotificationHandler />
           </AppStateProvider>
         </ThemeProvider>
       </body>

@@ -3,8 +3,25 @@ import { Chat } from '@/components/chat';
 import { getChat } from '@/lib/actions/chat';
 import { AI } from '@/app/actions';
 import { currentUser } from '@clerk/nextjs/server'; // Import Clerk for user authentication
+import { Suspense } from 'react';
+import { unstable_cache } from 'next/cache';
 
 export const maxDuration = 60;
+
+// Add revalidation time (e.g., 1 hour)
+export const revalidate = 3600;
+
+// Cache the chat fetching
+const getCachedChat = unstable_cache(
+  async (chatId: string, userId: string) => {
+    return await getChat(chatId, userId);
+  },
+  ['chat-data'],
+  {
+    revalidate: 3600,
+    tags: ['chat']
+  }
+);
 
 export interface SearchPageProps {
   params: {
@@ -24,8 +41,8 @@ export default async function SearchPage({ params }: SearchPageProps) {
   const user = await currentUser();
   const userId = user?.id || 'anonymous';
 
-  // Fetch the chat with the actual userId or 'anonymous' as fallback
-  const chat = await getChat(params.id, userId);
+  // Use cached version of getChat
+  const chat = await getCachedChat(params.id, userId);
 
   // Check if chat exists
   if (!chat) {
@@ -38,13 +55,15 @@ export default async function SearchPage({ params }: SearchPageProps) {
   }
 
   return (
-    <AI
-      initialAIState={{
-        chatId: chat.id,
-        messages: chat.messages,
-      }}
-    >
-      <Chat id={params.id} />
-    </AI>
+    <Suspense fallback={<div>Loading chat...</div>}>
+      <AI
+        initialAIState={{
+          chatId: chat.id,
+          messages: chat.messages,
+        }}
+      >
+        <Chat id={params.id} />
+      </AI>
+    </Suspense>
   );
 }
