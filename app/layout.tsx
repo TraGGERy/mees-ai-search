@@ -22,33 +22,56 @@ const fontSans = FontSans({
   variable: '--font-sans'
 })
 
-const title = 'Mees Ai'
+const title = 'Mees Ai - Advanced AI Search & Answer Engine'
 const description =
-  'Mees AI is an advanced answer engine with a dynamic, real-time interface.'
-  const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
+  'Mees AI is an advanced answer engine powered by artificial intelligence, providing instant, accurate responses with a dynamic, real-time interface. Get smart answers to your questions instantly.'
+const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://mees-ai-search.vercel.app'),
   title,
   description,
+  keywords: 'AI search engine, question answering, artificial intelligence, smart search, Mees AI, real-time answers',
+  authors: [{ name: 'Mees AI Team' }],
+  creator: 'Mees AI',
+  publisher: 'Mees AI',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://mees-ai-search.vercel.app',
     title,
     description,
+    siteName: 'Mees AI',
     images: [
       {
         url: image,
-        width: 1200, // optional, specify width if needed
-        height: 630, // optional, specify height if needed
-        alt: 'Mees AI Thumbnail' // optional, add alternative text for the image
+        width: 1200,
+        height: 630,
+        alt: 'Mees AI - Advanced AI Search Engine'
       }
     ]
   },
-
   twitter: {
+    card: 'summary_large_image',
     title,
     description,
-    card: 'summary_large_image',
-    creator: '@Iamtoxix'
+    creator: '@Iamtoxix',
+    site: '@Iamtoxix',
+    images: [image],
+  },
+  alternates: {
+    canonical: 'https://mees-ai-search.vercel.app'
   }
 }
 
@@ -96,7 +119,6 @@ export default function RootLayout({
            
             <Footer />
             <Toaster />
-            <NotificationHandler />
           </AppStateProvider>
         </ThemeProvider>
       </body>
