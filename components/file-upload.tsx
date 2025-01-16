@@ -24,7 +24,7 @@ export function FileUpload() {
       <h2 className="text-lg font-semibold">Upload File</h2>
       <Input type="file" onChange={handleFileChange} />
       <Button onClick={handleUpload} disabled={!file}>
-        <Upload className="mr-2 h-4 w-4" /> Upload
+        <Upload className="mr-2 h-4 w-4" /> Upload to S3
       </Button>
     </div>
   )
