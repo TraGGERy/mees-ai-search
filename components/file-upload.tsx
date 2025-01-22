@@ -1,31 +1,32 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Upload } from 'lucide-react'
+import { Upload, Lock } from 'lucide-react'
+import { useAuth, SignInButton } from '@clerk/nextjs'
 
 export function FileUpload() {
+  const { isSignedIn } = useAuth()
   const [file, setFile] = useState<File | null>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0])
-    }
-  }
-
-  const handleUpload = () => {
-    if (file) {
-      // Handle file upload logic here
-      console.log('Uploading file:', file.name)
-    }
+  if (!isSignedIn) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-4 p-8 border border-zinc-800 rounded-lg bg-zinc-950">
+        <Lock className="h-8 w-8 text-zinc-400" />
+        <h2 className="text-lg font-semibold text-zinc-100">Authentication Required</h2>
+        <p className="text-sm text-zinc-400">Please login to access file upload</p>
+        <SignInButton>
+          <Button variant="outline">
+            Login to Continue
+          </Button>
+        </SignInButton>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Upload File</h2>
-      <Input type="file" onChange={handleFileChange} />
-      <Button onClick={handleUpload} disabled={!file}>
-        <Upload className="mr-2 h-4 w-4" /> Upload to S3
-      </Button>
+    <div className="flex flex-col items-center justify-center space-y-4 p-8 border border-zinc-800 rounded-lg bg-zinc-950">
+      <h2 className="text-lg font-semibold text-zinc-100">Coming Soon</h2>
+      <p className="text-sm text-zinc-400">This feature is under development</p>
     </div>
   )
 }
