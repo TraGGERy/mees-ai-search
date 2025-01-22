@@ -207,69 +207,75 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
             position="popper"
             sideOffset={5}
           >
-            {!isSignedIn && (
-              <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-                💡 Sign in to unlock all models and features
-              </div>
-            )}
-            {isSignedIn && subscriptionStatus !== "paid" && (
-              <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-                ✨ {dailyTries} premium tries remaining today
-              </div>
-            )}
-            {Object.entries(groupedModels).map(([provider, modelList]) => (
-              <SelectGroup key={provider}>
-                <SelectLabel className="text-xs sticky top-0 z-10 bg-background/95 backdrop-blur-sm font-semibold px-3 py-2 border-b">
-                  {provider}
-                </SelectLabel>
-                {modelList.map((model) => {
-                  const id = createModelId(model);
-                  const isPremium = model.id === "gpt-4o" || model.provider === "Anthropic";
-                  const locked =
-                    (!isSignedIn && model.id !== "gpt-4o-mini") ||
-                    (subscriptionStatus !== "paid" && isPremium && dailyTries <= 0);
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
+              {!isSignedIn && (
+                <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+                  💡 Sign in to unlock all models and features
+                </div>
+              )}
+              {isSignedIn && subscriptionStatus !== "paid" && (
+                <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+                  ✨ {dailyTries} premium tries remaining today
+                </div>
+              )}
+            </div>
+            
+            <div className="relative">
+              {Object.entries(groupedModels).map(([provider, modelList], index) => (
+                <SelectGroup key={provider}>
+                  <SelectLabel className="text-xs bg-background/95 backdrop-blur-sm font-semibold px-3 py-2 border-b">
+                    {provider}
+                  </SelectLabel>
+                  {modelList.map((model) => {
+                    const id = createModelId(model);
+                    const isPremium = model.id === "gpt-4o" || model.provider === "Anthropic";
+                    const locked =
+                      (!isSignedIn && model.id !== "gpt-4o-mini") ||
+                      (subscriptionStatus !== "paid" && isPremium && dailyTries <= 0);
 
-                  return (
-                    <SelectItem 
-                      key={id} 
-                      value={id} 
-                      className={`py-2 px-3 hover:bg-accent/50 transition-colors ${
-                        locked ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <div className="flex flex-col space-y-0.5">
-                        <div className="flex items-center space-x-2">
-                          <div className="relative w-4 h-4 shrink-0">
-                            <Image
-                              src={`/providers/logos/${model.providerId}.svg`}
-                              alt={model.provider}
-                              fill
-                              className="object-cover bg-white rounded-full p-[1px]"
-                            />
-                          </div>
-                          <span className="text-sm font-medium flex items-center gap-1">
-                            {locked ? "🔒" : isPremium ? "⚡" : "🤖"} {model.name}
-                            {(isPremium && subscriptionStatus !== "paid" && isSignedIn && dailyTries > 0) && (
-                              <span className="text-xs text-muted-foreground">
-                                ({dailyTries} left)
+                    return (
+                      <SelectItem 
+                        key={id} 
+                        value={id} 
+                        className={`py-2 px-3 hover:bg-accent/50 transition-colors ${
+                          locked ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <div className="flex flex-col space-y-0.5">
+                          <div className="flex items-center space-x-2">
+                            <div className="relative w-4 h-4 shrink-0">
+                              <Image
+                                src={`/providers/logos/${model.providerId}.svg`}
+                                alt={model.provider}
+                                fill
+                                className="object-cover bg-white rounded-full p-[1px]"
+                              />
+                            </div>
+                            <span className="text-sm font-medium flex items-center gap-1">
+                              {locked ? "🔒" : isPremium ? "⚡" : "🤖"} {model.name}
+                              {(isPremium && subscriptionStatus !== "paid" && isSignedIn && dailyTries > 0) && (
+                                <span className="text-xs text-muted-foreground">
+                                  ({dailyTries} left)
+                                </span>
+                              )}
+                            </span>
+                            {isPremium && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
+                                Pro
                               </span>
                             )}
-                          </span>
-                          {isPremium && (
-                            <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
-                              Pro
-                            </span>
-                          )}
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {getModelDescription(model.id)}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {getModelDescription(model.id)}
-                        </p>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            ))}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectGroup>
+              ))}
+              <div className="h-2" />
+            </div>
           </SelectContent>
         </Select>
       </div>
@@ -289,7 +295,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Upgrade to Pro 🚀</h3>
                 <p className="text-sm text-muted-foreground">
-                  You&apos;ve used all your free premium tries for today. Upgrade to Pro for unlimited access to all models.
+                  You've used all your free premium tries for today. Upgrade to Pro for unlimited access to all models.
                 </p>
               </div>
               <div className="space-y-2">
