@@ -113,7 +113,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
       // Not paid - check daily tries for premium models
       if (isPremium) {
         if (dailyTries <= 0) {
-          toast.error("🔒 You've used all your free premium tries for today!");
+          toast.error("🔒 You&apos;ve used all your free premium tries for today!");
           setShowModal(true);
           // Automatically switch to GPT-4o mini
           const fallbackModel = createModelId(models.find(m => m.id === "gpt-4o-mini")!);
@@ -289,7 +289,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Upgrade to Pro 🚀</h3>
                 <p className="text-sm text-muted-foreground">
-                  You've used all your free premium tries for today. Upgrade to Pro for unlimited access to all models.
+                  You&apos;ve used all your free premium tries for today. Upgrade to Pro for unlimited access to all models.
                 </p>
               </div>
               <div className="space-y-2">
