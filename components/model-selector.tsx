@@ -96,7 +96,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
     // If not signed in, allow only GPT-4o mini
     if (!isSignedIn) {
       if (selectedModel.id !== "gpt-4o-mini") {
-        toast.error("Please sign in to use this model.");
+        toast.error("Please sign in to use this model");
         return;
       }
       onModelChange(id);
@@ -104,7 +104,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
     }
 
     // If the user is signed in, check subscription
-    const isPremium = selectedModel.id === "gpt-4o" || selectedModel.provider === "Anthropic";
+    const isPremium = selectedModel.id === "gpt-4o" || selectedModel.provider === "Anthropic" || selectedModel.provider === "Google Generative AI";
 
     if (subscriptionStatus === "paid") {
       // Paid users can use any model
@@ -115,23 +115,37 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
         if (dailyTries <= 0) {
           toast.error("🔒 You've used all your free premium tries for today!");
           setShowModal(true);
+          // Automatically switch to GPT-4o mini
+          const fallbackModel = createModelId(models.find(m => m.id === "gpt-4o-mini")!);
+          onModelChange(fallbackModel);
           return;
         }
+
         // Decrement daily tries
         try {
           await db
             .update(userTries)
             .set({
               dailyTriesRemaining: dailyTries - 1,
-              lastResetDate: new Date(), // optional to set
             })
             .where(eq(userTries.userId, user?.id as string));
-          setDailyTries((prev) => prev - 1);
 
+          setDailyTries((prev) => prev - 1);
           onModelChange(id);
-          toast.success(`${dailyTries - 1} free tries remaining for today!`);
+          
+          if (dailyTries - 1 > 0) {
+            toast.success(`✨ ${dailyTries - 1} premium tries remaining today!`);
+          } else {
+            toast.warning("⚠️ Last premium try used! Consider upgrading to Pro.");
+            // After the last try is used, switch to GPT-4o mini
+            const fallbackModel = createModelId(models.find(m => m.id === "gpt-4o-mini")!);
+            setTimeout(() => {
+              onModelChange(fallbackModel);
+            }, 1500); // Small delay to show the warning toast first
+          }
         } catch (error) {
           console.error("Failed to update daily tries:", error);
+          toast.error("Failed to update remaining tries. Please try again.");
         }
       } else {
         // Non-premium model (like GPT-4o mini)
@@ -169,41 +183,87 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
           value={selectedModelId}
           onValueChange={handleModelChange}
         >
-          <SelectTrigger className="mr-2 h-7 text-xs border-none shadow-none focus:ring-0">
-            <SelectValue placeholder="Select model" />
+          <SelectTrigger className="mr-2 w-[200px] h-8 text-sm border border-input/50 bg-background/50 hover:bg-accent/50 backdrop-blur-sm transition-colors">
+            {selectedModelId ? (
+              <div className="flex items-center gap-2">
+                <div className="relative w-4 h-4">
+                  <Image
+                    src={`/providers/logos/${models.find(m => createModelId(m) === selectedModelId)?.providerId}.svg`}
+                    alt={models.find(m => createModelId(m) === selectedModelId)?.provider || ""}
+                    fill
+                    className="object-cover bg-white rounded-full p-[1px]"
+                  />
+                </div>
+                <SelectValue>
+                  {models.find(m => createModelId(m) === selectedModelId)?.name || "Select AI Model"}
+                </SelectValue>
+              </div>
+            ) : (
+              <SelectValue placeholder="Select AI Model" />
+            )}
           </SelectTrigger>
-          <SelectContent className="max-h-[300px] overflow-y-auto">
+          <SelectContent 
+            className="w-[300px] max-h-[400px] overflow-y-auto border-input/50 bg-background/95 backdrop-blur-md"
+            position="popper"
+            sideOffset={5}
+          >
+            {!isSignedIn && (
+              <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+                💡 Sign in to unlock all models and features
+              </div>
+            )}
+            {isSignedIn && subscriptionStatus !== "paid" && (
+              <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+                ✨ {dailyTries} premium tries remaining today
+              </div>
+            )}
             {Object.entries(groupedModels).map(([provider, modelList]) => (
               <SelectGroup key={provider}>
-                <SelectLabel className="text-xs sticky top-0 bg-background z-10">
+                <SelectLabel className="text-xs sticky top-0 z-10 bg-background/95 backdrop-blur-sm font-semibold px-3 py-2 border-b">
                   {provider}
                 </SelectLabel>
                 {modelList.map((model) => {
                   const id = createModelId(model);
                   const isPremium = model.id === "gpt-4o" || model.provider === "Anthropic";
-                  // For display, a model is locked if user is not logged in or out of tries
                   const locked =
-                    (!isSignedIn && model.id !== "gpt-4o-mini") || // logged out can only use mini
+                    (!isSignedIn && model.id !== "gpt-4o-mini") ||
                     (subscriptionStatus !== "paid" && isPremium && dailyTries <= 0);
 
                   return (
-                    <SelectItem key={id} value={id} className={`py-2 ${locked ? "text-gray-400" : ""}`}>
-                      <div className="flex items-center space-x-1">
-                        <Image
-                          src={`/providers/logos/${model.providerId}.svg`}
-                          alt={model.provider}
-                          width={18}
-                          height={18}
-                          className="bg-white rounded-full border"
-                        />
-                        <span className="text-xs font-medium">
-                          {locked ? "🔒" : "⚡"} {model.name}
-                          {(isPremium && subscriptionStatus !== "paid" && isSignedIn) && (
-                            <span className="ml-1 text-xs text-gray-600">
-                              ({dailyTries} left today)
+                    <SelectItem 
+                      key={id} 
+                      value={id} 
+                      className={`py-2 px-3 hover:bg-accent/50 transition-colors ${
+                        locked ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col space-y-0.5">
+                        <div className="flex items-center space-x-2">
+                          <div className="relative w-4 h-4 shrink-0">
+                            <Image
+                              src={`/providers/logos/${model.providerId}.svg`}
+                              alt={model.provider}
+                              fill
+                              className="object-cover bg-white rounded-full p-[1px]"
+                            />
+                          </div>
+                          <span className="text-sm font-medium flex items-center gap-1">
+                            {locked ? "🔒" : isPremium ? "⚡" : "🤖"} {model.name}
+                            {(isPremium && subscriptionStatus !== "paid" && isSignedIn && dailyTries > 0) && (
+                              <span className="text-xs text-muted-foreground">
+                                ({dailyTries} left)
+                              </span>
+                            )}
+                          </span>
+                          {isPremium && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
+                              Pro
                             </span>
                           )}
-                        </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {getModelDescription(model.id)}
+                        </p>
                       </div>
                     </SelectItem>
                   );
@@ -215,35 +275,54 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-white rounded-xl p-6 max-w-sm mx-auto text-gray-700 shadow-xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="bg-background border rounded-xl p-6 max-w-sm mx-auto shadow-lg relative">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 text-lg hover:text-gray-700"
+              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
             >
-              ✕
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+              </svg>
             </button>
-            <h3 className="text-lg font-semibold mb-2">Upgrade Required 🔒</h3>
-            <p className="mb-4 text-sm">
-              You have used all your free daily tries. Please upgrade to access premium models without limitation.
-            </p>
-            <div className="flex flex-col items-center space-y-4">
-              <button
-                onClick={handleDeclineUpgrade}
-                className="w-full px-6 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300"
-              >
-                Continue with GPT-4o mini
-              </button>
-              <button
-                onClick={handleUpgrade}
-                className="w-full px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                Upgrade to Pro Plan
-              </button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Upgrade to Pro 🚀</h3>
+                <p className="text-sm text-muted-foreground">
+                  You've used all your free premium tries for today. Upgrade to Pro for unlimited access to all models.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <button
+                  onClick={handleUpgrade}
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Upgrade to Pro
+                </button>
+                <button
+                  onClick={handleDeclineUpgrade}
+                  className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Continue with Free Model
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </>
   );
+}
+
+function getModelDescription(modelId: string): string {
+  const descriptions: Record<string, string> = {
+    'gpt-4o': 'Advanced GPT-4 for complex tasks',
+    'gpt-4o-mini': 'Fast, efficient GPT-4 for everyday use',
+    'claude-3-5-sonnet-latest': 'Balanced Claude model for reliable performance',
+    'claude-3-5-haiku-20241022': 'Fast Claude model for quick responses',
+    'gemini-1.5-pro-002': 'Powerful Gemini model for diverse tasks',
+    'gemini-2.0-flash-exp': 'Experimental Gemini model with latest features',
+  };
+  
+  return descriptions[modelId] || 'AI language model';
 }
