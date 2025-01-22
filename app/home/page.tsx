@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Check, MessageCircle, Star, Menu, X, Sparkles } from 'lucide-react'
 import { Chat } from '@/components/customer'
 import { IconBrain } from '@tabler/icons-react'
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -27,6 +28,7 @@ const stagger = {
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [videoModalOpen, setVideoModalOpen] = useState(false)
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-[#0B0B1E] to-black text-white">
@@ -106,7 +108,12 @@ export default function Home() {
                 <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
                   <Link href="/">Get Started Free</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-purple-600 text-purple-400 hover:bg-purple-600/10">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="bg-purple-600 text-white hover:bg-purple-700 border-none"
+                  onClick={() => setVideoModalOpen(true)}
+                >
                   Watch Demo
                 </Button>
               </motion.div>
@@ -171,7 +178,7 @@ export default function Home() {
                   },
                   {
                     title: "Boost Your Productivity",
-                    description: "Streamline tasks with Mees AI’s multi-model efficiency.",
+                    description: "Streamline tasks with Mees AI's multi-model efficiency.",
                     icon: "🧠",
                     gradient: "from-blue-500 to-cyan-500"
                   },
@@ -443,6 +450,21 @@ export default function Home() {
       </footer>
       
       <Chat />
+
+      <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
+        <DialogContent className="sm:max-w-[800px] p-0 bg-black border-none">
+          <div className="aspect-video relative">
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/nw3sys3UBPY?autoplay=1&rel=0"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
