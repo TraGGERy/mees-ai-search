@@ -172,7 +172,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
     const provider = model.provider;
     acc[provider] = acc[provider] || [];
     acc[provider].push(model);
-    return acc;
+    return acc as Record<string, Model[]>;
   }, {} as Record<string, Model[]>);
 
   return (
