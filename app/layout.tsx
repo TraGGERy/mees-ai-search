@@ -37,10 +37,10 @@ const keywords = [
   'instant answers',
   'study tool'
 ].join(', ');
-const image = 'https://www.meees-ai.co.zw/mees.png';   
+const image = 'https://www.mees-ai.co.zw/mees.png';   
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.meees-ai.co.zw'),
+  metadataBase: new URL('https://www.mees-ai.co.zw'),
   title,
   description,
   keywords,
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.meees-ai.co.zw',
+    url: 'https://www.mees-ai.co.zw',
     title: 'Mees AI - Next-Gen AI Search & Answer Engine',
     description: 'Instant AI-powered answers for complex queries - Research, Education, Technology & More',
     siteName: 'Mees AI',
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     images: [image],
   },
   alternates: {
-    canonical: 'https://www.meees-ai.co.zw'
+    canonical: 'https://www.mees-ai.co.zw'
   }
 }
 
