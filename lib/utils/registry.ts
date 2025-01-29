@@ -2,6 +2,7 @@ import { experimental_createProviderRegistry as createProviderRegistry } from 'a
 import { openai, createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
+import { deepseek } from '@ai-sdk/deepseek'
 import { createAzure } from '@ai-sdk/azure'
 import { createOllama } from 'ollama-ai-provider'
 
@@ -9,6 +10,7 @@ export const registry = createProviderRegistry({
   openai,
   anthropic,
   google,
+  deepseek,
   groq: createOpenAI({
     apiKey: process.env.GROQ_API_KEY,
     baseURL: 'https://api.groq.com/openai/v1'
@@ -42,6 +44,8 @@ export function isProviderEnabled(providerId: string): boolean {
       return !!process.env.GROQ_API_KEY
     case 'ollama':
       return !!process.env.OLLAMA_BASE_URL
+    case 'deepseek':
+      return !!process.env.DEEPSEEK_API_KEY
     case 'azure':
       return !!process.env.AZURE_API_KEY && !!process.env.AZURE_RESOURCE_NAME
     case 'openai-compatible':

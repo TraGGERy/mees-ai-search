@@ -26,6 +26,7 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
   const [dislikes, setDislikes] = useState<number>(0)
   const [feedbackType, setFeedbackType] = useState<'like' | 'dislike' | null>(null)
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
   useEffect(() => {
     if (!data) return
@@ -263,10 +264,44 @@ export function AnswerSection({ result, hasHeader = true }: AnswerSectionProps) 
                 </button>
 
                 <button
-                  onClick={() => {}}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors duration-200"
+                  onClick={() => {
+                    if (!isToastVisible) {
+                      setIsToastVisible(true);
+                      toast.error(
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="animate-bounce">
+                            🤖💫
+                          </div>
+                          <span className="text-purple-100 font-medium">
+                            Deepseek is currently unavailable
+                          </span>
+                        </div>,
+                        {
+                          position: 'top-center',
+                          duration: 4000,
+                          style: {
+                            background: 'linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                            backdropFilter: 'blur(8px)',
+                            borderRadius: '12px',
+                            padding: '16px 24px'
+                          }
+                        }
+                      );
+                      setTimeout(() => setIsToastVisible(false), 4000);
+                    }
+                  }}
+                  className="p-2 text-purple-500 dark:text-purple-400 hover:bg-purple-100/50 dark:hover:bg-purple-900/20 rounded-full transition-colors duration-200 group relative"
                 >
-                  <AiOutlineSync className="h-5 w-5" />
+                  <span className="flex items-center gap-1">
+                    <span className="relative inline-block">
+                      🧠
+                      <span className="absolute -top-1 -right-1.5 animate-ping text-[8px]">✨</span>
+                      <span className="absolute -top-1 -right-1.5 text-[8px]">✨</span>
+                    </span>
+                    <span className="sr-only">Deep Thinking</span>
+                  </span>
                 </button>
 
                 <button

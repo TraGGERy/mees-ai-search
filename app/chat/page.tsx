@@ -1,9 +1,9 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { Bot, Send, User, ChevronDown, ChevronUp, Copy, BookOpen, GraduationCap, Smile, Wheat, Code, Palette, BarChart, Cpu, Stethoscope, BadgeDollarSign } from "lucide-react";
+import { Bot, Send, User, ChevronDown, ChevronUp, Copy, BookOpen, GraduationCap, Smile, Wheat, Code, Palette, BarChart, Cpu, Stethoscope, BadgeDollarSign, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { Toaster } from "sonner";
 import { useUser } from "@clerk/nextjs";
@@ -11,6 +11,11 @@ import { nanoid } from "nanoid";
 import { personas, Persona } from '@/types/chat';
 import { IconCode } from "@tabler/icons-react";
 import ReactMarkdown from 'react-markdown';
+import { motion } from "framer-motion";
+import { db } from "@/db/db";
+import { userSubscriptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { PricingPopup } from '@/components/PricingPopup';
 
 interface ChatHistory {
   chatId: string;
@@ -34,6 +39,10 @@ export default function ChatComponent() {
   const [selectedPersona, setSelectedPersona] = useState<Persona>(personas[0]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [personaMessages, setPersonaMessages] = useState<{ [key: string]: any[] }>({});
+  const [showPricing, setShowPricing] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const {
     messages,
@@ -136,6 +145,166 @@ export default function ChatComponent() {
     }
   };
 
+  const handleReasoning = async (messageContent: string) => {
+    const loadingId = nanoid();
+    const deepThinker = personas.find(p => p.id === 'deepThinker');
+    let contentBuffer = '';
+    const decoder = new TextDecoder();
+
+    try {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: loadingId,
+          role: 'assistant',
+          content: `## 🧠 Deep Analysis in Progress\n\nAnalyzing content...`,
+          createdAt: new Date()
+        }
+      ]);
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: `You are an advanced AI analyst. Provide clear, well-structured analysis using this format:
+
+## 🧠 Analysis Title
+
+Brief introduction of the topic.
+
+### Key Points
+- First key point with explanation
+- Second key point with explanation
+- Third key point with explanation
+
+### Details
+Important details and explanations go here, broken into clear paragraphs.
+
+### Summary
+Concise summary of the main findings and implications.`
+            },
+            {
+              role: 'user',
+              content: `Please analyze this in detail:\n\n${messageContent}`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) throw new Error('Analysis failed');
+
+      const reader = response.body?.getReader();
+      let updateTimeout: NodeJS.Timeout;
+
+      const updateContent = (content: string) => {
+        const cleanContent = content
+          .replace(/\\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .replace(/\*\\\*/g, '*')
+          .replace(/\\\*/g, '*')
+          .replace(/\s+\n/g, '\n')
+          .replace(/\n\s+/g, '\n')
+          .trim();
+
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === loadingId ? { ...msg, content: cleanContent } : msg
+          )
+        );
+      };
+
+      const debouncedUpdate = (content: string) => {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => updateContent(content), 100);
+      };
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const matches = chunk.match(/0:"([^"]*)"/g);
+        
+        if (matches) {
+          const content = matches
+            .map(match => match.slice(3, -1))
+            .join('');
+          
+          contentBuffer += content;
+          debouncedUpdate(contentBuffer);
+        }
+      }
+
+      updateContent(contentBuffer);
+      toast.success('Analysis complete!');
+    } catch (error) {
+      console.error('Deep thinking error:', error);
+      toast.error('Analysis failed');
+      setMessages(prev => prev.filter(m => m.id !== loadingId));
+    }
+  };
+
+  const checkSubscription = async (userId: string, messageContent: string) => {
+    try {
+      const subscription = await db
+        .select()
+        .from(userSubscriptions)
+        .where(eq(userSubscriptions.clerkUserId, userId))
+        .limit(1);
+
+      console.log("Found subscription:", subscription);
+
+      const userSub = subscription[0];
+      
+      if (userSub && userSub.currentPlan === 'AI_Agent') {
+        toast.success('Active Subscription: AI Agent', {
+          position: 'top-center'
+        });
+        handleReasoning(messageContent);
+      } else if (userSub) {
+        toast.error('Please upgrade to AI Agent plan to access this feature', {
+          position: 'top-center'
+        });
+        setShowPricing(true);
+      } else {
+        toast.error('No active subscription found', {
+          position: 'top-center'
+        });
+        setShowPricing(true);
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      toast.error('Failed to check subscription status', {
+        position: 'top-center'
+      });
+    }
+  };
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    chatContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Handle scroll events
+  const handleScroll = useCallback(() => {
+    if (!chatContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isNotAtBottom = scrollHeight - scrollTop - clientHeight > 100;
+    setShowScrollButton(isNotAtBottom);
+  }, []);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
+
   return (
     <div className="flex flex-col h-[100dvh] bg-inherit">
       {/* Header */}
@@ -187,7 +356,11 @@ export default function ChatComponent() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div 
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto"
+        onScroll={handleScroll}
+      >
         <div className="max-w-3xl mx-auto px-4">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center min-h-[300px]">
@@ -219,29 +392,93 @@ export default function ChatComponent() {
                     )}
                     <div className="flex-1 space-y-2 overflow-hidden">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-inherit flex items-center gap-2">
-                          {message.role === "assistant" ? (
-                            <>
-                              {selectedPersona.name}
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {selectedPersona.role}
-                              </span>
-                            </>
-                          ) : (
-                            "You"
-                          )}
+                        <span className="text-sm font-medium text-inherit">
+                          {message.role === "assistant" ? selectedPersona.name : "You"}
                         </span>
-                        <button 
-                          onClick={() => navigator.clipboard.writeText(message.content)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
                       </div>
                       <div className="prose prose-sm max-w-none text-inherit dark:prose-invert bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 shadow-sm">
-                        <ReactMarkdown>
-                          {message.content}
-                        </ReactMarkdown>
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                        {message.role === "assistant" && (
+                          <div className="flex items-center justify-end mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 gap-2">
+                            <motion.button
+                              onClick={async () => {
+                                if (!user) {
+                                  toast.error('Please sign in', {
+                                    position: 'top-center'
+                                  });
+                                  return;
+                                }
+                                await checkSubscription(user.id, message.content);
+                              }}
+                              className="relative group flex items-center justify-center hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md px-2 py-1"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              aria-label="Deep analysis"
+                            >
+                              <motion.span
+                                className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-purple-500 rounded-full"
+                                animate={{
+                                  opacity: [0.5, 1, 0.5],
+                                }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                              <motion.div
+                                animate={{
+                                  rotate: 360,
+                                  scale: [1, 1.1, 1],
+                                }}
+                                transition={{
+                                  duration: 3,
+                                  repeat: Infinity,
+                                  ease: "linear"
+                                }}
+                              >
+                                <Sparkles className="h-4 w-4 text-purple-500/50 group-hover:text-purple-500" />
+                              </motion.div>
+                            </motion.button>
+                            <motion.button
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(message.content);
+                                  toast.success('Copied', {
+                                    position: 'top-center'
+                                  });
+                                } catch (err) {
+                                  const textArea = document.createElement('textarea');
+                                  textArea.value = message.content;
+                                  document.body.appendChild(textArea);
+                                  textArea.select();
+                                  try {
+                                    document.execCommand('copy');
+                                    toast.success('Copied', {
+                                      position: 'top-center'
+                                    });
+                                  } catch (err) {
+                                    toast.error('Failed to copy', {
+                                      position: 'top-center'
+                                    });
+                                  }
+                                  document.body.removeChild(textArea);
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              aria-label="Copy message"
+                            >
+                              <motion.div
+                                whileHover={{ rotate: 12 }}
+                                transition={{ type: "spring", stiffness: 400 }}
+                              >
+                                <Copy className="h-4 w-4 text-purple-500" />
+                              </motion.div>
+                            </motion.button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -268,7 +505,28 @@ export default function ChatComponent() {
               )}
             </div>
           )}
+          <div ref={messagesEndRef} /> {/* Scroll anchor */}
         </div>
+      </div>
+
+      {/* Scroll Buttons */}
+      <div className="fixed right-8 bottom-24 flex flex-col gap-2">
+        {showScrollButton && (
+          <button
+            onClick={scrollToBottom}
+            className="p-2 rounded-full bg-purple-600 text-white shadow-lg hover:bg-purple-700 transition-colors"
+            aria-label="Scroll to bottom"
+          >
+            <ChevronDown className="h-5 w-5" />
+          </button>
+        )}
+        <button
+          onClick={scrollToTop}
+          className="p-2 rounded-full bg-purple-600 text-white shadow-lg hover:bg-purple-700 transition-colors"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Input Area */}
@@ -292,6 +550,15 @@ export default function ChatComponent() {
           </form>
         </div>
       </div>
+
+      <PricingPopup 
+        isOpen={showPricing} 
+        onClose={() => setShowPricing(false)}
+        onUpgrade={() => {
+          // Handle upgrade logic if needed
+          setShowPricing(false);
+        }}
+      />
     </div>
   );
 }
