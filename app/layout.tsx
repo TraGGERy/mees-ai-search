@@ -22,16 +22,28 @@ const fontSans = FontSans({
   variable: '--font-sans'
 })
 
-const title = 'Mees Ai - Advanced AI Search & Answer Engine'
+const title = 'Mees AI - Advanced AI Search Engine | Smart Answers & Real-Time Insights';
 const description =
-  'Mees AI is an advanced answer engine powered by artificial intelligence, providing instant, accurate responses with a dynamic, real-time interface. Get smart answers to your questions instantly.'
-const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
+  'Get instant AI-powered answers with Mees AI, the intelligent search engine. Explore real-time results, expert insights, and comprehensive solutions for research, education, and technical queries.';
+const keywords = [
+  'AI search engine',
+  'smart answers',
+  'real-time AI',
+  'research assistant',
+  'academic search',
+  'question answering system',
+  'AI-powered insights',
+  'knowledge engine',
+  'instant answers',
+  'study tool'
+].join(', ');
+const image = 'https://www.meees-ai.co.zw/mees.png';   
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mees-ai-search.vercel.app'),
+  metadataBase: new URL('https://www.meees-ai.co.zw'),
   title,
   description,
-  keywords: 'AI search engine, question answering, artificial intelligence, smart search, Mees AI, real-time answers',
+  keywords,
   authors: [{ name: 'Mees AI Team' }],
   creator: 'Mees AI',
   publisher: 'Mees AI',
@@ -49,9 +61,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://mees-ai-search.vercel.app',
-    title,
-    description,
+    url: 'https://www.meees-ai.co.zw',
+    title: 'Mees AI - Next-Gen AI Search & Answer Engine',
+    description: 'Instant AI-powered answers for complex queries - Research, Education, Technology & More',
     siteName: 'Mees AI',
     images: [
       {
@@ -64,14 +76,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title,
-    description,
+    title: 'Mees AI - Smart Search & AI Answers',
+    description: 'Get real-time AI insights and expert-level answers instantly',
     creator: '@Iamtoxix',
     site: '@Iamtoxix',
     images: [image],
   },
   alternates: {
-    canonical: 'https://mees-ai-search.vercel.app'
+    canonical: 'https://www.meees-ai.co.zw'
   }
 }
 
