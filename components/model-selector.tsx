@@ -187,11 +187,11 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
       case 'Quality (Claude)':
         return "🎭"; // Theatre mask for Claude's versatility
       case 'Quantum Leap':
-        return "🌌"; // Galaxy for quantum capabilities
+        return "✨"; // Galaxy for quantum capabilities
       case 'Lightning Strike':
         return "⚡"; // Lightning for speed
-      case 'Code Whisperer':
-        return "👨‍💻"; // Developer for coding focus
+      case 'Reasoning':
+        return "💡"; // Developer for coding focus
       default:
         return "🤖"; // Robot as fallback
     }
