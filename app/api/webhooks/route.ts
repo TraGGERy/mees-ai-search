@@ -58,36 +58,33 @@ export async function POST(req: NextRequest) {
 
     // Then, handle the user subscription
     try {
+      const amount = invoice.amount_paid / 100; // Convert to dollars
+      
+      // For all subscriptions, we'll use subscribedUsers table
       const existingUser = await db
         .select()
         .from(subscribedUsers)
         .where(eq(subscribedUsers.email, invoice.customer_email || ""))
         .limit(1);
 
-      console.log("Existing user check result:", existingUser);
+      const subscriptionData = {
+        email: invoice.customer_email || "",
+        userId: invoice.customer as string,
+        type: event.type,
+        subscriptionStatus: invoice.status || null,
+        currentPlan: amount < 6 ? "AI_Agent" : determinePlan(invoice.amount_paid),
+        nextInvoiceDate: calculateNextInvoiceDate(),
+        InvoicePdfUrl: invoice.hosted_invoice_url || null,
+      };
 
       if (existingUser.length > 0) {
         await db
           .update(subscribedUsers)
-          .set({
-            type: event.type,
-            subscriptionStatus: invoice.status || null,
-            currentPlan: determinePlan(invoice.amount_paid),
-            nextInvoiceDate: calculateNextInvoiceDate(),
-            InvoicePdfUrl: invoice.hosted_invoice_url || null,
-          })
+          .set(subscriptionData)
           .where(eq(subscribedUsers.email, invoice.customer_email || ""));
         console.log("Successfully updated existing user");
       } else {
-        await db.insert(subscribedUsers).values({
-          email: invoice.customer_email || "",
-          userId: invoice.customer as string,
-          type: event.type,
-          subscriptionStatus: invoice.status || null,
-          currentPlan: determinePlan(invoice.amount_paid),
-          nextInvoiceDate: calculateNextInvoiceDate(),
-          InvoicePdfUrl: invoice.hosted_invoice_url || null,
-        });
+        await db.insert(subscribedUsers).values(subscriptionData);
         console.log("Successfully created new user");
       }
     } catch (dbError) {
@@ -115,12 +112,16 @@ export async function POST(req: NextRequest) {
 // Helper functions
 function determinePlan(amountPaid: number): string {
   const amount = amountPaid / 100;
-  if (amount >= 7.99 && amount <= 20) {
+  if (amount < 6) {
+    return amount === Number(process.env.NEXT_PUBLIC_STRIPE_STANDARD_AMOUNT) 
+      ? "AI_Agent_Standard" 
+      : "AI_Agent_Premium";
+  } else if (amount >= 8 && amount < 100) {
     return "Monthly";
-  } else if (amount > 100) {
+  } else if (amount >= 100) {
     return "Yearly";
   }
-  return "Pro";
+  return "Unknown";
 }
 
 function calculateNextInvoiceDate(): Date {

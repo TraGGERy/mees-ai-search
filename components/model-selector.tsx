@@ -203,7 +203,7 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
             )}
           </SelectTrigger>
           <SelectContent 
-            className="w-[300px] max-h-[400px] overflow-y-auto border-input/50 bg-background/95 backdrop-blur-md"
+            className="w-[300px] max-h-[300px] overflow-y-auto border-input/50 bg-background/95 backdrop-blur-md"
             position="popper"
             sideOffset={5}
           >
@@ -237,13 +237,13 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
                       <SelectItem 
                         key={id} 
                         value={id} 
-                        className={`py-2 px-3 hover:bg-accent/50 transition-colors ${
+                        className={`py-1.5 px-3 hover:bg-accent/50 transition-colors ${
                           locked ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                       >
                         <div className="flex flex-col space-y-0.5">
                           <div className="flex items-center space-x-2">
-                            <div className="relative w-4 h-4 shrink-0">
+                            <div className="relative w-3.5 h-3.5 shrink-0">
                               <Image
                                 src={`/providers/logos/${model.providerId}.svg`}
                                 alt={model.provider}

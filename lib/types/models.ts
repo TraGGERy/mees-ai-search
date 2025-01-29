@@ -44,5 +44,19 @@ export const models: Model[] = [
     provider: 'Google Generative AI',
     providerId: 'google'
   },
- 
+  // Deepseek function calling is currently unstable: https://github.com/vercel/ai/issues/4313#issuecomment-2587891644
+  // If you want to use Deepseek, remove the comment and add it to the models array
+  // {
+  //   id: 'deepseek-chat',
+  //   name: 'DeepSeek v3 (Experimental)',
+  //   provider: 'DeepSeek',
+  //   providerId: 'deepseek'
+  // },
+  {
+    id: 'deepseek-chat',
+    name: 'DeepSeek v3',
+    provider: 'DeepSeek',
+      providerId: 'deepseek'
+     },
+  
 ]

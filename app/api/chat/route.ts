@@ -1,39 +1,66 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import OpenAI from 'openai';
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+import path from 'path';
+import { writeFile } from 'fs/promises';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, systemPrompt } = await req.json();
+  try {
+    let messages;
+    let systemPrompt;
+    let imageFile: File | null = null;
+    let imageUrl: string | undefined;
 
-  // Simplified system prompt for Mees AI research agent
-  const formattingInstructions = `You are Mees, an AI research agent focused on providing clear, accurate, and well-structured information. 
-  
-Present your responses in a clean, academic format with clear headers, concise paragraphs, and well-organized lists when appropriate. 
-Focus on delivering factual, research-based information while maintaining a helpful and professional tone.`;
+    if (req.headers.get('content-type')?.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      messages = JSON.parse(formData.get('messages') as string);
+      systemPrompt = formData.get('systemPrompt') as string;
+      imageFile = formData.get('image') as File | null;
 
-  const finalSystemPrompt = systemPrompt 
-    ? `${formattingInstructions}\n\n${systemPrompt}`
-    : formattingInstructions;
+      if (imageFile) {
+        const bytes = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+        const filename = `image-${uniqueSuffix}.png`;
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        await writeFile(path.join(uploadDir, filename), buffer);
+        
+        imageUrl = `/uploads/${filename}`;
+      }
+    } else {
+      const body = await req.json();
+      messages = body.messages;
+      systemPrompt = body.systemPrompt;
+    }
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content: finalSystemPrompt
-      },
-      ...messages
-    ],
-    max_tokens: 1500,
-    temperature: 0.7,
-    stream: true,
-    presence_penalty: 0.6,
-    frequency_penalty: 0.5,
-  });
+    const formattingInstructions = `You are Mees, an AI research agent focused on providing clear, accurate, and well-structured information.`;
 
-  const stream = OpenAIStream(response);
-  return new StreamingTextResponse(stream);
+    const result = streamText({
+      model: openai(imageUrl ? 'gpt-4o-mini' : 'gpt-4o-mini'),
+      system: systemPrompt ? `${formattingInstructions}\n\n${systemPrompt}` : formattingInstructions,
+      messages: imageUrl 
+        ? [...messages, {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Please analyze this image:' },
+              { type: 'image_url', image_url: `${process.env.NEXT_PUBLIC_APP_URL}${imageUrl}` }
+            ]
+          }]
+        : messages,
+      temperature: 0.7,
+      maxTokens: 2000,
+    });
+
+    return result.toDataStreamResponse();
+
+  } catch (error) {
+    console.error('Error in chat route:', error);
+    return new Response(
+      JSON.stringify({ error: 'An error occurred during your request.' }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' }}
+    );
+  }
 }

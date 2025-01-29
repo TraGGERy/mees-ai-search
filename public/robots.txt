@@ -1,0 +1,22 @@
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Allow: /chat
+Allow: /home
+Allow: /blog
+Allow: /about
+Allow: /contact
+
+# Disallow sensitive routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /uploads/
+
+# Crawl delay
+Crawl-delay: 10
+
+# Sitemaps
+Sitemap: https://www.mees-ai.co.zw/sitemap.xml 

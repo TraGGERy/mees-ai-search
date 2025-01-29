@@ -7,7 +7,7 @@ import {
     jsonb,
     timestamp,
     boolean,
-    
+    uniqueIndex
   } from "drizzle-orm/pg-core";
   import { sql } from "drizzle-orm";
   import { Relation } from "drizzle-orm";
@@ -109,5 +109,32 @@ export const notifications = pgTable('notifications', {
   p256dh: text('p256dh').notNull(),
   auth: text('auth').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-}); 
+});
+
+// Add new enum for persona types
+export const PersonaType = {
+  FREE: 'free',
+  PREMIUM: 'premium'
+} as const;
+
+// Add subscription tiers
+export const SubscriptionTier = {
+  FREE: 'free',
+  PRO: 'pro',
+  ENTERPRISE: 'enterprise'
+} as const;
+
+
+// Update aiAgentSubscriptions table
+export const aiAgentSubscriptions = pgTable("ai_agent_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  isSubscribed: boolean("is_subscribed").default(false).notNull(),
+  subscriptionTier: varchar("subscription_tier", { length: 50 }).notNull(), // free, pro, enterprise
+  dailyMessageLimit: integer("daily_message_limit").default(10).notNull(),
+  messagesUsedToday: integer("messages_used_today").default(0),
+  lastResetDate: timestamp("last_reset_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 

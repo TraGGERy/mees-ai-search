@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
-import { subscribedUsers, userSubscriptions } from "@/db/schema";
+import { subscribedUsers, userSubscriptions, aiAgentSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -29,21 +29,37 @@ export async function POST(request: Request) {
     const userData = existingUser[0];
 
     try {
-      // Insert into userSubscriptions
-      await db.insert(userSubscriptions).values({
-        clerkUserId: userId,
-        stripeUserId: userData.userId,
-        email: email,
-        type: userData.type || "payment_success",
-        subscriptionStatus: userData.subscriptionStatus,
-        currentPlan: userData.currentPlan,
-        nextInvoiceDate: userData.nextInvoiceDate,
-        invoicePdfUrl: userData.InvoicePdfUrl,
-      });
+      // Check if this is an AI agent subscription
+      if (userData.currentPlan?.includes('AI_Agent')) {
+        // Insert into aiAgentSubscriptions
+        await db.insert(aiAgentSubscriptions).values({
+          userId: userId,
+          personaId: 'default',
+          isSubscribed: true,
+          subscriptionTier: userData.currentPlan === 'AI_Agent_Premium' ? 'pro' : 'standard',
+          dailyMessageLimit: userData.currentPlan === 'AI_Agent_Premium' ? 50 : 25,
+          messagesUsedToday: 0,
+          lastResetDate: new Date(),
+        });
+        console.log("Saved AI agent subscription");
+      } else {
+        // Insert into regular userSubscriptions
+        await db.insert(userSubscriptions).values({
+          clerkUserId: userId,
+          stripeUserId: userData.userId,
+          email: email,
+          type: userData.type || "payment_success",
+          subscriptionStatus: userData.subscriptionStatus,
+          currentPlan: userData.currentPlan,
+          nextInvoiceDate: userData.nextInvoiceDate,
+          invoicePdfUrl: userData.InvoicePdfUrl,
+        });
+        console.log("Saved regular subscription");
+      }
     } catch (insertError) {
-      console.error("Error inserting into userSubscriptions:", insertError);
+      console.error("Error inserting subscription:", insertError);
       return NextResponse.json(
-        { error: "Failed to create user subscription record" },
+        { error: "Failed to create subscription record" },
         { status: 500 }
       );
     }
