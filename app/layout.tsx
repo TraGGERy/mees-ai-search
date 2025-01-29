@@ -37,7 +37,7 @@ const keywords = [
   'instant answers',
   'study tool'
 ].join(', ');
-const image = 'https://www.mees-ai.co.zw/opengraph-image.png';   
+const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees-ai.co.zw'),
