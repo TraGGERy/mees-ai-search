@@ -34,7 +34,6 @@ export async function POST(request: Request) {
         // Insert into aiAgentSubscriptions
         await db.insert(aiAgentSubscriptions).values({
           userId: userId,
-          personaId: 'default',
           isSubscribed: true,
           subscriptionTier: userData.currentPlan === 'AI_Agent_Premium' ? 'pro' : 'standard',
           dailyMessageLimit: userData.currentPlan === 'AI_Agent_Premium' ? 50 : 25,
