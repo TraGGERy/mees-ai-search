@@ -73,8 +73,8 @@ export const models: Model[] = [
   // },
   {
     id: 'deepseek-chat',
-    name: 'Code Whisperer',
-    description: 'Expert at debugging & development. (DeepSeek-v3)',
+    name: 'Reasoning',
+    description: 'Expert at coding (DeepSeek-v3)',
     provider: 'DeepSeek',
     providerId: 'deepseek',
     isPro: true
