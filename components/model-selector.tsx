@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { db } from "@/db/db";
 import { userSubscriptions, userTries } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import Image from "next/image";
 import { Model, models } from "@/lib/types/models";
 import { createModelId } from "@/lib/utils";
 
@@ -175,6 +174,29 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
     return acc as Record<string, Model[]>;
   }, {} as Record<string, Model[]>);
 
+  const getModelIcon = (model: Model): string => {
+    // Speed models
+    if (model.isSpeed) {
+      return "⚡"; // Lightning bolt for speed
+    }
+    
+    // Special cases based on provider/name
+    switch (model.name) {
+      case 'Quality (GPT)':
+        return "🧠"; // Brain for GPT quality
+      case 'Quality (Claude)':
+        return "🎭"; // Theatre mask for Claude's versatility
+      case 'Quantum Leap':
+        return "🌌"; // Galaxy for quantum capabilities
+      case 'Lightning Strike':
+        return "⚡"; // Lightning for speed
+      case 'Code Whisperer':
+        return "👨‍💻"; // Developer for coding focus
+      default:
+        return "🤖"; // Robot as fallback
+    }
+  };
+
   return (
     <>
       <div className="absolute -top-8 left-2">
@@ -186,14 +208,9 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
           <SelectTrigger className="mr-2 w-[200px] h-8 text-sm border border-input/50 bg-background/50 hover:bg-accent/50 backdrop-blur-sm transition-colors">
             {selectedModelId ? (
               <div className="flex items-center gap-2">
-                <div className="relative w-4 h-4">
-                  <Image
-                    src={`/providers/logos/${models.find(m => createModelId(m) === selectedModelId)?.providerId}.svg`}
-                    alt={models.find(m => createModelId(m) === selectedModelId)?.provider || ""}
-                    fill
-                    className="object-cover bg-white rounded-full p-[1px]"
-                  />
-                </div>
+                <span className="text-lg">
+                  {getModelIcon(models.find(m => createModelId(m) === selectedModelId)!)}
+                </span>
                 <SelectValue>
                   {models.find(m => createModelId(m) === selectedModelId)?.name || "Select AI Model"}
                 </SelectValue>
@@ -237,37 +254,30 @@ export function ModelSelector({ selectedModelId, onModelChange }: ModelSelectorP
                       <SelectItem 
                         key={id} 
                         value={id} 
-                        className={`py-1.5 px-3 hover:bg-accent/50 transition-colors ${
+                        className={`py-2.5 px-3 hover:bg-accent/50 transition-colors ${
                           locked ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                       >
-                        <div className="flex flex-col space-y-0.5">
+                        <div className="flex flex-col space-y-1">
                           <div className="flex items-center space-x-2">
-                            <div className="relative w-3.5 h-3.5 shrink-0">
-                              <Image
-                                src={`/providers/logos/${model.providerId}.svg`}
-                                alt={model.provider}
-                                fill
-                                className="object-cover bg-white rounded-full p-[1px]"
-                              />
-                            </div>
-                            <span className="text-sm font-medium flex items-center gap-1">
-                              {locked ? "🔒" : isPremium ? "⚡" : "🤖"} {model.name}
-                              {(isPremium && subscriptionStatus !== "paid" && isSignedIn && dailyTries > 0) && (
-                                <span className="text-xs text-muted-foreground">
-                                  ({dailyTries} left)
+                            <span className="text-lg">{getModelIcon(model)}</span>
+                            <span className="text-sm font-medium flex items-center gap-2">
+                              {model.name}
+                              {model.isPro && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
+                                  Pro
+                                </span>
+                              )}
+                              {model.isCopilot && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
+                                  Copilot
                                 </span>
                               )}
                             </span>
-                            {isPremium && (
-                              <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
-                                Pro
-                              </span>
-                            )}
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {getModelDescription(model.id)}
-                          </p>
+                          <div className="text-xs text-muted-foreground line-clamp-1">
+                            {model.description}
+                          </div>
                         </div>
                       </SelectItem>
                     );
