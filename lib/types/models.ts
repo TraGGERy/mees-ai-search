@@ -47,18 +47,10 @@ export const models: Model[] = [
     isSpeed: true
   },
   {
-    id: 'gemini-1.5-pro-002',
-    name: 'Quantum Leap',
-    description: 'Advanced reasoning with quantum speed. (Gemini-1.5-Pro)',
-    provider: 'Google Generative AI',
-    providerId: 'google',
-    isPro: true
-  },
-  {
     id: 'gemini-2.0-flash-exp',
     name: 'Lightning Strike',
-    description: 'Experimental blazing-fast responses. (Gemini-2.0-Flash)',
-    provider: 'Google Generative AI',
+    description: 'Experimental (DeepSeek-v3)',
+    provider: 'DeepSeek',
     providerId: 'google',
     isPro: true,
     isSpeed: true
@@ -71,13 +63,6 @@ export const models: Model[] = [
   //   provider: 'DeepSeek',
   //   providerId: 'deepseek'
   // },
-  {
-    id: 'deepseek-chat',
-    name: 'Reasoning',
-    description: 'Expert at coding (DeepSeek-v3)',
-    provider: 'DeepSeek',
-    providerId: 'deepseek',
-    isPro: true
-  },
+ 
   
 ]
