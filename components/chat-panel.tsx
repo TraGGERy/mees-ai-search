@@ -229,16 +229,7 @@ export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
                 onBlur={() => setShowEmptyScreen(false)}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost">
-                      <Upload size={20} />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <FileUpload />
-                  </DialogContent>
-                </Dialog>
+                
                 <Button
                   type="submit"
                   size="icon"
