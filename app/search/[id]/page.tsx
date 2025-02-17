@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation'
 export const maxDuration = 60
 
 export async function generateMetadata(props: {
-  params: { id: string }
+  params: { id: string },
+  searchParams?: { [key: string]: string | string[] | undefined }
 }) {
   const { id } = props.params
   const chat = await getChat(id)
@@ -15,10 +16,13 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function SearchPage(props: {
-  params: { id: string }
-}) {
-  const { id } = props.params
+interface PageProps {
+  params: { id: string },
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+const Page = async ({ params }: PageProps) => {
+  const { id } = params
   const chat = await getChat(id)
 
   if (!chat) {
@@ -31,3 +35,5 @@ export default async function SearchPage(props: {
 
   return <Chat id={id} savedMessages={messages} />
 }
+
+export default Page
