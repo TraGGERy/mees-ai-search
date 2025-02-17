@@ -19,7 +19,7 @@ export const models: Model[] = [
     name: 'Pro Search',
     provider: 'Anthropic',
     providerId: 'anthropic',
-    description: '3x faster than Auto and detailed answers'
+    description: '3x faster than Auto & detailed answers'
   },
   // The following models are temporarily disabled.
   // Uncomment the lines below to enable these experimental models.
