@@ -1,65 +1,120 @@
-'use client'
-
-import { StreamableValue } from 'ai/rsc'
-import type { UIState } from '@/app/actions'
-import { CollapsibleMessage } from './collapsible-message'
+import { JSONValue, Message } from 'ai'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { RenderMessage } from './render-message'
+import { ToolSection } from './tool-section'
+import { Spinner } from './ui/spinner'
 
 interface ChatMessagesProps {
-  messages: UIState
+  messages: Message[]
+  data: JSONValue[] | undefined
+  onQuerySelect: (query: string) => void
+  isLoading: boolean
+  chatId?: string
 }
 
-type GroupedMessage = {
-  id: string
-  components: React.ReactNode[]
-  isCollapsed?: StreamableValue<boolean> | undefined
-}
+export function ChatMessages({
+  messages,
+  data,
+  onQuerySelect,
+  isLoading,
+  chatId
+}: ChatMessagesProps) {
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({})
+  const manualToolCallId = 'manual-tool-call'
 
-export function ChatMessages({ messages }: ChatMessagesProps) {
-  if (!messages.length) {
-    return null
+  // Add ref for the messages container
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }
 
-  // Group messages based on ID, and if there are multiple messages with the same ID, combine them into one message
-  const groupedMessages = messages.reduce(
-    (acc: { [key: string]: GroupedMessage }, message) => {
-      if (!acc[message.id]) {
-        acc[message.id] = {
-          id: message.id,
-          components: [],
-          isCollapsed: message.isCollapsed
-        }
-      }
-      acc[message.id].components.push(message.component)
-      return acc
-    },
-    {}
-  )
+  // Scroll to bottom on mount and when messages change
+  useEffect(() => {
+    scrollToBottom()
+  }, [])
 
-  // Convert grouped messages into an array with explicit type
-  const groupedMessagesArray = Object.values(groupedMessages).map(group => ({
-    ...group,
-    components: group.components as React.ReactNode[]
-  })) as {
-    id: string
-    components: React.ReactNode[]
-    isCollapsed?: StreamableValue<boolean>
-  }[]
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage?.role === 'user') {
+      setOpenStates({ [manualToolCallId]: true })
+    }
+  }, [messages])
+
+  // get last tool data for manual tool call
+  const lastToolData = useMemo(() => {
+    if (!data || !Array.isArray(data) || data.length === 0) return null
+
+    const lastItem = data[data.length - 1] as {
+      type: 'tool_call'
+      data: {
+        toolCallId: string
+        state: 'call' | 'result'
+        toolName: string
+        args: string
+      }
+    }
+
+    if (lastItem.type !== 'tool_call') return null
+
+    const toolData = lastItem.data
+    return {
+      state: 'call' as const,
+      toolCallId: toolData.toolCallId,
+      toolName: toolData.toolName,
+      args: toolData.args ? JSON.parse(toolData.args) : undefined
+    }
+  }, [data])
+
+  if (!messages.length) return null
+
+  const lastUserIndex =
+    messages.length -
+    1 -
+    [...messages].reverse().findIndex(msg => msg.role === 'user')
+
+  const showLoading = isLoading && messages[messages.length - 1].role === 'user'
+
+  const getIsOpen = (id: string) => {
+    const baseId = id.endsWith('-related') ? id.slice(0, -8) : id
+    const index = messages.findIndex(msg => msg.id === baseId)
+    return openStates[id] ?? index >= lastUserIndex
+  }
+
+  const handleOpenChange = (id: string, open: boolean) => {
+    setOpenStates(prev => ({
+      ...prev,
+      [id]: open
+    }))
+  }
 
   return (
-    <>
-      {groupedMessagesArray.map((groupedMessage: GroupedMessage) => (
-        <CollapsibleMessage
-          key={`${groupedMessage.id}`}
-          message={{
-            id: groupedMessage.id,
-            component: groupedMessage.components.map((component, i) => (
-              <div key={`${groupedMessage.id}-${i}`}>{component}</div>
-            )),
-            isCollapsed: groupedMessage.isCollapsed
-          }}
-          isLastMessage={groupedMessage.id === messages[messages.length - 1].id}
-        />
+    <div className="relative mx-auto px-4 w-full">
+      {messages.map(message => (
+        <div key={message.id} className="mb-4 flex flex-col gap-4">
+          <RenderMessage
+            message={message}
+            messageId={message.id}
+            getIsOpen={getIsOpen}
+            onOpenChange={handleOpenChange}
+            onQuerySelect={onQuerySelect}
+            chatId={chatId}
+          />
+        </div>
       ))}
-    </>
+      {showLoading &&
+        (lastToolData ? (
+          <ToolSection
+            key={manualToolCallId}
+            tool={lastToolData}
+            isOpen={getIsOpen(manualToolCallId)}
+            onOpenChange={open => handleOpenChange(manualToolCallId, open)}
+          />
+        ) : (
+          <Spinner />
+        ))}
+      <div ref={messagesEndRef} /> {/* Add empty div as scroll anchor */}
+    </div>
   )
 }

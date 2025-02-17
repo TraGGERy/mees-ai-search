@@ -1,54 +1,51 @@
-import { Card } from "@/components/ui/card";
-import { Clapperboard, Carrot, TreesIcon as Lungs, Smartphone } from "lucide-react";
+import { Button } from '@/components/ui/button'
+import { ArrowRight } from 'lucide-react'
 
 const exampleMessages = [
   {
-    heading: "James Bond",
-    message: "The next James Bond",
-    icon: Clapperboard,
+    heading: 'What is DeepSeek R1?',
+    message: 'What is DeepSeek R1?'
   },
   {
-    heading: "Seasonal Veggies",
-    message: "Vegetables in season",
-    icon: Carrot,
+    heading: 'Why is Nvidia growing rapidly?',
+    message: 'Why is Nvidia growing rapidly?'
   },
   {
-    heading: "Breathwork",
-    message: "Breathwork benefits",
-    icon: Lungs,
+    heading: 'Tesla vs Rivian',
+    message: 'Tesla vs Rivian'
   },
   {
-    heading: "New iPhone",
-    message: "New iPhone rumours",
-    icon: Smartphone,
-  },
-];
-
+    heading: 'Summary: https://arxiv.org/pdf/2501.05707',
+    message: 'Summary: https://arxiv.org/pdf/2501.05707'
+  }
+]
 export function EmptyScreen({
   submitMessage,
-  className,
+  className
 }: {
-  submitMessage: (message: string) => void;
-  className?: string;
+  submitMessage: (message: string) => void
+  className?: string
 }) {
   return (
-    <div className={`top-8 p-4 ${className}`}>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-        {exampleMessages.map((message, index) => (
-          <Card
-            key={index}
-            onClick={() => submitMessage(message.message)}
-            className="group flex items-center p-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-sm transition-all cursor-pointer"
-          >
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-purple-600/10 group-hover:bg-purple-600/20">
-              <message.icon className="h-5 w-5 text-purple-500" />
-            </div>
-            <span className="ml-2 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
+    <div className={`mx-auto w-full transition-all ${className}`}>
+      <div className="bg-background p-2">
+        <div className="mt-2 flex flex-col items-start space-y-2 mb-4">
+          {exampleMessages.map((message, index) => (
+            <Button
+              key={index}
+              variant="link"
+              className="h-auto p-0 text-base"
+              name={message.message}
+              onClick={async () => {
+                submitMessage(message.message)
+              }}
+            >
+              <ArrowRight size={16} className="mr-2 text-muted-foreground" />
               {message.heading}
-            </span>
-          </Card>
-        ))}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
-  );
+  )
 }

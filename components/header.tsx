@@ -1,87 +1,53 @@
-"use client"
-import React from 'react'
-import { usePathname } from 'next/navigation'
-import { ModeToggle } from './mode-toggle'
-import { IconLogo } from './ui/icons'
+import { Button } from "@/components/ui/button"
 import { cn } from '@/lib/utils'
-import { toast, Toaster } from "sonner";
-import { SignInButton, SignOutButton, SignUpButton, UserButton, useAuth, useUser } from '@clerk/nextjs'
-import { IconAlarmPlus, IconBell, IconHome, IconNews, IconNotification, IconPackage, IconSettings, IconSubscript, IconUser, IconWallet } from '@tabler/icons-react'
-import { NotificationUpdate } from './xui/notifiatication-update'
-import { icons } from 'lucide-react'
-import { InstallButton } from './install-button'
+import { SignInButton, SignUpButton } from "@clerk/nextjs"
+import React from 'react'
+import HistoryContainer from './history-container'
+import { PWAInstallButton } from './pwa-install-button'
+import { IconLogo } from './ui/icons'
+import { auth } from "@clerk/nextjs/server"
 
-function Header  () {
-  const { isSignedIn } = useAuth();
-  const { user } = useUser();
-  const pathname = usePathname()
-
-  if (pathname === '/home') {
-    return null
-  }
-
+export const Header: React.FC = async () => {
+  const { userId } = await auth()
   return (
-    <header className="fixed w-full p-1 md:p-2 flex justify-between items-center z-10 backdrop-blur md:backdrop-blur-none bg-background/80 md:bg-transparent">
+    <header className="fixed w-full p-2 flex justify-between items-center z-10 backdrop-blur md:backdrop-blur-none bg-background/80 md:bg-transparent">
       <div>
-        
+        <a href="/">
+          <IconLogo className={cn('w-5 h-5')} />
+          <span className="sr-only">Mees ai</span>
+        </a>
       </div>
       <div className="flex gap-0.5">
-
-    
-
-      <a href='/'>
-           
-           <button className="bg-slate-800 m-2 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-5  text-white inline-block">
-              <span className="absolute inset-0 overflow-hidden rounded-full">
-              <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
-              </span>
-              <div className="relative flex space-x-2 items-center z-10 rounded-full bg-zinc-950 py-0.5 px-4 ring-1 ring-white/10 ">
-          <IconHome className='w-4 h-4'></IconHome> 
-          
-            </div>
-            <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
-          </button>
-           </a>
-     
-    
-
-      {isSignedIn &&
-          <a href='/pricing'>
-           
-           <button className="bg-slate-800 m-2 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-5  text-white inline-block">
-              <span className="absolute inset-0 overflow-hidden rounded-full">
-              <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
-              </span>
-              <div className="relative flex space-x-2 items-center z-10 rounded-full bg-zinc-950 py-0.5 px-4 ring-1 ring-white/10 ">
-          <IconWallet className='w-4 h-4'></IconWallet> 
-          
-            </div>
-            <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
-          </button>
-           </a>
-        }
-
-      {isSignedIn ? 
-        <UserButton afterSignOutUrl="/"/>
-      : <a href='/sign-in'>
-          <button className="bg-slate-800 m-2 no-underline group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px text-xs font-semibold leading-5  text-white inline-block">
-            <span className="absolute inset-0 overflow-hidden rounded-full">
-              <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
-            </span>
-            <div className="relative flex space-x-2 items-center z-10 rounded-full bg-zinc-950 py-0.5 px-4 ring-1 ring-white/10 ">
-              <IconUser className='w-4 h-4'></IconUser>
-            </div>
-            <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
-          </button>
-        </a>
-      }
-        <InstallButton />
-        <ModeToggle />
-       
+        <div className="flex items-center gap-2">
+          <PWAInstallButton />
+          {!userId && (
+            <>
+              <SignInButton mode="modal">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="px-4 py-2 border border-gray-200 hover:border-gray-300 rounded-md dark:border-gray-700 dark:hover:border-gray-600"
+                >
+                  Sign In
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button
+                  variant="outline"
+                  size="sm" 
+                  className="px-4 py-2 border border-gray-200 hover:border-gray-300 rounded-md dark:border-gray-700 dark:hover:border-gray-600"
+                >
+                  Sign Up
+                </Button>
+              </SignUpButton>
+            </>
+          )}
+        </div>
+        
+        <HistoryContainer location="header" />
       </div>
     </header>
   )
 }
 
 export default Header
-

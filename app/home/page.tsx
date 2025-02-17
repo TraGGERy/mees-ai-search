@@ -1,475 +1,263 @@
-"use client"
+'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { WorldMap } from '@/components/ui/world-map'
 import { motion } from 'framer-motion'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Check, MessageCircle, Star, Menu, X, Sparkles } from 'lucide-react'
-import { Chat } from '@/components/customer'
-import { IconBrain } from '@tabler/icons-react'
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import Link from 'next/link'
 
-const fadeIn = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 }
-}
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
+export default function HomePage() {
+  // Animation variants
+  const staggerContainer = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
   }
-}
 
-export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [videoModalOpen, setVideoModalOpen] = useState(false)
+  const fadeInUp = {
+    hidden: {
+      y: 30,
+      opacity: 0,
+    },
+    show: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  }
+
+  // Sample connection points for the world map
+  const connectionPoints = [
+    {
+      start: { lat: 40.7128, lng: -74.0060, label: "New York" }, // New York
+      end: { lat: 51.5074, lng: -0.1278, label: "London" }, // London
+    },
+    {
+      start: { lat: 35.6762, lng: 139.6503, label: "Tokyo" }, // Tokyo
+      end: { lat: 1.3521, lng: 103.8198, label: "Singapore" }, // Singapore
+    },
+    {
+      start: { lat: 48.8566, lng: 2.3522, label: "Paris" }, // Paris
+      end: { lat: -33.8688, lng: 151.2093, label: "Sydney" }, // Sydney
+    },
+  ]
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-[#0B0B1E] to-black text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/50 backdrop-blur-xl">
-        <div className="container flex h-16 items-center">
-          <div className="flex items-center justify-between w-full">
-            <Link className="flex items-center space-x-2" href="/">
-              <IconBrain className="h-8 w-8 text-purple-600" />
-              <span className="font-bold text-xl bg-gradient-to-r from-white to-purple-500 bg-clip-text text-transparent">Mees AI</span>
-            </Link>
-            <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-              <Link className="text-white/70 hover:text-white transition-colors" href="#services">Services</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#pricing">Pricing</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#reviews">Reviews</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#contact">Contact</Link>
-            </nav>
-            <Button
-              className="md:hidden"
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-            <Button className="hidden md:inline-flex bg-purple-600 hover:bg-purple-700">
-              <Link href="/">Get Started</Link>
-            </Button>
-          </div>
-        </div>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden border-t border-white/10 bg-black/90 backdrop-blur-lg"
-          >
-            <nav className="flex flex-col space-y-4 p-4">
-              <Link className="text-white/70 hover:text-white transition-colors" href="#services">Services</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#pricing">Pricing</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#reviews">Reviews</Link>
-              <Link className="text-white/70 hover:text-white transition-colors" href="#contact">Contact</Link>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                <Link href="/">Get Started</Link>
-              </Button>
-            </nav>
-          </motion.div>
-        )}
-      </header>
+    <div className="relative min-h-screen w-full">
+      {/* World Map Background */}
+      <div className="fixed inset-0 z-0">
+        <WorldMap 
+          dots={connectionPoints}
+          lineColor="var(--highlight-color, #0ea5e9)" // Will inherit from parent theme
+        />
+      </div>
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden py-20 md:py-32 lg:py-48">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            transition={{ duration: 2 }}
-            className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(white,transparent_70%)]"
+      {/* Home Button */}
+      <Link 
+        href="/"
+        className="fixed top-4 left-4 z-50 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-gray-700/30 hover:bg-white/20 transition-all duration-200 flex items-center gap-2"
+      >
+        <svg 
+          className="w-4 h-4" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
           />
-          <div className="container relative">
-            <motion.div 
-              initial="initial"
-              animate="animate"
-              variants={stagger}
-              className="flex flex-col items-center text-center space-y-8"
-            >
-              <motion.div variants={fadeIn} className="space-y-4">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent">
-                  Next Generation AI Search Engine
-                </h1>
-                <p className="mx-auto max-w-[700px] text-white/70 text-lg md:text-xl">
-                  Powered by ChatGPT, Google Gemini, and Anthropic Claude.
-                  Experience the future of AI-powered productivity.
-                </p>
-              </motion.div>
-              <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-                  <Link href="/">Get Started Free</Link>
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="bg-purple-600 text-white hover:bg-purple-700 border-none"
-                  onClick={() => setVideoModalOpen(true)}
-                >
-                  Watch Demo
-                </Button>
-              </motion.div>
-              <motion.div 
-                variants={fadeIn}
-                className="relative w-full max-w-5xl mt-12"
-              >
-                <div className="relative z-10">
-                  <Image
-                    src="/home/desktop-preview.png"
-                    alt="AI Dashboard Preview"
-                    width={1920}
-                    height={1080}
-                    className="rounded-xl border border-white/10 shadow-2xl w-full h-auto"
-                  />
-                  <div className="absolute -right-[5%] sm:-right-[10%] bottom-0 w-[30%] sm:w-[25%] translate-y-[20%]">
-                    <Image
-                      src="/home/mobile-preview.JPG"
-                      alt="Mobile App Preview"
-                      width={280}
-                      height={560}
-                      className="rounded-2xl border border-white/10 shadow-2xl w-full h-auto"
-                    />
-                  </div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 blur-3xl -z-10" />
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
+        </svg>
+        <span>Home</span>
+      </Link>
 
-
-        {/* Features Section */}
-        <section id="services" className="py-20 md:py-32">
-          <div className="container">
-            <motion.div 
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="space-y-16"
-            >
-              <motion.div variants={fadeIn} className="text-center space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold">
-                  Supercharge Your Workflow
-                </h2>
-                <p className="text-white/70 max-w-2xl mx-auto">
-                  Experience the power of multiple AI models working together to enhance your productivity.
-                </p>
-              </motion.div>
-
-              <motion.div 
-                variants={stagger}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              >
-                {[
-                  {
-                    title: "Smart Insights Powered by Top AI Models",
-                    description: "Mees AI blends ChatGPT, Anthropic, and Gemini for accurate, tailored results.",
-                    icon: "🤖",
-                    gradient: "from-purple-500 to-blue-500"
-                  },
-                  {
-                    title: "Boost Your Productivity",
-                    description: "Streamline tasks with Mees AI's multi-model efficiency.",
-                    icon: "🧠",
-                    gradient: "from-blue-500 to-cyan-500"
-                  },
-                  {
-                    title: "Personalized & Secure",
-                    description: "Mees AI adapts to you while safeguarding your privacy.",
-                    icon: "👥",
-                    gradient: "from-cyan-500 to-purple-500"
-                  }
-                ].map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    variants={fadeIn}
-                    whileHover={{ y: -5 }}
-                    className="group"
-                  >
-                    <Card className="relative bg-black/50 border-white/10 overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                      <CardHeader>
-                        <div className="text-3xl mb-2">{feature.icon}</div>
-                        <CardTitle className="text-xl">{feature.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-white/70">{feature.description}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="py-20 md:py-32 bg-black">
-          <div className="container">
-            <motion.div
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="space-y-16"
-            >
-              <motion.div variants={fadeIn} className="text-center space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold text-white">Simple, Transparent Pricing</h2>
-                <p className="text-white/70 max-w-2xl mx-auto">
-                  Choose the perfect plan for your needs. No hidden fees.
-                </p>
-              </motion.div>
-
-              <motion.div 
-                variants={stagger}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
-              >
-                {[
-                  {
-                    title: "Free",
-                    price: "0",
-                    description: "Great for exploring Mees AI",
-                    features: [
-                      "Access to basic AI models",
-                      "Two AI models",
-                      "Community support",
-                      "Five free requests daily"
-                    ],
-                    cta: "Start for Free",
-                    popular: false
-                  },
-                  {
-                    title: "Pro",
-                    price: process.env.NEXT_PUBLIC_MONTHLY_PRICE,
-                    description: "Perfect for individuals and small teams",
-                    features: [
-                      "Access to advanced AI models",
-                      "Unlimited requests",
-                      "Priority support",
-                      "Custom integrations",
-                      "Detailed analytics"
-                    ],
-                    cta: "Upgrade to Pro",
-                    popular: true
-                  },
-                  {
-                    title: "Yearly",
-                    price: process.env.NEXT_PUBLIC_YEARLY_PRICE,
-                    description: "Best value for power users",
-                    features: [
-                      "Everything in Pro",
-                      "Exclusive custom AI models",
-                      "Dedicated support",
-                      "Service-level agreement (SLA)",
-                      "Early access to new features"
-                    ],
-                    cta: "Upgrade to Yearly",
-                    popular: false
-                  }
-                ].map((plan, index) => (
-                  <motion.div
-                    key={index}
-                    variants={fadeIn}
-                    className="relative group"
-                  >
-                    <Card className={cn(
-                      "relative overflow-hidden bg-black border-2",
-                      plan.popular ? "border-purple-500" : "border-white/20"
-                    )}>
-                      {plan.popular && (
-                        <div className="absolute -top-5 -right-5">
-                          <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg transform rotate-45 translate-x-4 translate-y-4">
-                            POPULAR
-                          </div>
-                        </div>
-                      )}
-                      <CardHeader>
-                        <CardTitle className="text-2xl font-bold text-white">{plan.title}</CardTitle>
-                        <CardDescription className="text-white/60">{plan.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="text-4xl font-bold text-white">
-                          ${plan.price}
-                          <span className="text-lg font-normal text-white/70">/mo</span>
-                        </div>
-                        <ul className="space-y-2">
-                          {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <Check className="h-5 w-5 text-purple-500" />
-                              <span className="text-white/80">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                      <CardFooter>
-                        <a href='/pricing'>
-                          <Button className={cn(
-                            "w-full text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300",
-                            plan.popular
-                              ? "bg-purple-600 hover:bg-purple-700"
-                              : "bg-white/10 hover:bg-white/20"
-                          )}>
-                            {plan.cta}
-                          </Button> 
-                        </a>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-
-        {/* Testimonials Section */}
-        <section id="reviews" className="py-20 md:py-32">
-          <div className="container">
-            <motion.div
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="space-y-16"
-            >
-              <motion.div variants={fadeIn} className="text-center space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold">Loved by Users</h2>
-                <p className="text-white/70 max-w-2xl mx-auto">
-                  See what our users have to say about their experience with Mees AI.
-                </p>
-              </motion.div>
-
-              <motion.div 
-                variants={stagger}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8"
-              >
-                {[
-                  {
-                    name: "Sarah L.",
-                    role: "Product Manager",
-                    content: "Mees AI has transformed how I work. The multi-model approach is genius!",
-                    image: "/home/face1.png"
-                  },
-                  {
-                    name: "John D.",
-                    role: "Software Engineer",
-                    content: "The AI models are incredibly powerful. I am more productive than ever!",
-                    image: "/home/face2.png"
-                  },
-                  {
-                    name: "Emily R.",
-                    role: "Content Creator",
-                    content: "Customer support is top-notch. They are always there when I need help.",
-                    image: "/home/face3.png"
-                  }
-                ].map((testimonial, index) => (
-                  <motion.div
-                    key={index}
-                    variants={fadeIn}
-                    whileHover={{ y: -5 }}
-                  >
-                    <Card className="bg-black/50 border-white/10">
-                      <CardHeader>
-                        <div className="flex items-center gap-4">
-                          <Image
-                            src={testimonial.image}
-                            alt={testimonial.name}
-                            width={48}
-                            height={48}
-                            className="rounded-full"
-                          />
-                          <div>
-                            <CardTitle className="text-lg">{testimonial.name}</CardTitle>
-                            <CardDescription className="text-white/50">{testimonial.role}</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-white/70">{testimonial.content}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 md:py-32 bg-gradient-to-r from-purple-600 to-blue-600">
+      {/* Main Content */}
+      <motion.main
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="relative z-10 min-h-screen w-full px-4 sm:px-6 lg:px-8 bg-transparent"
+      >
+        <motion.section 
+          variants={fadeInUp}
+          className="hero-section py-12 sm:py-16 md:py-20 backdrop-blur-sm bg-black/20 rounded-xl mt-8"
+        >
           <motion.div
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="container text-center space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <motion.h2 
-              variants={fadeIn}
-              className="text-3xl md:text-5xl font-bold"
+            <motion.h1 
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4 sm:mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text leading-tight"
             >
-              Ready to Transform Your Workflow?
-            </motion.h2>
-            <motion.p 
-              variants={fadeIn}
-              className="text-white/90 max-w-2xl mx-auto text-lg"
-            >
-              Join thousands of professionals using Mees AI to achieve more every day.
-            </motion.p>
-            <motion.div variants={fadeIn}>
-              <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90">
-                <Link href="/">Get Started Free</Link>
-              </Button>
-            </motion.div>
+              {["The", "Next-Generation", "AI", "Search", "Engine"].map((word, i) => (
+                <motion.span
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: i * 0.1,
+                    ease: "easeOut"
+                  }}
+                  className="inline-block mr-2"
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </motion.h1>
           </motion.div>
-        </section>
-      </main>
-
-      <footer className="bg-black/50 border-t border-white/10 py-12">
-        <div className="container">
+          <p className="text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto text-gray-300 px-4">
+            Mees AI combines multiple advanced AI models to deliver precise, comprehensive search results beyond traditional search engines
+          </p>
           
-          <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <IconBrain className="h-6 w-6 text-purple-600" />
-              <span className="font-bold">Mees AI</span>
-            </div>
-            <p className="text-white/50 text-sm">
-              © 2024 Mees AI. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
-      
-      <Chat />
+          <motion.div 
+            className="search-demo mt-8 max-w-2xl mx-auto"
+            variants={fadeInUp}
+          >
+           
+          </motion.div>
+        </motion.section>
 
-      <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
-        <DialogContent className="sm:max-w-[800px] p-0 bg-black border-none">
-          <div className="aspect-video relative">
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/nw3sys3UBPY?autoplay=1&rel=0"
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
+        <motion.section
+          variants={fadeInUp} 
+          className="search-features grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 mt-8"
+        >
+          <FeatureCard 
+            title="Intelligent Search"
+            description="Powered by multiple AI models to understand context and intent behind every search"
+            features={["Natural language understanding", "Context-aware results", "Multi-source verification"]}
+          />
+          <FeatureCard
+            title="Advanced Filtering" 
+            description="Smart categorization and filtering of results for better discovery"
+            features={["Real-time filtering", "Semantic grouping", "Relevance ranking"]}
+          />
+          <FeatureCard
+            title="Deep Web Analysis"
+            description="Access and analyze information from across the entire web"
+            features={["Comprehensive coverage", "Deep web access", "Real-time updates"]}
+          />
+        </motion.section>
+
+        <motion.section
+          variants={fadeInUp}
+          className="ai-models py-8 sm:py-12 backdrop-blur-sm bg-black/20 rounded-xl"
+        >
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">Powered by Advanced AI Models</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            <ModelCard
+              title="DeepSeek R1"
+              description="Deep semantic understanding for accurate search results"
+              features={["Contextual analysis", "Intent recognition", "Semantic search"]}
+            />
+            <ModelCard
+              title="Anthropic Claude"
+              description="Ethical AI ensuring reliable and unbiased search results"
+              features={["Fact verification", "Bias detection", "Source credibility"]}
+            />
+            <ModelCard
+              title="Gemini 2.0"
+              description="Multimodal search capabilities for comprehensive results"
+              features={["Image recognition", "Video analysis", "Cross-modal search"]}
             />
           </div>
-        </DialogContent>
-      </Dialog>
+        </motion.section>
+
+        <motion.section
+          variants={fadeInUp}
+          className="benefits-section mt-12 mb-8"
+        >
+          <h2 className="text-2xl sm:text-3xl text-center mb-8">Why Choose Mees AI Search</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <BenefitCard
+              title="Faster Results"
+              description="Get instant, relevant results powered by AI"
+            />
+            <BenefitCard
+              title="Smarter Search"
+              description="Understanding context and intent behind queries"
+            />
+            <BenefitCard
+              title="Better Accuracy"
+              description="Multi-model verification for reliable results"
+            />
+            <BenefitCard
+              title="Privacy Focus"
+              description="Secure, private, and transparent searching"
+            />
+          </div>
+        </motion.section>
+      </motion.main>
     </div>
   )
 }
 
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+interface ModelCardProps {
+  title: string
+  description: string
+  features: string[]
 }
 
+const ModelCard = ({ title, description, features }: ModelCardProps) => (
+  <motion.div
+    whileHover={{ scale: 1.02, translateY: -5 }}
+    className="p-4 sm:p-6 rounded-xl shadow-lg bg-opacity-10 backdrop-blur-md bg-white/5 border border-gray-700/30 hover:border-purple-500/30 transition-all touch-pan-y"
+  >
+    <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-purple-300">{title}</h3>
+    <p className="text-gray-300 mb-3 sm:mb-4 text-sm sm:text-base">{description}</p>
+    <ul className="space-y-1.5 sm:space-y-2">
+      {features.map((feature, index) => (
+        <li key={index} className="flex items-center text-xs sm:text-sm text-gray-400">
+          <span className="mr-2">•</span>
+          {feature}
+        </li>
+      ))}
+    </ul>
+  </motion.div>
+)
+
+interface FeatureCardProps {
+  title: string
+  description: string
+  features: string[]
+}
+
+const FeatureCard = ({ title, description, features }: FeatureCardProps) => (
+  <motion.div
+    whileHover={{ scale: 1.02, translateY: -5 }}
+    className="p-4 sm:p-6 rounded-xl shadow-lg bg-opacity-10 backdrop-blur-md bg-white/5 border border-gray-700/30 hover:border-purple-500/30 transition-all touch-pan-y"
+  >
+    <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-purple-300">{title}</h3>
+    <p className="text-gray-300 mb-3 sm:mb-4 text-sm sm:text-base">{description}</p>
+    <ul className="space-y-1.5 sm:space-y-2">
+      {features.map((feature, index) => (
+        <li key={index} className="flex items-center text-xs sm:text-sm text-gray-400">
+          <span className="mr-2">•</span>
+          {feature}
+        </li>
+      ))}
+    </ul>
+  </motion.div>
+)
+
+interface BenefitCardProps {
+  title: string
+  description: string
+}
+
+const BenefitCard = ({ title, description }: BenefitCardProps) => (
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    className="p-4 text-center rounded-lg bg-white/5 backdrop-blur-sm border border-gray-700/30"
+  >
+    <h3 className="text-lg font-semibold mb-2 text-blue-300">{title}</h3>
+    <p className="text-sm text-gray-400">{description}</p>
+  </motion.div>
+) 

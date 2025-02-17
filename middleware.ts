@@ -2,7 +2,15 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/chat(.*)', '/admin(.*)', '/pricing(.*)'])
 
+// Add share routes to public paths
+const isPublicPath = createRouteMatcher([
+  '/',
+  '/share/(.*)',
+  '/api/chat/share/(.*)'
+])
+
 export default clerkMiddleware(async (auth, req) => {
+  if (isPublicPath(req)) return
   if (isProtectedRoute(req)) await auth.protect()
 })
 

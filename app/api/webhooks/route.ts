@@ -1,109 +1,87 @@
-import Stripe from "stripe";
-import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/db/db";
-import { eq } from "drizzle-orm";
 import { subscribedUsers, subscriptionEvents } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-01-27.acacia",
 });
 
-export async function POST(req: NextRequest) {
-  const payload = await req.text();
-  const sig = req.headers.get("Stripe-Signature");
+export async function POST(req: Request) {
+  const body = await req.text();
+  const headersList = await headers();
+  const signature = headersList.get('stripe-signature')!;
 
   try {
     const event = stripe.webhooks.constructEvent(
-      payload,
-      sig!,
+      body,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
 
-    console.log("Webhook Event Received:", {
-      type: event.type,
-      id: event.id,
-    });
+    console.log("Webhook received:", event.type);
 
-    // Only handle 'invoice.payment_succeeded' event
-    if (event.type !== "invoice.payment_succeeded") {
-      console.log("Skipping non-invoice event:", event.type);
-      return NextResponse.json({
-        status: "Ignored",
-        message: "Only handling invoice.payment_succeeded events.",
-      });
-    }
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log("Processing completed checkout:", session.id);
 
-    const invoice = event.data.object as Stripe.Invoice;
-    
-    // Log the important data we're about to save
-    console.log("Processing invoice data:", {
-      customerId: invoice.customer,
-      email: invoice.customer_email,
-      status: invoice.status,
-      amountPaid: invoice.amount_paid,
-    });
+        // Save subscription data
+        await db.insert(subscribedUsers).values({
+          email: session.customer_email || '',
+          userId: session.metadata?.userId || '',
+          stripeCustomerId: session.customer as string,
+          type: 'subscription',
+          subscriptionStatus: 'active',
+          currentPlan: session.amount_total && session.amount_total >= 10000 ? 'yearly' : 'monthly',
+          nextInvoiceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        }).onConflictDoUpdate({
+          target: [subscribedUsers.email],
+          set: {
+            subscriptionStatus: 'active',
+            stripeCustomerId: session.customer as string,
+            currentPlan: session.amount_total && session.amount_total >= 10000 ? 'yearly' : 'monthly',
+            nextInvoiceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          }
+        });
 
-    // First, try to save the event
-    try {
+        // Log the event
       await db.insert(subscriptionEvents).values({
         eventId: event.id,
-        eventPayload: event,
-        email: invoice.customer_email || "",
-      });
-      console.log("Successfully saved event to subscriptionEvents");
-    } catch (dbError) {
-      console.error("Failed to save to subscriptionEvents:", dbError);
-      throw dbError;
-    }
+          eventType: event.type,
+          email: session.customer_email || '',
+          eventPayload: JSON.stringify(event),
+        });
 
-    // Then, handle the user subscription
-    try {
-      const amount = invoice.amount_paid / 100; // Convert to dollars
-      
-      // For all subscriptions, we'll use subscribedUsers table
-      const existingUser = await db
-        .select()
-        .from(subscribedUsers)
-        .where(eq(subscribedUsers.email, invoice.customer_email || ""))
-        .limit(1);
-
-      const subscriptionData = {
-        email: invoice.customer_email || "",
-        userId: invoice.customer as string,
-        type: event.type,
-        subscriptionStatus: invoice.status || null,
-        currentPlan: amount < 6 ? "AI_Agent" : determinePlan(invoice.amount_paid),
-        nextInvoiceDate: calculateNextInvoiceDate(),
-        InvoicePdfUrl: invoice.hosted_invoice_url || null,
-      };
-
-      if (existingUser.length > 0) {
-        await db
-          .update(subscribedUsers)
-          .set(subscriptionData)
-          .where(eq(subscribedUsers.email, invoice.customer_email || ""));
-        console.log("Successfully updated existing user");
-      } else {
-        await db.insert(subscribedUsers).values(subscriptionData);
-        console.log("Successfully created new user");
+        break;
       }
-    } catch (dbError) {
-      console.error("Failed to save to subscribedUsers:", dbError);
-      throw dbError;
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log("Processing invoice payment:", invoice.id);
+        
+        // Update subscription status
+        if (invoice.customer_email) {
+          await db.update(subscribedUsers)
+            .set({
+              subscriptionStatus: 'active',
+              nextInvoiceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            })
+            .where(eq(subscribedUsers.email, invoice.customer_email));
+        }
+        break;
+      }
     }
 
-    return NextResponse.json({
-      status: "success",
-      event: event.type,
-    });
+    return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Error processing Stripe webhook:", error);
-    // Return a 400 error instead of 200 for webhook processing failures
-    return new NextResponse(
-      JSON.stringify({ 
-        status: "Failed", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }), 
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }, 
       { status: 400 }
     );
   }
@@ -118,8 +96,8 @@ function determinePlan(amountPaid: number): string {
       : "AI_Agent_Premium";
   } else if (amount >= 8 && amount < 100) {
     return "Monthly";
-  } else if (amount >= 100) {
-    return "Yearly";
+  } else if (amount >= 200) {
+    return "Lifetime";
   }
   return "Unknown";
 }

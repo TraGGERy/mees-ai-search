@@ -1,21 +1,29 @@
 'use client'
 
-import { MemoizedReactMarkdown } from './ui/markdown'
+import { cn } from '@/lib/utils'
+import 'katex/dist/katex.min.css'
 import rehypeExternalLinks from 'rehype-external-links'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import rehypeKatex from 'rehype-katex'
-import 'katex/dist/katex.min.css'
+import { Citing } from './custom-link'
 import { CodeBlock } from './ui/codeblock'
+import { MemoizedReactMarkdown } from './ui/markdown'
 
-export function BotMessage({ content }: { content: string }) {
+export function BotMessage({
+  message,
+  className
+}: {
+  message: string
+  className?: string
+}) {
   // Check if the content contains LaTeX patterns
   const containsLaTeX = /\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)/.test(
-    content || ''
+    message || ''
   )
 
   // Modify the content to render LaTeX equations if LaTeX patterns are found
-  const processedData = preprocessLaTeX(content || '')
+  const processedData = preprocessLaTeX(message || '')
 
   if (containsLaTeX) {
     return (
@@ -25,7 +33,10 @@ export function BotMessage({ content }: { content: string }) {
           [rehypeKatex]
         ]}
         remarkPlugins={[remarkGfm, remarkMath]}
-        className="prose-sm prose-neutral prose-a:text-accent-foreground/50"
+        className={cn(
+          'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+          className
+        )}
       >
         {processedData}
       </MemoizedReactMarkdown>
@@ -36,7 +47,10 @@ export function BotMessage({ content }: { content: string }) {
     <MemoizedReactMarkdown
       rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
       remarkPlugins={[remarkGfm]}
-      className="prose-sm prose-neutral prose-a:text-accent-foreground/50"
+      className={cn(
+        'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+        className
+      )}
       components={{
         code({ node, inline, className, children, ...props }) {
           if (children.length) {
@@ -67,10 +81,11 @@ export function BotMessage({ content }: { content: string }) {
               {...props}
             />
           )
-        }
+        },
+        a: Citing
       }}
     >
-      {content}
+      {message}
     </MemoizedReactMarkdown>
   )
 }

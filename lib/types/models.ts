@@ -4,65 +4,155 @@ export interface Model {
   provider: string
   providerId: string
   description: string
-  isPro?: boolean
-  isCopilot?: boolean
-  isSpeed?: boolean
 }
 
 export const models: Model[] = [
-  
   {
     id: 'gpt-4o-mini',
-    name: 'Speed',
-    description: 'High speed, but lower quality. (GPT-4o-mini)',
+    name: 'Auto',
     provider: 'OpenAI',
     providerId: 'openai',
-    isSpeed: true
+    description: 'Best for daily search'
   },
-  {
-    id: 'gpt-4o',
-    name: 'Quality (GPT)',
-    description: 'High quality generation. (GPT-4o)',
-    provider: 'OpenAI',
-    providerId: 'openai',
-    isPro: true
-  },
-  
   {
     id: 'claude-3-5-sonnet-latest',
-    name: 'Quality (Claude)',
-    description: 'High quality & best for Copilot. (Claude-3.5-Sonnet)',
+    name: 'Pro Search',
     provider: 'Anthropic',
     providerId: 'anthropic',
-    isPro: true,
-    isCopilot: true
+    description: '3x faster than Auto and detailed answers'
   },
+  // The following models are temporarily disabled.
+  // Uncomment the lines below to enable these experimental models.
+  // {
+  //   id: 'experimental-model-1',
+  //   name: 'Experimental Model 1',
+  //   provider: 'Experimental',
+  //   providerId: 'experimental'
+  // },
+  // {
+  //   id: 'experimental-model-2',
+  //   name: 'Experimental Model 2',
+  //   provider: 'Experimental',
+  //   providerId: 'experimental'
+  // },
+ // {
+//  id: 'claude-3-5-haiku-20241022',
+//  name: 'Claude 3.5 Haiku',
+//  provider: 'Anthropic',
+//  providerId: 'anthropic'\
+// },
+  
   {
-    id: 'claude-3-5-haiku-20241022',
-    name: 'Speed (Claude)',
-    description: 'High speed, but bit lower quality. (Claude-3.5-Haiku)',
-    provider: 'Anthropic',
-    providerId: 'anthropic',
-    isPro: true,
-    isSpeed: true
+    id: 'accounts/fireworks/models/deepseek-r1',
+    name: 'Reasoning with R1',
+    provider: 'Fireworks',
+    providerId: 'fireworks',
+    description: 'Specialized in reasoning and analysis'
   },
+  //{
+  //  id: 'deepseek-reasoner',
+  //  name: 'DeepSeek R1',
+  //  provider: 'DeepSeek',
+  //  providerId: 'deepseek',
+  //  description: 'Strong logical reasoning capabilities'
+  //},
+ // {
+ //   id: 'deepseek-chat',
+ //   name: 'DeepSeek V3',
+//  provider: 'DeepSeek',
+//   providerId: 'deepseek'
+//  },
+   //{
+  //   id: 'gemini-2.0-pro-exp-02-05',
+  //   name: 'Gemini 2.0 Pro (Exp)',
+  //   provider: 'Google Generative AI',
+  //   providerId: 'google',
+  //   description: 'Advanced multimodal AI assistant'
+  // },
+  // {
+     //id: 'gemini-2.0-flash-thinking-exp-01-21',
+    // name: 'Gemini 2.0 Flash Thinking (Exp)',
+    // provider: 'Google Generative AI',
+    // providerId: 'google',
+    // description: 'Quick responses with creative thinking'
+  // },
   {
-    id: 'gemini-2.0-flash-exp',
-    name: 'Lightning Strike',
-    description: 'Experimental (DeepSeek-v3)',
+    id: 'gemini-2.0-flash',
+    name: 'Deep research',
     provider: 'Google Generative AI',
     providerId: 'google',
-    isPro: true,
-    isSpeed: true
+    description: 'In-depth reports on complex topics'
   },
-  // Deepseek function calling is currently unstable: https://github.com/vercel/ai/issues/4313#issuecomment-2587891644
-  // If you want to use Deepseek, remove the comment and add it to the models array
+ // {
+ //   id: 'deepseek-r1-distill-llama-70b',
+//    name: 'DeepSeek R1 Distill Llama 70B',
+//    provider: 'Groq',
+ //   providerId: 'groq'
+//  },
+ // {
+ //   id: process.env.NEXT_PUBLIC_OLLAMA_MODEL || 'deepseek-r1',
+ //   name: process.env.NEXT_PUBLIC_OLLAMA_MODEL || 'DeepSeek R1',
+ //   provider: 'Ollama',
+ //   providerId: 'ollama',
+ //   description: 'Local AI with custom models'
+ // },
   // {
-  //   id: 'deepseek-chat',
-  //   name: 'DeepSeek v3 (Experimental)',
-  //   provider: 'DeepSeek',
-  //   providerId: 'deepseek'
-  // },
- 
+  //   id: 'o3-mini',
+  //   name: 'Reasoning with o3-mini(beta)',
+  //   provider: 'OpenAI',
+   //  providerId: 'openai',
+   //  description: 'OpenAI model for reasoning'
+   //},
+ // {
+ //   id: 'gpt-4o',
+ //   name: 'GPT-4o',
+ //   provider: 'OpenAI',
+ //   providerId: 'openai',
+ //   description: 'Powerful general purpose AI assistant'
+ // },
+
   
 ]
+
+export interface PdfDocument {
+  id: string;
+  userId: string; // Links to user who uploaded it
+  originalFilename: string;
+  extractedText: string;
+  embeddings?: number[]; // If using semantic search
+  chunkedText?: string[]; // If chunking text
+  createdAt: Date;
+}
+
+export interface ImageDocument {
+  id: string;
+  userId: string;
+  filePath: string;
+  embeddings: number[];
+  metadata?: {
+    width: number;
+    height: number;
+    format: string;
+    ocrText?: string; // If extracting text from images
+  };
+  uploadedAt: Date;
+}
+
+export type PdfSearchResult = {
+  documentId: string;
+  snippet: string;
+  pageNumber?: number;
+  similarityScore?: number;
+};
+
+export type ImageSearchResult = {
+  imageId: string;
+  thumbnailUrl: string;
+  similarityScore: number;
+};
+
+export interface SubscribedUser {
+  // Existing fields...
+  pdfSearchLimit?: number;
+  imageSearchLimit?: number;
+}

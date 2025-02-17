@@ -1,52 +1,55 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import type { AI, UIState } from '@/app/actions'
-import { useUIState, useActions, useAIState } from 'ai/rsc'
+import { LoginModal } from '@/components/login-modal'
 import { cn } from '@/lib/utils'
-import { UserMessage } from './user-message'
-import { Button } from './ui/button'
-import { ArrowRight, Plus, Upload } from 'lucide-react'
-import { EmptyScreen } from './empty-screen'
+import { useUser } from '@clerk/nextjs'
+import { ChatRequestOptions, Message } from 'ai'
+import { ArrowUp, MessageCirclePlus, Square } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
-import { generateId } from 'ai'
-import { useAppState } from '@/lib/utils/app-state'
+import { EmptyScreen } from './empty-screen'
 import { ModelSelector } from './model-selector'
-import { models } from '@/lib/types/models'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { getDefaultModelId } from '@/lib/utils'
-import { toast } from 'sonner'
-import { Search, Sparkle } from 'lucide-react'
-import { motion } from 'framer-motion';
-import { Trending } from './xui/trending'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-import { FileUpload } from './file-upload'
+import { SearchModeToggle } from './search-mode-toggle'
+import { Button } from './ui/button'
 
 interface ChatPanelProps {
-  messages: UIState
+  input: string
+  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  isLoading: boolean
+  messages: Message[]
+  setMessages: (messages: Message[]) => void
   query?: string
-  onModelChange?: (id: string) => void
+  stop: () => void
+  append: (message: any) => void
+  id: string
+  selectedModel?: { requiresLogin?: boolean }
+  reload: (chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>
 }
 
-export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
-  const [input, setInput] = useState('')
+export function ChatPanel({
+  input,
+  handleInputChange,
+  handleSubmit: onSubmit,
+  isLoading,
+  messages,
+  setMessages,
+  query,
+  stop,
+  append,
+  id,
+  selectedModel,
+  reload
+}: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
-  const [, setMessages] = useUIState<typeof AI>()
-  const [aiMessage, setAIMessage] = useAIState<typeof AI>()
-  const { isGenerating, setIsGenerating } = useAppState()
-  const { submit } = useActions()
   const router = useRouter()
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const isFirstRender = useRef(true) // For development environment
-
-  const [selectedModelId, setSelectedModelId] = useLocalStorage<string>(
-    'selectedModel',
-    getDefaultModelId(models)
-  )
-
+  const isFirstRender = useRef(true)
   const [isComposing, setIsComposing] = useState(false) // Composition state
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const { isSignedIn } = useUser()
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -58,199 +61,148 @@ export function ChatPanel({ messages, query, onModelChange }: ChatPanelProps) {
     }, 300)
   }
 
-  async function handleQuerySubmit(query: string, formData?: FormData) {
-    setInput(query)
-    setIsGenerating(true)
-
-    // Add user message to UI state
-    setMessages(currentMessages => [
-      ...currentMessages,
-      {
-        id: generateId(),
-        component: <UserMessage message={query} />
-      }
-    ])
-
-    // Use existing formData or create new one
-    const data = formData || new FormData()
-
-    // Add or update the model information
-    const modelString = selectedModelId
-    data.set('model', modelString)
-
-    // Add or update the input query if not already present
-    if (!formData) {
-      data.set('input', query)
-    }
-
-    const responseMessage = await submit(data)
-    setMessages(currentMessages => [...currentMessages, responseMessage])
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    try {
-      await handleQuerySubmit(input, formData)
-    } catch (error) {
-      console.error('Error submitting form:', error)
-      toast.error(`${error}`)
-
-      handleClear()
-    }
+  const handleNewChat = () => {
+    setMessages([])
+    router.push('/')
   }
 
   // if query is not empty, submit the query
   useEffect(() => {
     if (isFirstRender.current && query && query.trim().length > 0) {
-      handleQuerySubmit(query)
+      append({
+        role: 'user',
+        content: query
+      })
       isFirstRender.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
-  useEffect(() => {
-    const lastMessage = aiMessage.messages.slice(-1)[0]
-    if (lastMessage?.type === 'followup' || lastMessage?.type === 'inquiry') {
-      setIsGenerating(false)
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const value = input.trim()
+    if (value) {
+      if (selectedModel?.requiresLogin && !isSignedIn) {
+        setLoginModalOpen(true)
+        return
+      }
+      onSubmit(e)
     }
-  }, [aiMessage, setIsGenerating])
-
-  // Clear messages
-  const handleClear = () => {
-    setIsGenerating(false)
-    setMessages([])
-    setAIMessage({ messages: [], chatId: '' })
-    setInput('')
-    router.push('/')
-  }
-
-  useEffect(() => {
-    // focus on input when the page loads
-    inputRef.current?.focus()
-  }, [])
-
-  // If there are messages and the new button has not been pressed, display the new Button
-  if (messages.length > 0) {
-    return (
-      <div className="fixed bottom-2 md:bottom-8 left-0 right-0 flex justify-center items-center mx-auto pointer-events-none">
-        <Button
-          type="button"
-          variant={'secondary'}
-          className="rounded-full bg-secondary/80 group transition-all hover:scale-105 pointer-events-auto"
-          onClick={() => handleClear()}
-          disabled={isGenerating}
-        >
-          <span className="text-sm mr-2 group-hover:block hidden animate-in fade-in duration-300">
-            New
-          </span>
-          <Plus size={18} className="group-hover:rotate-90 transition-all" />
-        </Button>
-      </div>
-    )
-  }
-
-  if (query && query.trim().length > 0) {
-    return null
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-background to-muted/50 overflow-hidden">
-      <motion.div
-        className="absolute top-16 text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-purple-400 to-purple-700 bg-clip-text text-transparent">
-          Mees AI Search
-        </h1>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Explore <span className="text-purple-700">AI</span> with seamless search.
-        </p>
-      </motion.div>
+    <>
       <div
-        className={
-          'fixed bottom-8 left-0 right-0 top-10 mx-auto h-screen flex flex-col items-center justify-center'
-        }
+        className={cn(
+          'mx-auto w-full',
+          messages.length > 0
+            ? 'fixed bottom-0 left-0 right-0 bg-background'
+            : 'fixed bottom-8 left-0 right-0 top-6 flex flex-col items-center justify-center'
+        )}
       >
-        <form onSubmit={handleSubmit} className="max-w-3xl w-full px-4 md:px-6">
-          <div className="relative flex items-center w-full">
-            <ModelSelector
-              selectedModelId={selectedModelId}
-              onModelChange={id => {
-                setSelectedModelId(id)
-                onModelChange?.(id)
+        {messages.length === 0 && (
+          <div className="mb-8 flex flex-col items-center gap-2">
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r dark:from-white dark:to-purple-500 from-black to-gray-500">
+              Mees AI
+            </h1>
+            <p className="text-sm text-center text-muted-foreground">
+              Your intelligent companion for precise and personalized search results
+            </p>
+          </div>
+        )}
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            'max-w-3xl w-full mx-auto',
+            messages.length > 0 ? 'px-2 py-4' : 'px-6'
+          )}
+        >
+          <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
+            <Textarea
+              ref={inputRef}
+              name="input"
+              rows={2}
+              maxRows={5}
+              tabIndex={0}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              placeholder="Ask a question..."
+              spellCheck={false}
+              value={input}
+              className="resize-none w-full min-h-12 bg-transparent border-0 px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              onChange={e => {
+                handleInputChange(e)
+                setShowEmptyScreen(e.target.value.length === 0)
               }}
-            />
-            <div className="relative flex-grow top-3">
-              <Textarea
-                ref={inputRef}
-                name="input"
-                rows={1}
-                maxRows={5}
-                tabIndex={0}
-                onCompositionStart={handleCompositionStart}
-                onCompositionEnd={handleCompositionEnd}
-                placeholder="Ask a question..."
-                spellCheck={false}
-                value={input}
-                className="resize-none w-full min-h-12 rounded-full bg-muted/50 border border-input pl-4 pr-20 py-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                onChange={e => {
-                  setInput(e.target.value)
-                  setShowEmptyScreen(e.target.value.length === 0)
-                }}
-                onKeyDown={e => {
-                  if (
-                    e.key === 'Enter' &&
-                    !e.shiftKey &&
-                    !isComposing &&
-                    !enterDisabled
-                  ) {
-                    if (input.trim().length === 0) {
-                      e.preventDefault()
-                      return
-                    }
+              onKeyDown={e => {
+                if (
+                  e.key === 'Enter' &&
+                  !e.shiftKey &&
+                  !isComposing &&
+                  !enterDisabled
+                ) {
+                  if (input.trim().length === 0) {
                     e.preventDefault()
-                    const textarea = e.target as HTMLTextAreaElement
-                    textarea.form?.requestSubmit()
+                    return
                   }
-                }}
-                onHeightChange={height => {
-                  if (!inputRef.current) return
-                  const initialHeight = 70
-                  const initialBorder = 32
-                  const multiple = (height - initialHeight) / 20
-                  const newBorder = initialBorder - 4 * multiple
-                  inputRef.current.style.borderRadius =
-                    Math.max(8, newBorder) + 'px'
-                }}
-                onFocus={() => setShowEmptyScreen(true)}
-                onBlur={() => setShowEmptyScreen(false)}
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                
+                  e.preventDefault()
+                  const textarea = e.target as HTMLTextAreaElement
+                  textarea.form?.requestSubmit()
+                }
+              }}
+              onFocus={() => setShowEmptyScreen(true)}
+              onBlur={() => setShowEmptyScreen(false)}
+            />
+
+            {/* Bottom menu area */}
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-2">
+                <ModelSelector />
+                <SearchModeToggle />
+              </div>
+              <div className="flex items-center gap-2">
+                {messages.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleNewChat}
+                    className="shrink-0 rounded-full group"
+                    type="button"
+                    disabled={isLoading}
+                  >
+                    <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
+                  </Button>
+                )}
                 <Button
-                  type="submit"
-                  size="icon"
-                  variant="ghost"
-                  disabled={input.length === 0}
+                  type={isLoading ? 'button' : 'submit'}
+                  size={'icon'}
+                  variant={'outline'}
+                  className={cn(isLoading && 'animate-pulse', 'rounded-full')}
+                  disabled={input.length === 0 && !isLoading}
+                  onClick={isLoading ? stop : undefined}
                 >
-                  <ArrowRight size={20} />
+                  {isLoading ? <Square size={20} /> : <ArrowUp size={20} />}
                 </Button>
               </div>
             </div>
           </div>
-          <EmptyScreen
-            submitMessage={message => {
-              setInput(message)
-            }}
-            className={cn(showEmptyScreen ? 'visible' : 'invisible')}
-          />
+
+          {messages.length === 0 && (
+            <EmptyScreen
+              submitMessage={message => {
+                handleInputChange({
+                  target: { value: message }
+                } as React.ChangeEvent<HTMLTextAreaElement>)
+              }}
+              className={cn(showEmptyScreen ? 'visible' : 'invisible')}
+            />
+          )}
         </form>
       </div>
-      <Trending/>
-    </div>
+      <LoginModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+      />
+    </>
   )
 }
-

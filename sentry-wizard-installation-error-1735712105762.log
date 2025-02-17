@@ -1,1 +1,0 @@
-{"stdout":"","stderr":"[0.00ms] \".env.local\"\nbun add v1.1.20 (ae194892)\nResolving dependencies\nResolved, downloaded and extracted [2]\nerror: Failed to link next: EBUSY\n"}

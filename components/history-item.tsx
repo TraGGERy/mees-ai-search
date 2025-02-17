@@ -1,50 +1,73 @@
-'use client';
+'use client'
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Chat } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { Chat } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React from 'react'
 
 type HistoryItemProps = {
-  chat: Chat;
-};
+  chat: Chat
+}
 
 const formatDateWithTime = (date: Date | string) => {
-  const parsedDate = new Date(date);
-  const now = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  const parsedDate = new Date(date)
+  const now = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
 
-  const isSameDay = (a: Date, b: Date) =>
-    a.getDate() === b.getDate() &&
-    a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear();
-
-  if (isSameDay(parsedDate, now)) {
-    return `Today, ${parsedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  } else if (isSameDay(parsedDate, yesterday)) {
-    return `Yesterday, ${parsedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  const formatTime = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
-  return parsedDate.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-};
+
+  if (
+    parsedDate.getDate() === now.getDate() &&
+    parsedDate.getMonth() === now.getMonth() &&
+    parsedDate.getFullYear() === now.getFullYear()
+  ) {
+    return `Today, ${formatTime(parsedDate)}`
+  } else if (
+    parsedDate.getDate() === yesterday.getDate() &&
+    parsedDate.getMonth() === yesterday.getMonth() &&
+    parsedDate.getFullYear() === yesterday.getFullYear()
+  ) {
+    return `Yesterday, ${formatTime(parsedDate)}`
+  } else {
+    return parsedDate.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
+}
 
 const HistoryItem: React.FC<HistoryItemProps> = ({ chat }) => {
-  const pathname = usePathname();
-  const isActive = pathname === chat.path;
+  const pathname = usePathname()
+  const isActive = pathname === chat.path
 
   return (
     <Link
       href={chat.path}
       className={cn(
-        'flex flex-col p-2 rounded border hover:bg-muted cursor-pointer',
+        'flex flex-col hover:bg-muted cursor-pointer p-2 rounded border',
         isActive ? 'bg-muted/70 border-border' : 'border-transparent'
       )}
     >
-      <div className="text-xs font-medium truncate">{chat.title}</div>
-      <div className="text-xs text-muted-foreground">{formatDateWithTime(chat.createdAt)}</div>
+      <div className="text-xs font-medium truncate select-none">
+        {chat.title}
+      </div>
+      <div className="text-xs text-muted-foreground">
+        {formatDateWithTime(chat.createdAt)}
+      </div>
     </Link>
-  );
-};
+  )
+}
 
-export default HistoryItem;
+export default HistoryItem
