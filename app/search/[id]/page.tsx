@@ -1,7 +1,7 @@
 import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
 import { convertToUIMessages } from '@/lib/utils'
-import { Metadata, NextPage } from 'next'
+import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 export const maxDuration = 60
@@ -22,9 +22,7 @@ export async function generateMetadata({ params }: SearchPageProps): Promise<Met
   }
 }
 
-const Page: NextPage<{
-  params: { id: string }
-}> = async ({ params }) => {
+export default async function SearchPage({ params }: SearchPageProps) {
   const { id } = params
   const chat = await getChat(id)
 
@@ -38,5 +36,3 @@ const Page: NextPage<{
 
   return <Chat id={id} savedMessages={messages} />
 }
-
-export default Page
