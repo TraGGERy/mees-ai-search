@@ -109,7 +109,8 @@ export function Chat({
       
       <PricingModal 
         isOpen={pricingModalOpen} 
-        onClose={() => setPricingModalOpen(false)} 
+        onClose={() => setPricingModalOpen(false)}
+        onSelectFree={() => {}}
       />
     </>
   )
