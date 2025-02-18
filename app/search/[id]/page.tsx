@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 
 export const maxDuration = 60
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata(props: {
   params: { id: string },
   searchParams?: { [key: string]: string | string[] | undefined }
@@ -16,12 +18,7 @@ export async function generateMetadata(props: {
   }
 }
 
-interface PageProps {
-  params: { id: string },
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
-const Page = async ({ params }: PageProps) => {
+async function Page({ params }: { params: { id: string } }) {
   const { id } = params
   const chat = await getChat(id)
 
