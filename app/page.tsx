@@ -1,7 +1,20 @@
 import { Chat } from '@/components/chat'
-import { generateId } from 'ai'
+import { CHAT_ID } from '@/lib/constants'
+import { Suspense } from 'react'
 
-export default function Page() {
-  const id = generateId()
-  return <Chat id={id} />
+function ChatWrapper() {
+  return (
+    <Chat 
+      id={CHAT_ID} 
+      savedMessages={[]}
+    />
+  )
+}
+
+export default function IndexPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatWrapper />
+    </Suspense>
+  )
 }
