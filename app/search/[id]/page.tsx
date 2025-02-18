@@ -8,32 +8,28 @@ export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-  // Changed interface name to avoid conflict with generated types
-interface SearchPageParams {
-  params: {
-    id: string
-  }
-}
-
-export async function generateMetadata({ params }: SearchPageParams): Promise<Metadata> {
-  const { id } = params
-  const chat = await getChat(id)
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string }
+}): Promise<Metadata> {
+  const chat = await getChat(params.id)
   return {
-    title: chat?.title?.toString().slice(0, 50) || 'Search'
+    title: chat?.title?.toString().slice(0, 50) || 'Search',
   }
 }
 
-export default async function SearchPage({ params }: SearchPageParams) {
-  const { id } = params
-  const chat = await getChat(id)
+export default async function SearchPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const chat = await getChat(params.id)
 
   if (!chat) {
-    console.log(`Chat not found, redirecting from ID: ${id}`)
     redirect('/')
   }
 
-  // Convert messages for the chat component
   const messages = convertToUIMessages(chat.messages || [])
-
-  return <Chat id={id} savedMessages={messages} />
+  return <Chat id={params.id} savedMessages={messages} />
 }
