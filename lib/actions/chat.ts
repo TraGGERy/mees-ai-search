@@ -2,6 +2,7 @@
 
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
 import { type Chat } from '@/lib/types'
+import { generateId } from 'ai'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -11,7 +12,7 @@ async function getRedis(): Promise<RedisWrapper> {
 
 const CHAT_VERSION = 'v2'
 function getUserChatKey(userId: string) {
-  return `user:${CHAT_VERSION}:chat:${userId}`
+  return `user:${CHAT_VERSION}:chat:${userId.replace(/^\/+|\/+$/g, '')}`
 }
 
 export async function getChats() {
@@ -127,40 +128,34 @@ export async function clearChats(
 export async function saveChat(chat: Chat) {
   try {
     const redis = await getRedisClient()
+    const chatKey = `chat:${chat.id.replace(/^\/+|\/+$/g, '')}`
     
-    // Ensure clean ID format
-    const cleanId = chat.id.replace(/^chat:/, '')
-    const chatKey = `chat:${cleanId}`
-    
-    // Format data for storage
-    const chatData = {
-      ...chat,
-      id: cleanId,
-      userId: chat.userId || 'anonymous',
-      messages: JSON.stringify(chat.messages),
-      createdAt: chat.createdAt?.getTime() || Date.now(),
-      title: chat.title || '',
-      path: chat.path || '',
-      sharePath: chat.sharePath || `/share/${cleanId}`
+    // Ensure chat.id is properly formatted
+    if (!chat.id || chat.id === 'search' || chat.id === '/search') {
+      chat.id = generateId() // Generate a new unique ID if invalid
     }
 
-    // Save chat data
-    await redis.hmset(chatKey, chatData)
-    
-    // Add to sorted set
+    // Save the chat data
+    await redis.hmset(chatKey, {
+      ...chat,
+      id: chat.id,
+      messages: typeof chat.messages === 'string' 
+        ? chat.messages 
+        : JSON.stringify(chat.messages)
+    })
+
+    // Add to user's chat list
     await redis.zadd(
-      `user:${CHAT_VERSION}:chat:anonymous`, 
-      Number(chatData.createdAt), 
+      getUserChatKey('anonymous'),
+      Date.now(),
       chatKey
     )
 
-    return {
-      ...chat,
-      id: cleanId
-    }
+    revalidatePath('/')
+    return chat
   } catch (error) {
     console.error('Error saving chat:', error)
-    throw error
+    return null
   }
 }
 

@@ -44,10 +44,10 @@ export const models: Model[] = [
   
   {
     id: 'accounts/fireworks/models/deepseek-r1',
-    name: 'Reasoning with R1',
+    name: 'Reasoning',
     provider: 'Fireworks',
     providerId: 'fireworks',
-    description: 'Specialized in reasoning and analysis'
+    description: 'Reasoning with R1, deepseek'
   },
   //{
   //  id: 'deepseek-reasoner',

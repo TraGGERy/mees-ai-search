@@ -1,11 +1,13 @@
 import { Chat } from '@/components/chat'
-import { CHAT_ID } from '@/lib/constants'
+import { generateId } from 'ai'
 import { Suspense } from 'react'
 
 function ChatWrapper() {
+  // Generate a unique ID for the chat
+  const chatId = generateId()
   return (
     <Chat 
-      id={CHAT_ID} 
+      id={chatId}
       savedMessages={[]}
     />
   )
