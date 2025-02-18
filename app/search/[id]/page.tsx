@@ -8,13 +8,13 @@ export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-interface SearchPageProps {
+interface PageProps {
   params: {
     id: string
   }
 }
 
-export async function generateMetadata({ params }: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = params
   const chat = await getChat(id)
   return {
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: SearchPageProps): Promise<Met
   }
 }
 
-export default async function SearchPage({ params }: SearchPageProps) {
+export default async function SearchPage({ params }: PageProps) {
   const { id } = params
   const chat = await getChat(id)
 
