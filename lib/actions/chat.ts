@@ -187,14 +187,15 @@ export async function getSharedChat(id: string) {
 export async function shareChat(id: string) {
   try {
     const redis = await getRedisClient()
-    const chatKey = `chat:${id.replace('chat:', '')}`
+    const cleanId = id.replace(/^chat:/, '') // Clean the ID first
+    const chatKey = `chat:${cleanId}`
     const chat = await redis.hgetall(chatKey)
 
     if (!chat) {
       return null
     }
 
-    const sharePath = `/share/${id.replace('chat:', '')}`
+    const sharePath = `/share/${cleanId}` // Use the cleaned ID for the share path
     const payload = {
       ...chat,
       sharePath,
@@ -203,7 +204,6 @@ export async function shareChat(id: string) {
         : JSON.stringify(chat.messages)
     }
 
-    // Save the updated chat with share path
     await redis.hmset(chatKey, payload)
 
     return {
@@ -211,7 +211,7 @@ export async function shareChat(id: string) {
       messages: typeof payload.messages === 'string' 
         ? JSON.parse(payload.messages)
         : payload.messages,
-      id: id.replace('chat:', '')
+      id: cleanId // Use the cleaned ID here as well
     }
   } catch (error) {
     console.error('Error sharing chat:', error)
