@@ -19,7 +19,7 @@ export function Chat({
   query?: string
 }) {
   const searchParams = useSearchParams()
-  const queryFromParams = searchParams.get('message')
+  const queryFromParams = searchParams?.get('message') ?? null
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [pricingModalOpen, setPricingModalOpen] = useState(false)
 
@@ -40,7 +40,7 @@ export function Chat({
     id: CHAT_ID,
     body: {
       id,
-      previewToken: searchParams.get('preview'),
+      previewToken: searchParams?.get('preview') ?? null,
       ...(queryFromParams && { query: queryFromParams })
     },
     onFinish: () => {
@@ -88,6 +88,7 @@ export function Chat({
           chatId={id}
         />
         <ChatPanel
+          id={id}
           input={input}
           handleInputChange={handleInputChange}
           handleSubmit={onSubmit}
