@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionId = searchParams ? searchParams.get('session_id') : null;
+  const sessionId = searchParams?.get('session_id');
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
@@ -55,5 +55,17 @@ export default function SuccessPage() {
         You will receive an email confirmation shortly.
       </p>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">
+        <p>Loading...</p>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
