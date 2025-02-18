@@ -1,3 +1,0 @@
-interface Props {
-  results: PdfSearchResult[];
-} 
