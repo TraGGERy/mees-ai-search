@@ -1,6 +1,7 @@
 import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
 import { convertToUIMessages } from '@/lib/utils'
+import { NextPage } from 'next'
 import { redirect } from 'next/navigation'
 
 export const maxDuration = 60
@@ -18,7 +19,9 @@ export async function generateMetadata(props: {
   }
 }
 
-async function Page({ params }: { params: { id: string } }) {
+const Page: NextPage<{
+  params: { id: string }
+}> = async ({ params }) => {
   const { id } = params
   const chat = await getChat(id)
 
