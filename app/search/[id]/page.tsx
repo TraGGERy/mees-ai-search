@@ -8,22 +8,24 @@ export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const chat = await getChat(params.id)
   return {
     title: chat?.title?.toString().slice(0, 50) || 'Search',
   }
 }
 
-export default async function SearchPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function SearchPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const chat = await getChat(params.id)
 
   if (!chat) {
