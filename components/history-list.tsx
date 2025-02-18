@@ -10,7 +10,11 @@ import { ClearHistory } from './clear-history'
 import { SettingsMenu } from './settings-menu'
 import { Button } from './ui/button'
 
-export function HistoryList() {
+interface HistoryListProps {
+  userId: string;
+}
+
+export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
   const { user } = useUser()
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,7 +26,7 @@ export function HistoryList() {
         setLoading(true)
         setError(null)
         const loadedChats = await getChats()
-        setChats(loadedChats)
+        setChats(loadedChats.filter((chat): chat is Chat => chat !== null))
       } catch (err) {
         console.error('Error loading chats:', err)
         setError('Failed to load chat history')
