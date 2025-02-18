@@ -6,6 +6,7 @@ import HistoryContainer from './history-container'
 import { PWAInstallButton } from './pwa-install-button'
 import { IconLogo } from './ui/icons'
 import { auth } from "@clerk/nextjs/server"
+import { ModeToggle } from "./mode-toggle"
 
 export const Header: React.FC = async () => {
   const { userId } = await auth()
@@ -43,7 +44,7 @@ export const Header: React.FC = async () => {
             </>
           )}
         </div>
-        
+        <ModeToggle />
         <HistoryContainer location="header" />
       </div>
     </header>
