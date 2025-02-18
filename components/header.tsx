@@ -44,7 +44,7 @@ export const Header: React.FC = async () => {
             </>
           )}
         </div>
-        <ModeToggle />
+       
         <HistoryContainer location="header" />
       </div>
     </header>
