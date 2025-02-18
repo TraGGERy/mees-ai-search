@@ -10,15 +10,15 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { StripeCheckout } from './stripe-checkout'
-import { UpgradeButton } from './upgrade-button'
 
 interface PricingModalProps {
   isOpen: boolean
   onClose: () => void
+  onSelectFree: () => void
   remaining?: number
 }
 
-export function PricingModal({ isOpen, onClose, remaining = 0 }: PricingModalProps) {
+export function PricingModal({ isOpen, onClose, onSelectFree, remaining = 0 }: PricingModalProps) {
   const router = useRouter()
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null)
 
