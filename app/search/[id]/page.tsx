@@ -1,18 +1,21 @@
 import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
 import { convertToUIMessages } from '@/lib/utils'
-import { NextPage } from 'next'
+import { Metadata, NextPage } from 'next'
 import { redirect } from 'next/navigation'
 
 export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata(props: {
-  params: { id: string },
-  searchParams?: { [key: string]: string | string[] | undefined }
-}) {
-  const { id } = props.params
+interface SearchPageProps {
+  params: {
+    id: string
+  }
+}
+
+export async function generateMetadata({ params }: SearchPageProps): Promise<Metadata> {
+  const { id } = params
   const chat = await getChat(id)
   return {
     title: chat?.title?.toString().slice(0, 50) || 'Search'
