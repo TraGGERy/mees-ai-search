@@ -2,7 +2,7 @@
 
 import { getRedisClient, RedisWrapper } from '@/lib/redis/config'
 import { type Chat } from '@/lib/types'
-import { generateId } from 'ai'
+import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -17,19 +17,25 @@ function getUserChatKey(userId: string) {
 
 export async function getChats() {
   try {
+    // Get the current user's ID from Clerk
+    const { userId: authUserId } = await auth() || { userId: null }
+    const userId = authUserId || 'anonymous'
+    
     const redis = await getRedisClient()
+    const userChatKey = getUserChatKey(userId)
     
-    // Get all chat IDs from the sorted set without user restriction
-    const chatIds = await redis.zrange(`user:${CHAT_VERSION}:chat:anonymous`, 0, -1)
-    
-    // Get all chats data
+    // First, check if we can get the chat IDs
+    const chatIds = await redis.zrange(userChatKey, 0, -1, { rev: true })
+    if (!chatIds || !chatIds.length) {
+      return [] // Return empty array if no chats found
+    }
+
     const chats = await Promise.all(
       chatIds.map(async (chatId) => {
         try {
           const chat = await redis.hgetall(chatId)
           if (!chat) return null
           
-          // Ensure messages are properly parsed
           return {
             ...chat,
             id: chatId.replace('chat:', ''),
@@ -46,15 +52,15 @@ export async function getChats() {
         }
       })
     )
-    
-    // Filter out null values and sort by date
-    return chats
-      .filter(Boolean)
-      .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0))
-      
+
+    // Ensure we're working with an array and handle all filters
+    return (chats || [])
+      .filter((chat): chat is NonNullable<typeof chat> => chat !== null)
+      .sort((a, b) => Number(b.createdAt) - Number(a.createdAt))
+
   } catch (error) {
     console.error('Error getting chats:', error)
-    return []
+    return [] // Return empty array on error
   }
 }
 
@@ -127,26 +133,26 @@ export async function clearChats(
 
 export async function saveChat(chat: Chat) {
   try {
+    // Get the current user's ID from Clerk
+    const { userId: authUserId } = await auth() || { userId: null }
+    const userId = authUserId || 'anonymous'
+    
     const redis = await getRedisClient()
     const chatKey = `chat:${chat.id.replace(/^\/+|\/+$/g, '')}`
     
-    // Ensure chat.id is properly formatted
-    if (!chat.id || chat.id === 'search' || chat.id === '/search') {
-      chat.id = generateId() // Generate a new unique ID if invalid
-    }
-
-    // Save the chat data
+    // Save the chat data with the user ID
     await redis.hmset(chatKey, {
       ...chat,
       id: chat.id,
+      userId: userId, // Store the user ID with the chat
       messages: typeof chat.messages === 'string' 
         ? chat.messages 
         : JSON.stringify(chat.messages)
     })
 
-    // Add to user's chat list
+    // Add to the correct user's chat list
     await redis.zadd(
-      getUserChatKey('anonymous'),
+      getUserChatKey(userId),
       Date.now(),
       chatKey
     )

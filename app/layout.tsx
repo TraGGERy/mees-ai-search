@@ -21,6 +21,8 @@ const description =
   'Get instant AI-powered answers with Mees AI, the intelligent search engine. Explore real-time results, expert insights, and comprehensive solutions for research, education, and technical queries.';
 const keywords = [
   'AI search engine',
+  'MeesAI.app',
+  'AI search engine',
   'smart answers',
   'real-time AI',
   'research assistant',
@@ -29,7 +31,14 @@ const keywords = [
   'AI-powered insights',
   'knowledge engine',
   'instant answers',
-  'study tool'
+  'study tool',
+  "search engine",
+    "AI",
+    "perplexity.ai",
+    "perplexity",
+    'andra search',
+    "open source ai search engine",
+    "minimalistic ai search engine",
 ].join(', ');
 const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
 
