@@ -1,20 +1,21 @@
-import { TrendingQuery } from '@/app/api/trending/route'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+type TrendingQuery = {
+  text: string
+  category: string
+}
 
 export function EmptyScreen({
   submitMessage,
-  setInput,
   className
 }: {
   submitMessage: (message: string) => void
-  setInput: (input: string) => void
   className?: string
 }) {
   const [trendingQueries, setTrendingQueries] = useState<TrendingQuery[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     const fetchTrending = async () => {
@@ -33,11 +34,8 @@ export function EmptyScreen({
     fetchTrending()
   }, [])
 
-  const displayedQueries = showAll 
-    ? trendingQueries 
-    : trendingQueries.slice(0, 4)
-
-  const hasMoreQueries = trendingQueries.length > 4
+  // Only display the first 5 trending queries
+  const displayedQueries = trendingQueries.slice(0, 5)
 
   return (
     <div className={`mx-auto w-full transition-all ${className}`}>
@@ -55,48 +53,21 @@ export function EmptyScreen({
         ) : (
           <div className="mt-2 flex flex-col items-start space-y-2 mb-4">
             {trendingQueries.length > 0 ? (
-              <>
-                {displayedQueries.map((query, index) => (
-                  <Button
-                    key={index}
-                    variant="link"
-                    className="h-auto p-0 text-base"
-                    name={query.text}
-                    onClick={() => {
-                      if (setInput) {
-                        setInput(query.text)
-                      } else {
-                        submitMessage(query.text)
-                      }
-                    }}
-                  >
-                    <ArrowRight size={16} className="mr-2 text-muted-foreground" />
-                    <span className="mr-2">{getIconForCategory(query.category)}</span>
-                    {query.text}
-                  </Button>
-                ))}
-                
-                {hasMoreQueries && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2 text-muted-foreground"
-                    onClick={() => setShowAll(!showAll)}
-                  >
-                    {showAll ? (
-                      <>
-                        <ChevronUp className="mr-1 h-4 w-4" />
-                        Show Less
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="mr-1 h-4 w-4" />
-                        Show More
-                      </>
-                    )}
-                  </Button>
-                )}
-              </>
+              displayedQueries.map((query, index) => (
+                <Button
+                  key={index}
+                  variant="link"
+                  className="h-auto p-0 text-base"
+                  name={query.text}
+                  onClick={async () => {
+                    submitMessage(query.text)
+                  }}
+                >
+                  <ArrowRight size={16} className="mr-2 text-muted-foreground" />
+                  <span className="mr-2">{getIconForCategory(query.category)}</span>
+                  {query.text}
+                </Button>
+              ))
             ) : (
               <p className="text-muted-foreground">No trending topics available</p>
             )}
