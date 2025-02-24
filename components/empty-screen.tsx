@@ -5,9 +5,11 @@ import { useEffect, useState } from 'react'
 
 export function EmptyScreen({
   submitMessage,
+  setInput,
   className
 }: {
   submitMessage: (message: string) => void
+  setInput: (input: string) => void
   className?: string
 }) {
   const [trendingQueries, setTrendingQueries] = useState<TrendingQuery[]>([])
@@ -43,11 +45,12 @@ export function EmptyScreen({
         <h3 className="text-lg font-medium mb-3">Trending Topics</h3>
         
         {isLoading ? (
-          <div className="flex justify-center py-4">
-            <div className="relative w-8 h-8">
-              <div className="absolute top-0 left-0 w-full h-full border-2 border-gray-200 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-full h-full border-2 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center justify-center min-h-[100px]">
+            <div className="relative w-12 h-12">
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
+            <p className="mt-4 text-sm text-gray-500">Loading trending topics...</p>
           </div>
         ) : (
           <div className="mt-2 flex flex-col items-start space-y-2 mb-4">
@@ -58,7 +61,14 @@ export function EmptyScreen({
                     key={index}
                     variant="link"
                     className="h-auto p-0 text-base"
-                    onClick={() => submitMessage(query.text)}
+                    name={query.text}
+                    onClick={() => {
+                      if (setInput) {
+                        setInput(query.text)
+                      } else {
+                        submitMessage(query.text)
+                      }
+                    }}
                   >
                     <ArrowRight size={16} className="mr-2 text-muted-foreground" />
                     <span className="mr-2">{getIconForCategory(query.category)}</span>
