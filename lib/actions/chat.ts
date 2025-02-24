@@ -109,26 +109,35 @@ export async function getChat(id: string) {
   }
 }
 
-export async function clearChats(
-  userId: string = 'anonymous'
-): Promise<{ error?: string }> {
-  const redis = await getRedis()
-  const userChatKey = getUserChatKey(userId)
-  const chats = await redis.zrange(userChatKey, 0, -1)
-  if (!chats.length) {
-    return { error: 'No chats to clear' }
+export async function clearChats(): Promise<{ error?: string }> {
+  try {
+    // Get the current user's ID from Clerk
+    const { userId: authUserId } = await auth() || { userId: null }
+    const userId = authUserId || 'anonymous'
+    
+    const redis = await getRedis()
+    const userChatKey = getUserChatKey(userId)
+    const chats = await redis.zrange(userChatKey, 0, -1)
+    
+    if (!chats.length) {
+      return { error: 'No chats to clear' }
+    }
+    
+    const pipeline = redis.pipeline()
+
+    for (const chat of chats) {
+      pipeline.del(chat)
+      pipeline.zrem(userChatKey, chat)
+    }
+
+    await pipeline.exec()
+
+    revalidatePath('/')
+    redirect('/')
+  } catch (error) {
+    console.error('Error clearing chats:', error)
+    return { error: 'Failed to clear chats' }
   }
-  const pipeline = redis.pipeline()
-
-  for (const chat of chats) {
-    pipeline.del(chat)
-    pipeline.zrem(userChatKey, chat)
-  }
-
-  await pipeline.exec()
-
-  revalidatePath('/')
-  redirect('/')
 }
 
 export async function saveChat(chat: Chat) {
