@@ -17,33 +17,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Price ID is required' }, { status: 400 });
     }
 
+    // Check if this is a one-time payment (lifetime) or subscription
+    // You can either check the priceId directly or fetch the price from Stripe
+    const isLifetimePlan = priceId === process.env.NEXT_PUBLIC_STRIPE_LIFETIME_PRICE_ID;
+    
+    // Create checkout session with appropriate mode
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       billing_address_collection: 'auto',
-      customer_email: userEmail,
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/canceled`,
+      mode: isLifetimePlan ? 'payment' : 'subscription',
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/canceled`,
+      customer_email: userEmail,
       metadata: {
         userId,
       },
       allow_promotion_codes: true,
-      subscription_data: {
-        trial_period_days: 7,
-      },
+      // Only include subscription_data for subscription mode
+      ...(isLifetimePlan ? {} : {
+        subscription_data: {
+          trial_period_days: 7,
+        },
+      }),
     });
 
     return NextResponse.json({ sessionId: session.id });
-  } catch (err) {
-    console.error('Error creating checkout session:', err);
+  } catch (error: any) {
+    console.error('Error creating checkout session:', error);
     return NextResponse.json(
-      { error: 'Error creating checkout session' },
+      { error: error.message || 'Failed to create checkout session' },
       { status: 500 }
     );
   }
