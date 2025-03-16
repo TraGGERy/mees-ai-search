@@ -30,7 +30,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <DialogTitle>Login Required</DialogTitle>
           <DialogDescription className="pt-4">
             To use advanced models, please sign in or create an account.
-            The basic model (GPT-4o-mini) remains available without login.
+            The basic model (Auto Search) remains available without login.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-4 mt-4">
