@@ -16,7 +16,7 @@ export const models: Model[] = [
   },
   {
     id: 'claude-3-5-sonnet-latest',
-    name: 'Pro Search',
+    name: 'Pro',
     provider: 'Anthropic',
     providerId: 'anthropic',
     description: '3x faster than Auto & detailed answers'
