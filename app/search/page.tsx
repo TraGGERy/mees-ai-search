@@ -13,7 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function SearchPage({ searchParams }: { searchParams?: { q?: string } }) {
+export default function Page({ 
+  searchParams 
+}: { 
+  searchParams: { q?: string } 
+}) {
   const q = searchParams?.q;
   
   if (!q) {
