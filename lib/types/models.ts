@@ -52,7 +52,7 @@ export const models: Model[] = [
 
   {
     id: 'deepseek-reasoner',
-    name: 'Reasoning R1',
+    name: 'R1',
     provider: 'DeepSeek',
     providerId: 'deepseek',
      description: 'Strong logical reasoning capabilities'
