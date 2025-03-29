@@ -1,43 +1,36 @@
-import { SearchChat } from '@/components/search-chat'
+import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
-import { generateId } from 'ai'
+import { convertToUIMessages } from '@/lib/utils'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-export const maxDuration = 60
-
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string }
-}): Promise<Metadata> {
-  const chat = await getChat(params.id)
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const chat = await getChat(id)
   return {
     title: chat?.title?.toString().slice(0, 50) || 'Search',
   }
 }
 
-export default async function SearchPage(props: {
-  searchParams: Promise<{ q?: string }>
-}) {
-  try {
-    const { q } = await props.searchParams
-    
-    if (!q?.trim()) {
-      redirect('/')
-    }
-
-    if (q.length > 200) {
-      redirect('/error?code=query_too_long')
-    }
-
-    const id = generateId()
-    return <SearchChat id={id} query={q} promptType="default" />
-
-  } catch (error) {
-    console.error('Search params error:', error)
-    redirect('/error?code=invalid_search')
+export default async function SearchPage(props: PageProps) {
+  const { id } = await props.params
+  const chat = await getChat(id)
+  
+  if (!chat) {
+    redirect('/not-found')
   }
+
+  const messages = convertToUIMessages(chat.messages || [])
+  
+  return <Chat
+    id={id}
+    savedMessages={messages}
+    promptType="deepSearch"
+  />
 }
