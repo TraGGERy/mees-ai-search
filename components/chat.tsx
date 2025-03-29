@@ -17,7 +17,7 @@ interface ChatProps {
   savedMessages: Message[]
   promptType: "default" | "academic" | "deepSearch"
   query?: string
-  onPromptTypeChange?: (type: string) => void
+  onPromptTypeChange: (type: "default" | "academic" | "deepSearch") => void
   className?: string
 }
 
@@ -119,7 +119,7 @@ export function Chat({
 
   const handleTypeChange = (type: string) => {
     if (onPromptTypeChange) {
-      onPromptTypeChange(type)
+      onPromptTypeChange(type as "default" | "academic" | "deepSearch")
     }
   }
 

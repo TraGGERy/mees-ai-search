@@ -10,12 +10,16 @@ function ChatWrapper() {
   const chatId = generateId()
   const [promptType, setPromptType] = useState<PromptType>('default')
 
+  const handlePromptTypeChange = (type: "default" | "academic" | "deepSearch") => {
+    setPromptType(type);
+  }
+
   return (
     <Chat 
       id={chatId}
       savedMessages={[]}
       promptType={promptType}
-      onPromptTypeChange={setPromptType}
+      onPromptTypeChange={(type: string) => handlePromptTypeChange(type as "default" | "academic" | "deepSearch")}
     />
   )
 }
