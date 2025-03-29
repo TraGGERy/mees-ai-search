@@ -11,14 +11,13 @@ import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
 import { LoginModal } from './login-modal'
 import { PricingModal } from './pricing-modal'
-import { PromptSelector } from './prompt-selector'
 
 interface ChatProps {
   id: string
-  savedMessages?: Message[]
+  savedMessages: Message[]
+  promptType: "default" | "academic" | "deepSearch"
   query?: string
-  promptType: PromptType
-  onPromptTypeChange: (type: PromptType) => void
+  onPromptTypeChange?: (type: string) => void
   className?: string
 }
 
@@ -118,6 +117,12 @@ export function Chat({
     console.log('promptType state changed to:', promptTypeState)
   }, [promptTypeState])
 
+  const handleTypeChange = (type: string) => {
+    if (onPromptTypeChange) {
+      onPromptTypeChange(type)
+    }
+  }
+
   return (
     <>
       <div className={cn("flex flex-col w-full max-w-3xl pt-14 pb-60 mx-auto stretch", className)}>
@@ -144,6 +149,7 @@ export function Chat({
           onPromptTypeChange={(type) => {
             console.log('PromptSelector changed to:', type)
             setPromptTypeState(type)
+            handleTypeChange(type)
           }}
         />
         
