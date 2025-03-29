@@ -15,9 +15,9 @@ import { PricingModal } from './pricing-modal'
 interface ChatProps {
   id: string
   savedMessages: Message[]
-  promptType: "default" | "academic" | "deepSearch"
+  promptType?: "default" | "academic" | "deepSearch"
   query?: string
-  onPromptTypeChange: (type: "default" | "academic" | "deepSearch") => void
+  onPromptTypeChange?: (type: string) => void
   className?: string
 }
 
@@ -119,7 +119,7 @@ export function Chat({
 
   const handleTypeChange = (type: string) => {
     if (onPromptTypeChange) {
-      onPromptTypeChange(type as "default" | "academic" | "deepSearch")
+      onPromptTypeChange(type)
     }
   }
 
@@ -148,7 +148,7 @@ export function Chat({
           promptType={promptTypeState}
           onPromptTypeChange={(type) => {
             console.log('PromptSelector changed to:', type)
-            setPromptTypeState(type)
+            setPromptTypeState(type as PromptType)
             handleTypeChange(type)
           }}
         />

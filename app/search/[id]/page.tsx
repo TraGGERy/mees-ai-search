@@ -1,38 +1,40 @@
 import { Chat } from '@/components/chat'
-import { getChat } from '@/lib/actions/chat'
+import { getSharedChat } from '@/lib/actions/chat'
+import { type ExtendedCoreMessage } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
-import { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-interface PageProps {
+export async function generateMetadata(props: {
   params: Promise<{ id: string }>
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params
-  const chat = await getChat(id)
-  return {
-    title: chat?.title?.toString().slice(0, 50) || 'Search',
-  }
-}
-
-export default async function SearchPage(props: PageProps) {
+}) {
   const { id } = await props.params
-  const chat = await getChat(id)
-  
-  if (!chat) {
-    redirect('/not-found')
+  const chat = await getSharedChat(id)
+
+  if (!chat || !chat.sharePath) {
+    return notFound()
   }
 
-  const messages = convertToUIMessages(chat.messages || [])
-  
+  return {
+    title: (chat?.title as string)?.toString().slice(0, 50) || 'Search'
+  }
+}
+
+export default async function SharePage(props: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await props.params
+  const chat = await getSharedChat(id)
+  // convertToUIMessages for useChat hook
+  const messages = convertToUIMessages((chat?.messages || []) as ExtendedCoreMessage[])
+
+  if (!chat || !chat.sharePath) {
+    notFound()
+  }
+
   return <Chat
     id={id}
     savedMessages={messages}
-    promptType="deepSearch"
-    query=""
-    onPromptTypeChange={null as unknown as (type: string) => void}
+    promptType="default"
+    onPromptTypeChange={() => {}}
   />
 }
