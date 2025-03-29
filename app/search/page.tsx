@@ -16,13 +16,12 @@ export async function generateMetadata(): Promise<Metadata> {
 // Use the specific interface from Next.js
 interface SearchPageProps {
   params: {};  // Empty object since this page doesn't have dynamic params
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
 // Make the function async to match Next.js 15 patterns
-export default async function Page(props: SearchPageProps) {
-  const { searchParams } = props;
-  const q = searchParams?.q;
+export default async function SearchPage(props: SearchPageProps) {
+  const { q } = await props.searchParams;
   
   if (!q) {
     redirect('/');
