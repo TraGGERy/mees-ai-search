@@ -1,8 +1,8 @@
-import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
-import { convertToUIMessages } from '@/lib/utils'
+import { generateId } from 'ai'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { SearchChat } from '@/components/search-chat'
 
 export const maxDuration = 60
 
@@ -20,21 +20,15 @@ export async function generateMetadata({
 }
 
 export default async function SearchPage({
-  params,
+  searchParams
 }: {
-  params: { id: string }
+  searchParams: { q?: string }
 }) {
-  const chat = await getChat(params.id)
-
-  if (!chat) {
+  const q = searchParams.q
+  if (!q) {
     redirect('/')
   }
 
-  const messages = convertToUIMessages(chat.messages || [])
-  return <Chat 
-    id={params.id} 
-    savedMessages={messages} 
-    promptType="deepSearch"
-    onPromptTypeChange={() => {}}
-  />
+  const id = generateId()
+  return <SearchChat id={id} query={q} promptType="default" />
 }

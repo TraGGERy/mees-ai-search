@@ -1,15 +1,14 @@
 "use client"
 
 import { Chat } from '@/components/chat';
-import { Message } from 'ai';
 
 export function SearchChat({ 
   id, 
-  savedMessages, 
+  query,
   promptType 
 }: { 
   id: string; 
-  savedMessages: Message[]; 
+  query: string;
   promptType: "default" | "academic" | "deepSearch";
 }) {
   // Handle the event internally
@@ -21,7 +20,7 @@ export function SearchChat({
   return (
     <Chat 
       id={id} 
-      savedMessages={savedMessages}
+      query={query}
       promptType={promptType} 
       onPromptTypeChange={handlePromptTypeChange}
     />
