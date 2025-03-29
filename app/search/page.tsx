@@ -1,5 +1,4 @@
 import { SearchChat } from '@/components/search-chat'
-import { getChat } from '@/lib/actions/chat'
 import { generateId } from 'ai'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
@@ -13,20 +12,17 @@ export async function generateMetadata({
 }: {
   params: { id: string }
 }): Promise<Metadata> {
-  const chat = await getChat(params.id)
   return {
-    title: chat?.title?.toString().slice(0, 50) || 'Search',
+    title: 'Search',
   }
 }
 
 export default async function SearchPage({
   searchParams
 }: {
-  searchParams: Promise<{ q?: string }> | { q?: string }
+  searchParams: { q?: string }
 }) {
-  // Handle both Promise and non-Promise cases
-  const params = searchParams instanceof Promise ? await searchParams : searchParams
-  const q = params.q
+  const q = searchParams.q
   
   if (!q) {
     redirect('/')
