@@ -3,6 +3,7 @@
 import { Text } from 'lucide-react'
 import { CollapsibleMessage } from './collapsible-message'
 import { DefaultSkeleton } from './default-skeleton'
+import { ExportOptions } from './export-options'
 import { BotMessage } from './message'
 import { MessageActions } from './message-actions'
 
@@ -30,11 +31,15 @@ export function AnswerSection({
   const message = content ? (
     <div className="flex flex-col gap-1">
       <BotMessage message={content} />
-      <MessageActions
-        message={content}
-        chatId={chatId}
-        enableShare={enableShare}
-      />
+      <div className="flex justify-end items-center gap-2">
+        <ExportOptions content={content} title="AI Research Report" />
+        <MessageActions
+          message={content}
+          chatId={chatId}
+          enableShare={enableShare}
+          showFeedback={true}
+        />
+      </div>
     </div>
   ) : (
     <DefaultSkeleton />

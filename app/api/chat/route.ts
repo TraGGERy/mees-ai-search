@@ -14,7 +14,12 @@ const FREE_TIER_DAILY_LIMIT = 10
 
 export async function POST(req: Request) {
   try {
-    const { messages, id: chatId } = await req.json()
+    const body = await req.json();
+    console.log('API received body:', JSON.stringify(body));
+    
+    const { messages, id: chatId, promptType = 'default' } = body;
+    console.log('Extracted promptType:', promptType);
+    
     const referer = req.headers.get('referer')
     const isSharePage = referer?.includes('/share/')
     const { userId } = await auth()
@@ -126,19 +131,23 @@ export async function POST(req: Request) {
 
     const supportsToolCalling = isToolCallSupported(model)
 
-    return supportsToolCalling
+    const result = supportsToolCalling
       ? createToolCallingStreamResponse({
           messages,
           model,
           chatId,
-          searchMode
+          searchMode,
+          promptType
         })
       : createManualToolStreamResponse({
           messages,
           model,
           chatId,
-          searchMode
+          searchMode,
+          promptType
         })
+
+    return result;
   } catch (error) {
     console.error('API route error:', error)
     return new Response(

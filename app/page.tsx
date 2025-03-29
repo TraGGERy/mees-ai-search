@@ -1,14 +1,21 @@
+"use client"
+
 import { Chat } from '@/components/chat'
+import { PromptType } from '@/lib/utils/prompts'
 import { generateId } from 'ai'
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 
 function ChatWrapper() {
   // Generate a unique ID for the chat
   const chatId = generateId()
+  const [promptType, setPromptType] = useState<PromptType>('default')
+
   return (
     <Chat 
       id={chatId}
       savedMessages={[]}
+      promptType={promptType}
+      onPromptTypeChange={setPromptType}
     />
   )
 }

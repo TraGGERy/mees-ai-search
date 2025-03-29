@@ -49,6 +49,14 @@ export const models: Model[] = [
     providerId: 'fireworks',
     description: 'Reasoning with R1, deepseek'
   },
+
+  {
+    id: 'deepseek-reasoner',
+    name: 'DeepSeek R1',
+    provider: 'DeepSeek',
+    providerId: 'deepseek',
+     description: 'Strong logical reasoning capabilities'
+     },
   //{
   //  id: 'deepseek-reasoner',
   //  name: 'DeepSeek R1',

@@ -1,17 +1,22 @@
 'use client'
 
 import { LoginModal } from '@/components/login-modal'
+import { UsageWarning } from '@/components/usage-warning'
 import { cn } from '@/lib/utils'
+import { PromptType } from '@/lib/utils/prompts'
 import { useUser } from '@clerk/nextjs'
-import { ChatRequestOptions, Message } from 'ai'
-import { ArrowUp, MessageCirclePlus, Square } from 'lucide-react'
+import { Message } from 'ai'
+import { ArrowUp, MessageCirclePlus, Share, Square } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
+import { toast } from 'sonner'
 import { EmptyScreen } from './empty-screen'
 import { ModelSelector } from './model-selector'
+import { PromptSelector } from './prompt-selector'
 import { SearchModeToggle } from './search-mode-toggle'
 import { Button } from './ui/button'
+import { UsageIndicator } from './usage-indicator'
 
 interface ChatPanelProps {
   input: string
@@ -22,10 +27,12 @@ interface ChatPanelProps {
   setMessages: (messages: Message[]) => void
   query?: string
   stop: () => void
-  append: (message: any) => void
+  append: (message: Message) => Promise<string | null | undefined>
   id: string
   selectedModel?: { requiresLogin?: boolean }
-  reload: (chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>
+  reload: () => Promise<string | null | undefined>
+  promptType: PromptType
+  onPromptTypeChange: (type: PromptType) => void
 }
 
 export function ChatPanel({
@@ -40,7 +47,9 @@ export function ChatPanel({
   append,
   id,
   selectedModel,
-  reload
+  reload,
+  promptType,
+  onPromptTypeChange
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const router = useRouter()
@@ -50,6 +59,8 @@ export function ChatPanel({
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const { isSignedIn } = useUser()
+  const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
+  const [showUsageWarning, setShowUsageWarning] = useState(false)
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -71,23 +82,79 @@ export function ChatPanel({
     if (isFirstRender.current && query && query.trim().length > 0) {
       append({
         role: 'user',
-        content: query
+        content: query,
+        id: crypto.randomUUID()
       })
       isFirstRender.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const response = await fetch('/api/user/usage')
+        if (response.ok) {
+          const data = await response.json()
+          setUsageRemaining(data.remaining)
+        }
+      } catch (error) {
+        console.error('Error fetching usage:', error)
+      }
+    }
+
+    if (isSignedIn) {
+      fetchUsage()
+    }
+  }, [isSignedIn])
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const value = input.trim()
-    if (value) {
-      if (selectedModel?.requiresLogin && !isSignedIn) {
-        setLoginModalOpen(true)
-        return
-      }
-      onSubmit(e)
+
+    if (isComposing) return
+
+    // Check if the selected model requires login
+    const modelRequiresLogin = selectedModel?.requiresLogin;
+    
+    if (modelRequiresLogin && !isSignedIn) {
+      setLoginModalOpen(true)
+      return
     }
+
+    onSubmit(e)
+  }
+
+  const handleShare = async () => {
+    try {
+      const response = await fetch(`/api/share?id=${id}`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to share chat')
+      }
+
+      const data = await response.json()
+      const shareUrl = `${window.location.origin}/share/${id}`
+
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Shared Chat',
+          text: 'Check out this chat!',
+          url: shareUrl
+        })
+      } else {
+        await navigator.clipboard.writeText(shareUrl)
+        toast.success('Share link copied to clipboard')
+      }
+    } catch (error) {
+      toast.error('Failed to share chat')
+    }
+  }
+
+  const handleUpgradeClick = () => {
+    // Add your upgrade logic here
+    setShowUsageWarning(false)
   }
 
   return (
@@ -118,6 +185,20 @@ export function ChatPanel({
           )}
         >
           <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
+            {usageRemaining !== null && usageRemaining !== Infinity && (
+              <div className="absolute -top-8 right-0">
+                <UsageIndicator className="mr-2" />
+              </div>
+            )}
+            
+            {/* Usage Warning Modal */}
+            {showUsageWarning && (
+              <UsageWarning 
+                onClose={() => setShowUsageWarning(false)}
+                onUpgrade={handleUpgradeClick}
+              />
+            )}
+            
             <Textarea
               ref={inputRef}
               name="input"
@@ -159,6 +240,11 @@ export function ChatPanel({
               <div className="flex items-center gap-2">
                 <ModelSelector />
                 <SearchModeToggle />
+                <PromptSelector 
+                  promptType={promptType} 
+                  onPromptTypeChange={(type) => onPromptTypeChange(type)} 
+                />
+                
               </div>
               <div className="flex items-center gap-2">
                 {messages.length > 0 && (
@@ -203,6 +289,14 @@ export function ChatPanel({
         isOpen={loginModalOpen} 
         onClose={() => setLoginModalOpen(false)} 
       />
+      <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
+        {usageRemaining !== null && usageRemaining !== Infinity && usageRemaining <= 3 && (
+          <div className="mx-auto sm:max-w-2xl sm:px-4 mb-4">
+            <UsageWarning remaining={usageRemaining} />
+          </div>
+        )}
+        
+      </div>
     </>
   )
 }
