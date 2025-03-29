@@ -7,23 +7,19 @@ export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string }
-}): Promise<Metadata> {
+type PageProps = {
+  params: { id: string };
+  searchParams?: { q?: string };
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   return {
     title: 'Search',
   }
 }
 
-interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
-}
-
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const q = resolvedSearchParams.q;
+export default async function SearchPage({ params, searchParams }: PageProps) {
+  const q = searchParams?.q;
   
   if (!q) {
     redirect('/')
