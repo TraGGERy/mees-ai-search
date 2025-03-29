@@ -42,17 +42,17 @@ export const models: Model[] = [
 //  providerId: 'anthropic'\
 // },
   
-  {
-    id: 'accounts/fireworks/models/deepseek-r1',
-    name: 'Reasoning',
-    provider: 'Fireworks',
-    providerId: 'fireworks',
-    description: 'Reasoning with R1, deepseek'
-  },
+  //{
+  //  id: 'accounts/fireworks/models/deepseek-r1',
+ //   name: 'Reasoning',
+ //   provider: 'Fireworks',
+  //  providerId: 'fireworks',
+ //   description: 'Reasoning with R1, deepseek'
+ // },
 
   {
     id: 'deepseek-reasoner',
-    name: 'DeepSeek R1',
+    name: 'Reasoning R1',
     provider: 'DeepSeek',
     providerId: 'deepseek',
      description: 'Strong logical reasoning capabilities'
