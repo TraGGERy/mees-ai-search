@@ -7,12 +7,7 @@ export const maxDuration = 60
 
 export const dynamic = 'force-dynamic'
 
-type PageProps = {
-  params: Promise<any>;
-  searchParams?: { q?: string };
-};
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Search',
   }
