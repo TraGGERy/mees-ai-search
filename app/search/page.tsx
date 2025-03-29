@@ -17,12 +17,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function SearchPage({
-  searchParams
-}: {
-  searchParams: { q?: string }
-}) {
-  const q = searchParams.q
+interface SearchPageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const q = resolvedSearchParams.q;
   
   if (!q) {
     redirect('/')
