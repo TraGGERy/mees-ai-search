@@ -32,5 +32,6 @@ export default async function SearchPage(props: PageProps) {
     id={id}
     savedMessages={messages}
     promptType="deepSearch"
+    onPromptTypeChange={null as unknown as (type: string) => void}
   />
 }
