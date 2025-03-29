@@ -86,7 +86,7 @@ export const models: Model[] = [
   // },
   {
     id: 'gemini-2.0-flash',
-    name: 'Deep research',
+    name: 'Deep',
     provider: 'Google Generative AI',
     providerId: 'google',
     description: 'In-depth reports on complex topics'
