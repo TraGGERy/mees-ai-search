@@ -1,8 +1,8 @@
+import { SearchChat } from '@/components/search-chat'
 import { getChat } from '@/lib/actions/chat'
 import { generateId } from 'ai'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { SearchChat } from '@/components/search-chat'
 
 export const maxDuration = 60
 
@@ -22,9 +22,12 @@ export async function generateMetadata({
 export default async function SearchPage({
   searchParams
 }: {
-  searchParams: { q?: string }
+  searchParams: Promise<{ q?: string }> | { q?: string }
 }) {
-  const q = searchParams.q
+  // Handle both Promise and non-Promise cases
+  const params = searchParams instanceof Promise ? await searchParams : searchParams
+  const q = params.q
+  
   if (!q) {
     redirect('/')
   }
