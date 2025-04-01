@@ -6,17 +6,16 @@ import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-type SearchParams = {
-  id?: string;
+interface PageProps {
+  params: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string }>;
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ id?: string }>;
-  searchParams?: SearchParams;
-}): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   // Check both params and searchParams for the id
-  const params = await props.params
-  const id = params?.id || props.searchParams?.id
+  const paramsData = await params
+  const searchParamsData = await searchParams
+  const id = paramsData?.id || searchParamsData?.id
   
   if (!id) {
     return {
@@ -30,13 +29,11 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function SearchPage(props: {
-  params: Promise<{ id?: string }>;
-  searchParams?: SearchParams;
-}) {
+export default async function SearchPage({ params, searchParams }: PageProps) {
   // Check both params and searchParams for the id
-  const params = await props.params
-  const id = params?.id || props.searchParams?.id
+  const paramsData = await params
+  const searchParamsData = await searchParams
+  const id = paramsData?.id || searchParamsData?.id
   
   if (!id) {
     // For a new search without history

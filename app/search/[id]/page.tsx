@@ -4,10 +4,13 @@ import { type ExtendedCoreMessage } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 
-export async function generateMetadata(props: {
+interface PageProps {
   params: Promise<{ id: string }>;
-}) {
-  const { id } = await props.params
+  searchParams: Promise<{}>;
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params
   const chat = await getChat(id)
 
   if (!chat) {
@@ -19,10 +22,8 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function SearchIdPage(props: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await props.params
+export default async function SearchIdPage({ params }: PageProps) {
+  const { id } = await params
   const chat = await getChat(id)
   
   // convertToUIMessages for useChat hook
