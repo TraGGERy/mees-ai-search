@@ -85,7 +85,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
             (chat: Chat) => chat && (
               <Link 
                 key={chat.id} 
-                href={`/search/${chat.id}`}
+                href={`/search?id=${chat.id}`}
                 className="block p-2 hover:bg-gray-500"
               >
                 {chat.title || 'Untitled Chat'}
