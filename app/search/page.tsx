@@ -7,13 +7,13 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
-  params: Promise<{ id?: string }>;
+  params: { id?: string };
   searchParams?: { id?: string };
 }
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   // Check both params and searchParams for the id
-  const id = (await params)?.id || searchParams?.id
+  const id = params?.id || searchParams?.id
   
   if (!id) {
     return {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
 export default async function SearchPage({ params, searchParams }: PageProps) {
   // Check both params and searchParams for the id
-  const id = (await params)?.id || searchParams?.id
+  const id = params?.id || searchParams?.id
   
   if (!id) {
     // For a new search without history
