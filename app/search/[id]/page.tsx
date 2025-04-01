@@ -5,9 +5,9 @@ import { convertToUIMessages } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 
 export async function generateMetadata(props: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = props.params
+  const { id } = await props.params
   const chat = await getChat(id)
 
   if (!chat) {
@@ -20,9 +20,9 @@ export async function generateMetadata(props: {
 }
 
 export default async function SearchIdPage(props: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = props.params
+  const { id } = await props.params
   const chat = await getChat(id)
   
   // convertToUIMessages for useChat hook

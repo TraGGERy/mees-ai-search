@@ -11,11 +11,12 @@ type SearchParams = {
 }
 
 export async function generateMetadata(props: {
-  params: { id?: string };
+  params: Promise<{ id?: string }>;
   searchParams?: SearchParams;
 }): Promise<Metadata> {
   // Check both params and searchParams for the id
-  const id = props.params?.id || props.searchParams?.id
+  const params = await props.params
+  const id = params?.id || props.searchParams?.id
   
   if (!id) {
     return {
@@ -30,11 +31,12 @@ export async function generateMetadata(props: {
 }
 
 export default async function SearchPage(props: {
-  params: { id?: string };
+  params: Promise<{ id?: string }>;
   searchParams?: SearchParams;
 }) {
   // Check both params and searchParams for the id
-  const id = props.params?.id || props.searchParams?.id
+  const params = await props.params
+  const id = params?.id || props.searchParams?.id
   
   if (!id) {
     // For a new search without history
