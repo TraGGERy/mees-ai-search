@@ -72,22 +72,6 @@ export function EmptyScreen({
             </p>
           </div>
           
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-3">Try asking</h3>
-            <div className="mt-2 flex flex-col items-start space-y-2 mb-4">
-              {exampleQuestions.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="link"
-                  className="h-auto p-0 text-base"
-                  onClick={() => submitMessage(question)}
-                >
-                  <ArrowRight size={16} className="mr-2 text-muted-foreground" />
-                  {question}
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
