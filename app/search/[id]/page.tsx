@@ -1,16 +1,16 @@
 import { Chat } from '@/components/chat'
-import { getSharedChat } from '@/lib/actions/chat'
+import { getChat } from '@/lib/actions/chat'
 import { type ExtendedCoreMessage } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 
 export async function generateMetadata(props: {
-  params: Promise<{ id: string }>
+  params: { id: string };
 }) {
-  const { id } = await props.params
-  const chat = await getSharedChat(id)
+  const { id } = props.params
+  const chat = await getChat(id)
 
-  if (!chat || !chat.sharePath) {
+  if (!chat) {
     return notFound()
   }
 
@@ -19,22 +19,23 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function SharePage(props: {
-  params: Promise<{ id: string }>
+export default async function SearchIdPage(props: {
+  params: { id: string };
 }) {
-  const { id } = await props.params
-  const chat = await getSharedChat(id)
+  const { id } = props.params
+  const chat = await getChat(id)
+  
   // convertToUIMessages for useChat hook
   const messages = convertToUIMessages((chat?.messages || []) as ExtendedCoreMessage[])
 
-  if (!chat || !chat.sharePath) {
+  if (!chat) {
     notFound()
   }
 
   return <Chat
     id={id}
     savedMessages={messages}
-    promptType="default"
-    onPromptTypeChange={() => {}}
+    promptType="deepSearch"
+    onPromptTypeChange={null as unknown as (type: string) => void}
   />
 }
