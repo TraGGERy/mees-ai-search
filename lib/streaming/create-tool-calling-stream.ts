@@ -1,6 +1,7 @@
 import { researcher } from '@/lib/agents/researcher'
 import {
   convertToCoreMessages,
+  CoreMessage,
   createDataStreamResponse,
   DataStreamWriter,
   streamText
@@ -35,8 +36,7 @@ export function createToolCallingStreamResponse(config: BaseStreamConfig) {
             const responseMessages = result.response.messages.map(msg => ({
               ...msg,
               content: msg.content || result.reasoning // Use reasoning as content if no content is present
-            }))
-
+            })) as CoreMessage[]
             await handleStreamFinish({
               responseMessages,
               originalMessages: messages,

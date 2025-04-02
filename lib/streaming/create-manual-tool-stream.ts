@@ -1,5 +1,6 @@
 import {
   convertToCoreMessages,
+  CoreMessage,
   createDataStreamResponse,
   DataStreamWriter,
   JSONValue,
@@ -57,9 +58,8 @@ export function createManualToolStreamResponse(config: BaseStreamConfig) {
                 } as JSONValue
               }
             ]
-
             await handleStreamFinish({
-              responseMessages,
+              responseMessages: responseMessages as CoreMessage[],
               originalMessages: messages,
               model,
               chatId,
