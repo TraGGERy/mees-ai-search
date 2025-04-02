@@ -6,6 +6,7 @@ import { CollapsibleMessage } from './collapsible-message'
 import { DefaultSkeleton } from './default-skeleton'
 import { BotMessage } from './message'
 import { StatusIndicator } from './ui/status-indicator'
+import { useEffect } from 'react'
 
 interface ReasoningContent {
   reasoning: string
@@ -23,19 +24,29 @@ export function ReasoningSection({
   isOpen,
   onOpenChange
 }: ReasoningSectionProps) {
+  const isThinking = content.time === 0 && content.reasoning.length === 0
+  const hasCompleted = content.time !== undefined && content.time > 0
+
+  // Auto-collapse when thinking is complete
+  useEffect(() => {
+    if (hasCompleted && isOpen) {
+      onOpenChange(false)
+    }
+  }, [hasCompleted, isOpen, onOpenChange])
+
   const reasoningHeader = (
     <div className="flex items-center gap-2 w-full">
       <div className="w-full flex flex-col">
         <div className="flex items-center justify-between">
           <Badge className="flex items-center gap-0.5" variant="secondary">
             <Lightbulb size={16} />
-            {content.time === 0
+            {isThinking
               ? 'Thinking...'
-              : content.time !== undefined && content.time > 0
+              : hasCompleted && content.time
               ? `Thought for ${(content.time / 1000).toFixed(1)} seconds`
               : 'Thoughts'}
           </Badge>
-          {content.time === 0 ? (
+          {isThinking ? (
             <Loader2
               size={16}
               className="animate-spin text-muted-foreground/50"
