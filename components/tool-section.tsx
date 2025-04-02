@@ -15,12 +15,23 @@ interface ToolSectionProps {
 export function ToolSection({ tool, isOpen, onOpenChange }: ToolSectionProps) {
   switch (tool.toolName) {
     case 'search':
+      const searchState = (() => {
+        switch (tool.state) {
+          case 'partial-call':
+            return 'partial' as const
+          case 'call':
+            return 'call' as const
+          case 'error':
+            return 'error' as const
+          default:
+            return 'result' as const
+        }
+      })()
+
       return (
         <SearchSection
           tool={{
-            state: tool.state === 'partial-call' ? 'partial' : 
-                   tool.state === 'call' ? 'call' : 
-                   tool.state === 'error' ? 'error' : 'result',
+            state: searchState,
             args: tool.args as { query?: string; includeDomains?: string[] },
             result: tool.output as SearchResults | undefined,
             error: tool.error as string | undefined
