@@ -89,7 +89,7 @@ export function RenderMessage({
   }, [reasoningAnnotation])
 
   if (message.role === 'user') {
-    return <UserMessage message={message.content} />
+    return <UserMessage message={message.content} messageId={message.id} />
   }
 
   // New way: Use parts instead of toolInvocations
@@ -124,6 +124,7 @@ export function RenderMessage({
                 isOpen={getIsOpen(messageId)}
                 onOpenChange={open => onOpenChange(messageId, open)}
                 chatId={chatId}
+                messageId={messageId}
               />
             )
           case 'reasoning':

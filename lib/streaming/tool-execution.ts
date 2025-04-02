@@ -75,54 +75,95 @@ export async function executeToolCall(
     return { toolCallDataAnnotation: null, toolCallMessages: [] }
   }
 
+  const toolCallId = `call_${generateId()}`
   const toolCallAnnotation = {
     type: 'tool_call',
     data: {
       state: 'call',
-      toolCallId: `call_${generateId()}`,
+      toolCallId,
       toolName: toolCall.tool,
       args: JSON.stringify(toolCall.parameters)
     }
   }
+  
+  // Write the initial tool call annotation immediately
   dataStream.writeData(toolCallAnnotation)
 
-  // Support for search tool only for now
-  const searchResults = await search(
-    toolCall.parameters?.query ?? '',
-    toolCall.parameters?.max_results,
-    toolCall.parameters?.search_depth as 'basic' | 'advanced',
-    toolCall.parameters?.include_domains ?? [],
-    toolCall.parameters?.exclude_domains ?? []
-  )
+  try {
+    // Support for search tool only for now
+    const searchResults = await search(
+      toolCall.parameters?.query ?? '',
+      toolCall.parameters?.max_results,
+      toolCall.parameters?.search_depth as 'basic' | 'advanced',
+      toolCall.parameters?.include_domains ?? [],
+      toolCall.parameters?.exclude_domains ?? []
+    )
 
-  const updatedToolCallAnnotation = {
-    ...toolCallAnnotation,
-    data: {
-      ...toolCallAnnotation.data,
-      result: JSON.stringify(searchResults),
-      state: 'result'
+    // Stream partial results immediately if available
+    if (searchResults?.results?.length > 0) {
+      const partialResults = {
+        ...searchResults,
+        results: searchResults.results.slice(0, 5) // Show first 5 results immediately
+      }
+      
+      const partialAnnotation = {
+        ...toolCallAnnotation,
+        data: {
+          ...toolCallAnnotation.data,
+          result: JSON.stringify(partialResults),
+          state: 'partial'
+        }
+      }
+      dataStream.writeMessageAnnotation(partialAnnotation)
     }
-  }
-  dataStream.writeMessageAnnotation(updatedToolCallAnnotation)
 
-  const toolCallDataAnnotation: ExtendedCoreMessage = {
-    role: 'data',
-    content: {
-      type: 'tool_call',
-      data: updatedToolCallAnnotation.data
-    } as JSONValue
-  }
-
-  const toolCallMessages: CoreMessage[] = [
-    {
-      role: 'assistant',
-      content: `Tool call result: ${JSON.stringify(searchResults)}`
-    },
-    {
-      role: 'user',
-      content: 'Now answer the user question.'
+    // Stream full results when complete
+    const updatedToolCallAnnotation = {
+      ...toolCallAnnotation,
+      data: {
+        ...toolCallAnnotation.data,
+        result: JSON.stringify(searchResults),
+        state: 'result'
+      }
     }
-  ]
+    dataStream.writeMessageAnnotation(updatedToolCallAnnotation)
 
-  return { toolCallDataAnnotation, toolCallMessages }
+    const toolCallDataAnnotation: ExtendedCoreMessage = {
+      role: 'data',
+      content: {
+        type: 'tool_call',
+        data: {
+          ...toolCallAnnotation.data,
+          result: JSON.stringify(searchResults),
+          state: 'result'
+        }
+      } as JSONValue
+    }
+
+    const toolCallMessages: CoreMessage[] = [
+      {
+        role: 'assistant',
+        content: `Tool call result: ${JSON.stringify(searchResults)}`
+      },
+      {
+        role: 'user',
+        content: 'Now answer the user question.'
+      }
+    ]
+
+    return { toolCallDataAnnotation, toolCallMessages }
+  } catch (error) {
+    console.error('Search execution error:', error)
+    // Write error state to stream
+    const errorAnnotation = {
+      ...toolCallAnnotation,
+      data: {
+        ...toolCallAnnotation.data,
+        state: 'error',
+        error: 'Failed to execute search'
+      }
+    }
+    dataStream.writeMessageAnnotation(errorAnnotation)
+    return { toolCallDataAnnotation: null, toolCallMessages: [] }
+  }
 }

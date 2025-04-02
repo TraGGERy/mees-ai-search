@@ -7,18 +7,20 @@ import { ExportOptions } from './export-options'
 import { BotMessage } from './message'
 import { MessageActions } from './message-actions'
 
-export type AnswerSectionProps = {
+interface AnswerSectionProps {
   content: string
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   chatId?: string
+  messageId?: string
 }
 
 export function AnswerSection({
   content,
   isOpen,
   onOpenChange,
-  chatId
+  chatId,
+  messageId
 }: AnswerSectionProps) {
   const enableShare = process.env.NEXT_PUBLIC_ENABLE_SHARE === 'true'
 
@@ -36,6 +38,7 @@ export function AnswerSection({
         <MessageActions
           message={content}
           chatId={chatId}
+          messageId={messageId}
           enableShare={enableShare}
           showFeedback={true}
         />

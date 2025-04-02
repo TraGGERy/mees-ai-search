@@ -3,7 +3,7 @@
 import { CHAT_ID } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { useChat } from 'ai/react'
-import { Copy, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { Copy, RefreshCw, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { ChatShare } from './chat-share'
 import { Button } from './ui/button'
@@ -13,21 +13,48 @@ export type MessageActionsProps = {
   chatId?: string
   enableShare?: boolean
   showFeedback?: boolean
+  messageId?: string
 }
 
 export function MessageActions({
   message,
   chatId,
   enableShare = false,
-  showFeedback = false
+  showFeedback = false,
+  messageId
 }: MessageActionsProps) {
-  const { isLoading } = useChat({
+  const { isLoading, messages, setMessages, append } = useChat({
     id: CHAT_ID
   })
   
   async function handleCopy() {
     await navigator.clipboard.writeText(message)
     toast.success('Message copied to clipboard')
+  }
+
+  async function handleRegenerate() {
+    if (!messageId) return
+
+    // Find the user message that triggered this response
+    const messageIndex = messages.findIndex(m => m.id === messageId)
+    if (messageIndex === -1) return
+
+    // Get the user message that triggered this response
+    const userMessage = messages[messageIndex - 1]
+    if (!userMessage || userMessage.role !== 'user') return
+
+    // Remove the current response
+    const newMessages = messages.slice(0, messageIndex)
+    setMessages(newMessages)
+
+    // Regenerate the response
+    await append({
+      role: 'user',
+      content: userMessage.content,
+      id: crypto.randomUUID()
+    })
+
+    toast.success('Regenerating response...')
   }
   
   function handleFeedback(type: 'like' | 'dislike') {
@@ -50,6 +77,15 @@ export function MessageActions({
         className="rounded-full"
       >
         <Copy size={14} />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleRegenerate}
+        className="rounded-full"
+        title="Regenerate response"
+      >
+        <RefreshCw size={14} />
       </Button>
       {enableShare && chatId && <ChatShare chatId={chatId} />}
       {showFeedback && (

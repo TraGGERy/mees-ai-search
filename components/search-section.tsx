@@ -9,9 +9,18 @@ import { SearchSkeleton } from './default-skeleton'
 import { SearchResults } from './search-results'
 import { SearchResultsImageSection } from './search-results-image'
 import { Section, ToolArgsSection } from './section'
+import { Badge } from './ui/badge'
 
 interface SearchSectionProps {
-  tool: ToolInvocation
+  tool: {
+    state: 'call' | 'partial' | 'result' | 'error'
+    args: {
+      query?: string
+      includeDomains?: string[]
+    }
+    result?: TypeSearchResults
+    error?: string
+  }
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -25,8 +34,10 @@ export function SearchSection({
     id: CHAT_ID
   })
   const isToolLoading = tool.state === 'call'
+  const isPartial = tool.state === 'partial'
+  const hasError = tool.state === 'error'
   const searchResults: TypeSearchResults =
-    tool.state === 'result' ? tool.result : undefined
+    tool.state === 'result' || tool.state === 'partial' ? tool.result : undefined
   const query = tool.args.query as string | undefined
   const includeDomains = tool.args.includeDomains as string[] | undefined
   const includeDomainsString = includeDomains
@@ -34,11 +45,65 @@ export function SearchSection({
     : ''
 
   const header = (
-    <ToolArgsSection
-      tool="search"
-      number={searchResults?.results?.length}
-    >{`${query}${includeDomainsString}`}</ToolArgsSection>
+    <div className="flex items-center gap-2">
+      <ToolArgsSection
+        tool="search"
+        number={searchResults?.results?.length}
+      >{`${query}${includeDomainsString}`}</ToolArgsSection>
+      {isToolLoading && (
+        <Badge variant="secondary" className="animate-pulse">
+          Searching...
+        </Badge>
+      )}
+      {isPartial && (
+        <Badge variant="secondary" className="animate-pulse">
+          Loading more results...
+        </Badge>
+      )}
+      {hasError && (
+        <Badge variant="destructive">
+          Search failed
+        </Badge>
+      )}
+    </div>
   )
+
+  // Show loading state immediately when tool is called
+  if (isToolLoading) {
+    return (
+      <CollapsibleMessage
+        role="assistant"
+        isCollapsible={true}
+        header={header}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">
+            Searching the web for relevant information...
+          </div>
+          <SearchSkeleton />
+        </div>
+      </CollapsibleMessage>
+    )
+  }
+
+  // Show error state if search failed
+  if (hasError) {
+    return (
+      <CollapsibleMessage
+        role="assistant"
+        isCollapsible={true}
+        header={header}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      >
+        <div className="text-sm text-destructive">
+          {tool.error || 'Failed to execute search. Please try again.'}
+        </div>
+      </CollapsibleMessage>
+    )
+  }
 
   return (
     <CollapsibleMessage
@@ -48,9 +113,8 @@ export function SearchSection({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
     >
-      {searchResults &&
-        searchResults.images &&
-        searchResults.images.length > 0 && (
+      <div className="space-y-4">
+        {searchResults?.images && searchResults.images.length > 0 && (
           <Section>
             <SearchResultsImageSection
               images={searchResults.images}
@@ -58,13 +122,24 @@ export function SearchSection({
             />
           </Section>
         )}
-      {isLoading && isToolLoading ? (
-        <SearchSkeleton />
-      ) : searchResults?.results ? (
-        <Section title="Sources">
-          <SearchResults results={searchResults.results} />
-        </Section>
-      ) : null}
+        {searchResults?.results ? (
+          <Section title="Sources">
+            <SearchResults results={searchResults.results} />
+            {isPartial && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                Loading more results...
+              </div>
+            )}
+          </Section>
+        ) : null}
+        {isLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary" className="animate-pulse">
+              Generating response...
+            </Badge>
+          </div>
+        )}
+      </div>
     </CollapsibleMessage>
   )
 }
