@@ -6,6 +6,8 @@ import { VideoSearchSection } from './video-search-section'
 import RetrieveSection from './retrieve-section'
 import type { SearchResults } from '@/lib/types'
 
+type ToolState = 'call' | 'partial' | 'result' | 'error'
+
 interface ToolSectionProps {
   tool: ToolInvocation
   isOpen: boolean
@@ -15,18 +17,8 @@ interface ToolSectionProps {
 export function ToolSection({ tool, isOpen, onOpenChange }: ToolSectionProps) {
   switch (tool.toolName) {
     case 'search':
-      const searchState = (() => {
-        switch (tool.state) {
-          case 'partial-call':
-            return 'partial' as const
-          case 'call':
-            return 'call' as const
-          case 'error':
-            return 'error' as const
-          default:
-            return 'result' as const
-        }
-      })()
+      const searchState: ToolState = tool.state === 'partial-call' ? 'partial' : 
+                                    tool.state === 'call' ? 'call' : 'result'
 
       return (
         <SearchSection
