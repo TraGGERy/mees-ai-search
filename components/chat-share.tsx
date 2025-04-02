@@ -17,6 +17,7 @@ import {
   DialogTrigger
 } from './ui/dialog'
 import { Spinner } from './ui/spinner'
+import { useUser, SignInButton } from '@clerk/nextjs'
 
 interface ChatShareProps {
   chatId: string
@@ -28,8 +29,14 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
   const [pending, startTransition] = useTransition()
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
   const [shareUrl, setShareUrl] = useState('')
+  const { isSignedIn } = useUser()
 
   const handleShare = async () => {
+    if (!isSignedIn) {
+      toast.error('Please sign in to share chats')
+      return
+    }
+
     startTransition(() => {
       setOpen(true)
     })
@@ -66,16 +73,29 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
         aria-labelledby="share-dialog-title"
         aria-describedby="share-dialog-description"
       >
-        <DialogTrigger asChild>
-          <Button
-            className={cn('rounded-full')}
-            size="icon"
-            variant={'ghost'}
-            onClick={() => setOpen(true)}
-          >
-            <Share size={14} />
-          </Button>
-        </DialogTrigger>
+        {isSignedIn ? (
+          <DialogTrigger asChild>
+            <Button
+              className={cn('rounded-full')}
+              size="icon"
+              variant={'ghost'}
+              onClick={() => setOpen(true)}
+            >
+              <Share size={14} />
+            </Button>
+          </DialogTrigger>
+        ) : (
+          <SignInButton mode="modal">
+            <Button
+              className={cn('rounded-full')}
+              size="icon"
+              variant={'ghost'}
+              title="Sign in to share chats"
+            >
+              <Share size={14} />
+            </Button>
+          </SignInButton>
+        )}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Share link to search result</DialogTitle>
