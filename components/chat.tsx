@@ -59,7 +59,9 @@ export function Chat({
       promptType: promptTypeState
     },
     onFinish: () => {
-      window.history.replaceState({}, '', `/search/${id}`)
+      setTimeout(() => {
+        window.history.replaceState({}, '', `/search/${id}`)
+      }, 100)
     },
     onError: (error) => {
       try {

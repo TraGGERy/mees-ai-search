@@ -11,6 +11,7 @@ import { getMaxAllowedTokens, truncateMessages } from '../utils/context-window'
 import { handleStreamFinish } from './handle-stream-finish'
 import { executeToolCall } from './tool-execution'
 import { BaseStreamConfig } from './types'
+import { isReasoningModel } from '../utils/registry'
 
 export function createManualToolStreamResponse(config: BaseStreamConfig) {
   return createDataStreamResponse({
@@ -40,6 +41,12 @@ export function createManualToolStreamResponse(config: BaseStreamConfig) {
         const result = streamText({
           ...researcherConfig,
           onFinish: async result => {
+            // For reasoning models, ensure both reasoning and response content are included
+            const responseMessages = result.response.messages.map(msg => ({
+              ...msg,
+              content: msg.content || result.reasoning // Use reasoning as content if no content is present
+            }))
+
             const annotations: ExtendedCoreMessage[] = [
               ...(toolCallDataAnnotation ? [toolCallDataAnnotation] : []),
               {
@@ -52,12 +59,12 @@ export function createManualToolStreamResponse(config: BaseStreamConfig) {
             ]
 
             await handleStreamFinish({
-              responseMessages: result.response.messages,
+              responseMessages,
               originalMessages: messages,
               model,
               chatId,
               dataStream,
-              skipRelatedQuestions: false,
+              skipRelatedQuestions: isReasoningModel(model),
               annotations
             })
           }
