@@ -1,10 +1,6 @@
 import { relatedSchema } from '@/lib/schema/related'
 import { CoreMessage, generateObject } from 'ai'
-import {
-  getModel,
-  getToolCallModel,
-  isToolCallSupported
-} from '../utils/registry'
+import { getModel, isReasoningModel } from '../utils/registry'
 
 export async function generateRelatedQuestions(
   messages: CoreMessage[],
@@ -15,13 +11,13 @@ export async function generateRelatedQuestions(
     role: 'user'
   })) as CoreMessage[]
 
-  const supportedModel = isToolCallSupported(model)
-  const currentModel = supportedModel
-    ? getModel(model)
-    : getToolCallModel(model)
+  // Use gpt-4o-mini for reasoning models, otherwise use the selected model
+  const relatedQuestionsModel = isReasoningModel(model) 
+    ? getModel('openai:gpt-4o-mini')
+    : getModel(model)
 
   const result = await generateObject({
-    model: currentModel,
+    model: relatedQuestionsModel,
     system: `As a professional web researcher, your task is to generate a set of three queries that explore the subject matter more deeply, building upon the initial query and the information uncovered in its search results.
 
     For instance, if the original query was "Starship's third test flight key milestones", your output should follow this format:
