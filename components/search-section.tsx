@@ -36,7 +36,7 @@ export function SearchSection({
   const isToolLoading = tool.state === 'call'
   const isPartial = tool.state === 'partial'
   const hasError = tool.state === 'error'
-  const searchResults: TypeSearchResults =
+  const searchResults: TypeSearchResults | undefined =
     tool.state === 'result' || tool.state === 'partial' ? tool.result : undefined
   const query = tool.args.query as string | undefined
   const includeDomains = tool.args.includeDomains as string[] | undefined
