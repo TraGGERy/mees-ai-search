@@ -4,9 +4,6 @@ import { ToolInvocation } from 'ai'
 import { SearchSection } from './search-section'
 import { VideoSearchSection } from './video-search-section'
 import RetrieveSection from './retrieve-section'
-import type { SearchResults } from '@/lib/types'
-
-type ToolState = 'call' | 'partial' | 'result' | 'error'
 
 interface ToolSectionProps {
   tool: ToolInvocation
@@ -17,17 +14,9 @@ interface ToolSectionProps {
 export function ToolSection({ tool, isOpen, onOpenChange }: ToolSectionProps) {
   switch (tool.toolName) {
     case 'search':
-      const searchState: ToolState = tool.state === 'partial-call' ? 'partial' : 
-                                    tool.state === 'call' ? 'call' : 'result'
-
       return (
         <SearchSection
-          tool={{
-            state: searchState,
-            args: tool.args as { query?: string; includeDomains?: string[] },
-            result: tool.output as SearchResults | undefined,
-            error: tool.error as string | undefined
-          }}
+          tool={tool as any} // TODO: Fix type mismatch between ToolInvocation and SearchSection props
           isOpen={isOpen}
           onOpenChange={onOpenChange}
         />
