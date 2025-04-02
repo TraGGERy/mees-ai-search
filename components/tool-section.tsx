@@ -18,9 +18,11 @@ export function ToolSection({ tool, isOpen, onOpenChange }: ToolSectionProps) {
       return (
         <SearchSection
           tool={{
-            state: tool.state as 'call' | 'partial' | 'result' | 'error',
+            state: tool.state === 'partial-call' ? 'partial' : 
+                   tool.state === 'call' ? 'call' : 
+                   tool.state === 'error' ? 'error' : 'result',
             args: tool.args as { query?: string; includeDomains?: string[] },
-            result: tool.result as SearchResults | undefined,
+            result: tool.output as SearchResults | undefined,
             error: tool.error as string | undefined
           }}
           isOpen={isOpen}
