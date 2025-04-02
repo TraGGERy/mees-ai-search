@@ -4,6 +4,7 @@ import { ToolInvocation } from 'ai'
 import { SearchSection } from './search-section'
 import { VideoSearchSection } from './video-search-section'
 import RetrieveSection from './retrieve-section'
+import type { SearchResults } from '@/lib/types'
 
 interface ToolSectionProps {
   tool: ToolInvocation
@@ -16,7 +17,12 @@ export function ToolSection({ tool, isOpen, onOpenChange }: ToolSectionProps) {
     case 'search':
       return (
         <SearchSection
-          tool={tool}
+          tool={{
+            state: tool.state as 'call' | 'partial' | 'result' | 'error',
+            args: tool.args as { query?: string; includeDomains?: string[] },
+            result: tool.result as SearchResults | undefined,
+            error: tool.error as string | undefined
+          }}
           isOpen={isOpen}
           onOpenChange={onOpenChange}
         />
