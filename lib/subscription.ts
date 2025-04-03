@@ -5,16 +5,47 @@ import { eq, sql } from "drizzle-orm";
 const FREE_TIER_DAILY_LIMIT = 5;
 
 export async function checkUserAccess(userId: string, email: string) {
-  // First check if user has active subscription
+  // First check if user has active subscription or is in trial
   const subscription = await db.query.subscribedUsers.findFirst({
     where: eq(subscribedUsers.email, email),
   });
 
-  if (subscription?.subscriptionStatus === 'active') {
-    return { hasAccess: true, remaining: Infinity };
+  // Check if user has an active subscription or is in trial period
+  if (subscription?.subscriptionStatus === 'active' || subscription?.subscriptionStatus === 'trialing') {
+    // If in trial, check if trial has ended
+    if (subscription.subscriptionStatus === 'trialing' && subscription.nextInvoiceDate) {
+      const trialEnd = new Date(subscription.nextInvoiceDate);
+      const now = new Date();
+      
+      if (now > trialEnd) {
+        // Trial has ended, update status to inactive
+        await db.update(subscribedUsers)
+          .set({
+            subscriptionStatus: 'inactive',
+          })
+          .where(eq(subscribedUsers.email, email));
+        
+        // Continue with free tier check
+      } else {
+        // Still in trial period
+        return { 
+          hasAccess: true, 
+          remaining: Infinity,
+          isTrialing: true,
+          trialEnd: trialEnd
+        };
+      }
+    } else {
+      // Active subscription
+      return { 
+        hasAccess: true, 
+        remaining: Infinity,
+        isSubscriber: true
+      };
+    }
   }
 
-  // If no subscription, check daily usage
+  // If no subscription or trial, check daily usage
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

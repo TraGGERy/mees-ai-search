@@ -28,32 +28,55 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         console.log("Processing completed checkout:", session.id);
 
+        // Get the subscription to check trial status
+        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+        const isTrialing = subscription.status === 'trialing';
+        const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
         // Save subscription data
         await db.insert(subscribedUsers).values({
           email: session.customer_email || '',
           userId: session.metadata?.userId || '',
           stripeCustomerId: session.customer as string,
           type: 'subscription',
-          subscriptionStatus: 'active',
+          subscriptionStatus: isTrialing ? 'trialing' : 'active',
           currentPlan: session.amount_total && session.amount_total >= 10000 ? 'yearly' : 'monthly',
-          nextInvoiceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          nextInvoiceDate: trialEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         }).onConflictDoUpdate({
           target: [subscribedUsers.email],
           set: {
-            subscriptionStatus: 'active',
+            subscriptionStatus: isTrialing ? 'trialing' : 'active',
             stripeCustomerId: session.customer as string,
             currentPlan: session.amount_total && session.amount_total >= 10000 ? 'yearly' : 'monthly',
-            nextInvoiceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            nextInvoiceDate: trialEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           }
         });
 
         // Log the event
-      await db.insert(subscriptionEvents).values({
-        eventId: event.id,
+        await db.insert(subscriptionEvents).values({
+          eventId: event.id,
           eventType: event.type,
           email: session.customer_email || '',
           eventPayload: JSON.stringify(event),
         });
+
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log("Processing subscription update:", subscription.id);
+
+        // Update subscription status based on trial status
+        const isTrialing = subscription.status === 'trialing';
+        const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
+        await db.update(subscribedUsers)
+          .set({
+            subscriptionStatus: isTrialing ? 'trialing' : 'active',
+            nextInvoiceDate: trialEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          })
+          .where(eq(subscribedUsers.stripeCustomerId, subscription.customer as string));
 
         break;
       }
