@@ -5,7 +5,7 @@ export const searchSchema = z.object({
   query: z.string().describe('The query to search for'),
   max_results: z
     .number()
-    .describe('The maximum number of results to return. default is 20'),
+    .describe('The maximum number of results to return. default is 40'),
   search_depth: z
     .string()
     .describe(

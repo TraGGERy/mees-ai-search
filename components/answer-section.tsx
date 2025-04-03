@@ -40,7 +40,6 @@ export function AnswerSection({
           chatId={chatId}
           messageId={messageId}
           enableShare={enableShare}
-          showFeedback={true}
         />
       </div>
     </div>
