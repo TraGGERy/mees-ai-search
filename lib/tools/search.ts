@@ -135,10 +135,9 @@ function calculateRelevanceScore(result: SearchResultItem, query: string): numbe
   if (wordCount > 500) score += 20
   else if (wordCount > 200) score += 10
   else if (wordCount < 50) score -= 10 // Penalize very short content
-
   // Recency boost (if date is available)
-  if (result.date) {
-    const resultDate = new Date(result.date)
+  if ('date' in result) {
+    const resultDate = new Date((result as {date: string | number | Date}).date)
     const now = new Date()
     const monthsOld = (now.getTime() - resultDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
     if (monthsOld < 3) score += 15
