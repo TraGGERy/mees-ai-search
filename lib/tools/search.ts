@@ -9,6 +9,9 @@ import {
 import { sanitizeUrl } from '@/lib/utils'
 import { tool } from 'ai'
 import Exa from 'exa-js'
+import {
+  SearchResultsMetadata
+} from '@/lib/types/search'
 
 export const searchTool = tool({
   description: 'Search the web for information',
@@ -223,7 +226,7 @@ function enhanceSearchResults(results: SearchResults, query: string): SearchResu
     results: enhancedResults,
     number_of_results: enhancedResults.length,
     metadata: {
-      ...results.metadata,
+      ...(results.metadata || {}),
       enhancement: {
         original_count: results.results.length,
         filtered_count: enhancedResults.length,

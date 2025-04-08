@@ -6,16 +6,18 @@ export interface SearchResultItem {
   // ... existing code ...
 }
 
+export interface SearchResultsMetadata {
+  enhancement?: {
+    original_count: number
+    filtered_count: number
+    average_relevance_score: number
+    threshold_used: number
+  }
+}
+
 export interface SearchResults {
   results: SearchResultItem[]
   number_of_results: number
-  metadata?: {
-    enhancement?: {
-      original_count: number
-      filtered_count: number
-      average_relevance_score: number
-      threshold_used: number
-    }
-  }
+  metadata?: SearchResultsMetadata
   // ... existing code ...
 } 
