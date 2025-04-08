@@ -38,6 +38,16 @@ export async function POST(req: Request) {
     const model = modelFromCookie || DEFAULT_MODEL
     const provider = model.split(':')[0]
 
+    // Log when Pro model is being used
+    if (model.includes('claude-3-5-sonnet-latest')) {
+      console.log('Pro model being used for chat request:', {
+        model,
+        provider,
+        userId: userId || 'anonymous',
+        searchMode
+      })
+    }
+
     // Allow gpt-4o-mini without login
     if (!userId && !model.includes('gpt-4o-mini')) {
       return new Response(

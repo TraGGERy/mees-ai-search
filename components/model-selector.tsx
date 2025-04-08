@@ -60,6 +60,17 @@ export function ModelSelector() {
     setSelectedModelId(id === selectedModelId ? '' : id)
     setCookie('selected-model', id)
     setOpen(false)
+    
+    // Add logging for Pro model selection
+    const selectedModel = models.find(m => createModelId(m) === id)
+    if (selectedModel?.name === 'Pro') {
+      console.log('Pro model selected:', {
+        id: selectedModel.id,
+        name: selectedModel.name,
+        provider: selectedModel.provider,
+        description: selectedModel.description
+      })
+    }
   }
 
   const groupedModels = groupModelsByProvider(models)

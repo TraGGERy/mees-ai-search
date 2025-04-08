@@ -25,6 +25,20 @@ const SEARXNG_MAX_RESULTS = Math.max(
 const CACHE_TTL = 3600 // Cache time-to-live in seconds (1 hour)
 const CACHE_EXPIRATION_CHECK_INTERVAL = 3600000 // 1 hour in milliseconds
 
+// Enhanced relevance scoring weights
+const RELEVANCE_WEIGHTS = {
+  exactPhraseMatch: 30,
+  wordMatch: 3,
+  titleExactMatch: 20,
+  titleWordMatch: 10,
+  recentContent: 15,
+  contentLength: {
+    short: -10,
+    long: 5
+  },
+  highlightCount: 2
+}
+
 let redisClient: Redis | ReturnType<typeof createClient> | null = null
 
 // Initialize Redis client based on environment variables
@@ -209,8 +223,6 @@ async function advancedSearchXNGSearch(
     const pageno = Math.ceil(maxResults / resultsPerPage)
     url.searchParams.append('pageno', String(pageno))
 
-    //console.log('SearXNG API URL:', url.toString()) // Log the full URL for debugging
-
     const data:
       | SearXNGResponse
       | { error: string; status: number; data: string } =
@@ -273,30 +285,23 @@ async function advancedSearchXNGSearch(
       .slice(0, maxResults)
 
     return {
-      results: generalResults.map(
-        (result: SearXNGResult): SearchResultItem => ({
-          title: result.title || '',
-          url: result.url || '',
-          content: result.content || ''
-        })
-      ),
-      query: data.query || query,
+      results: generalResults.map((result: SearXNGResult): SearchResultItem => ({
+        title: result.title,
+        url: result.url,
+        content: result.content
+      })),
+      query: data.query,
       images: imageResults
-        .map((result: SearXNGResult) => {
+        .map(result => {
           const imgSrc = result.img_src || ''
           return imgSrc.startsWith('http') ? imgSrc : `${apiUrl}${imgSrc}`
         })
         .filter(Boolean),
-      number_of_results: data.number_of_results || generalResults.length
+      number_of_results: data.number_of_results
     }
   } catch (error) {
-    console.error('SearchXNG API error:', error)
-    return {
-      results: [],
-      query: query,
-      images: [],
-      number_of_results: 0
-    }
+    console.error('SearXNG API error:', error)
+    throw error
   }
 }
 
@@ -428,65 +433,61 @@ function calculateRelevanceScore(result: SearXNGResult, query: string): number {
     const queryWords = lowercaseQuery
       .split(/\s+/)
       .filter(word => word.length > 2)
-      .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) // Escape special characters
+      .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
     let score = 0
 
     // Check for exact phrase match
     if (lowercaseContent.includes(lowercaseQuery)) {
-      score += 30
+      score += RELEVANCE_WEIGHTS.exactPhraseMatch
     }
 
     // Check for individual word matches
     queryWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'g')
       const wordCount = (lowercaseContent.match(regex) || []).length
-      score += wordCount * 3
+      score += wordCount * RELEVANCE_WEIGHTS.wordMatch
     })
 
     // Boost score for matches in the title
     const lowercaseTitle = result.title.toLowerCase()
     if (lowercaseTitle.includes(lowercaseQuery)) {
-      score += 20
+      score += RELEVANCE_WEIGHTS.titleExactMatch
     }
 
     queryWords.forEach(word => {
       const regex = new RegExp(`\\b${word}\\b`, 'g')
       if (lowercaseTitle.match(regex)) {
-        score += 10
+        score += RELEVANCE_WEIGHTS.titleWordMatch
       }
     })
 
-    // Boost score for recent content (if available)
+    // Boost score for recent content
     if (result.publishedDate) {
       const publishDate = new Date(result.publishedDate)
       const now = new Date()
       const daysSincePublished =
         (now.getTime() - publishDate.getTime()) / (1000 * 3600 * 24)
       if (daysSincePublished < 30) {
-        score += 15
-      } else if (daysSincePublished < 90) {
-        score += 10
-      } else if (daysSincePublished < 365) {
-        score += 5
+        score += RELEVANCE_WEIGHTS.recentContent
       }
     }
 
     // Penalize very short content
     if (result.content.length < 200) {
-      score -= 10
+      score += RELEVANCE_WEIGHTS.contentLength.short
     } else if (result.content.length > 1000) {
-      score += 5
+      score += RELEVANCE_WEIGHTS.contentLength.long
     }
 
     // Boost score for content with more highlighted terms
     const highlightCount = (result.content.match(/<mark>/g) || []).length
-    score += highlightCount * 2
+    score += highlightCount * RELEVANCE_WEIGHTS.highlightCount
 
     return score
   } catch (error) {
-    //console.error('Error in calculateRelevanceScore:', error)
-    return 0 // Return 0 if scoring fails
+    console.error('Error calculating relevance score:', error)
+    return 0
   }
 }
 

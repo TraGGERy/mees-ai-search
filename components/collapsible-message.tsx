@@ -7,6 +7,8 @@ import {
 } from './ui/collapsible'
 import { IconLogo } from './ui/icons'
 import { Separator } from './ui/separator'
+import { useUser } from '@clerk/nextjs'
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 
 interface CollapsibleMessageProps {
   children: React.ReactNode
@@ -29,6 +31,7 @@ export function CollapsibleMessage({
   showBorder = true,
   showIcon = true
 }: CollapsibleMessageProps) {
+  const { user, isLoaded } = useUser()
   const content = <div className="py-2 flex-1">{children}</div>
 
   return (
@@ -37,7 +40,16 @@ export function CollapsibleMessage({
         <div className={cn('mt-[10px] w-5', role === 'assistant' && 'mt-4')}>
           {showIcon &&
             (role === 'user' ? (
-              <UserCircle2 size={20} className="text-muted-foreground" />
+              isLoaded && user ? (
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={user.imageUrl} alt={user.fullName || 'User'} />
+                  <AvatarFallback>
+                    <UserCircle2 size={20} className="text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <UserCircle2 size={20} className="text-muted-foreground" />
+              )
             ) : (
               <IconLogo className="size-5" />
             ))}

@@ -11,6 +11,7 @@ import {
   wrapLanguageModel
 } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
+import { proResearchCompanion } from '../agents/pro-research-companion'
 
 export const registry = createProviderRegistry({
   openai,
@@ -163,3 +164,10 @@ export function isReasoningModel(model: string): boolean {
     model.includes('o3-mini')
   )
 }
+
+export const AGENTS = {
+  // ... existing agents ...
+  'pro-research-companion': proResearchCompanion,
+} as const
+
+export type AgentType = keyof typeof AGENTS

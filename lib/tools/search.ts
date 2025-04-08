@@ -72,6 +72,13 @@ export const searchTool = tool({
           exclude_domains
         )
       }
+
+      // Enhance search results for Pro Search
+      if (effectiveSearchDepth === 'advanced') {
+        searchResult = enhanceSearchResults(searchResult, filledQuery)
+      }
+
+      return searchResult
     } catch (error) {
       console.error('Search API error:', error)
       searchResult = {
@@ -85,6 +92,150 @@ export const searchTool = tool({
     return searchResult
   }
 })
+
+// Enhanced relevance scoring with more sophisticated metrics
+function calculateRelevanceScore(result: SearchResultItem, query: string): number {
+  let score = 0
+  const queryWords = query.toLowerCase().split(/\s+/)
+  const content = result.content.toLowerCase()
+  const title = result.title.toLowerCase()
+  const url = result.url.toLowerCase()
+
+  // Exact phrase match (highest weight)
+  if (content.includes(query.toLowerCase())) {
+    score += 50
+  }
+
+  // Title exact match
+  if (title.includes(query.toLowerCase())) {
+    score += 40
+  }
+
+  // Individual word matches in content
+  queryWords.forEach(word => {
+    if (content.includes(word)) {
+      score += 15
+    }
+  })
+
+  // Individual word matches in title
+  queryWords.forEach(word => {
+    if (title.includes(word)) {
+      score += 10
+    }
+  })
+
+  // URL relevance
+  if (url.includes(query.toLowerCase())) {
+    score += 20
+  }
+
+  // Content length quality (prefer longer, more detailed content)
+  const wordCount = result.content.split(/\s+/).length
+  if (wordCount > 500) score += 20
+  else if (wordCount > 200) score += 10
+  else if (wordCount < 50) score -= 10 // Penalize very short content
+
+  // Recency boost (if date is available)
+  if (result.date) {
+    const resultDate = new Date(result.date)
+    const now = new Date()
+    const monthsOld = (now.getTime() - resultDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+    if (monthsOld < 3) score += 15
+    else if (monthsOld < 6) score += 10
+    else if (monthsOld < 12) score += 5
+  }
+
+  // Domain authority boost
+  const authorityDomains = ['edu', 'gov', 'org', 'wikipedia.org', 'github.com']
+  if (authorityDomains.some(domain => url.includes(domain))) {
+    score += 15
+  }
+
+  return score
+}
+
+// Enhanced content processing
+function enhanceContent(content: string, query: string): string {
+  // Remove excessive whitespace and normalize spacing
+  content = content.replace(/\s+/g, ' ').trim()
+
+  // Extract and highlight key sentences
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0)
+  const queryWords = query.toLowerCase().split(/\s+/)
+  
+  // Score sentences based on query relevance
+  const scoredSentences = sentences.map(sentence => {
+    let score = 0
+    queryWords.forEach(word => {
+      if (sentence.toLowerCase().includes(word)) {
+        score += 2
+      }
+    })
+    return { sentence, score }
+  })
+
+  // Sort sentences by relevance
+  scoredSentences.sort((a, b) => b.score - a.score)
+
+  // Take top 5 most relevant sentences if they exist
+  const relevantSentences = scoredSentences
+    .slice(0, 5)
+    .map(s => s.sentence.trim())
+    .filter(s => s.length > 0)
+
+  // If we have relevant sentences, use them to enhance the content
+  if (relevantSentences.length > 0) {
+    const enhancedContent = relevantSentences.join('. ') + '.'
+    return enhancedContent.length > content.length ? content : enhancedContent
+  }
+
+  return content
+}
+
+// Enhanced search results processing
+function enhanceSearchResults(results: SearchResults, query: string): SearchResults {
+  // Sort results by relevance
+  const sortedResults = results.results.sort((a, b) => {
+    const scoreA = calculateRelevanceScore(a, query)
+    const scoreB = calculateRelevanceScore(b, query)
+    return scoreB - scoreA
+  })
+
+  // Filter out low-quality results with dynamic threshold
+  const relevanceScores = sortedResults.map(r => calculateRelevanceScore(r, query))
+  const avgScore = relevanceScores.reduce((a, b) => a + b, 0) / relevanceScores.length
+  const threshold = Math.max(10, avgScore * 0.3) // Dynamic threshold based on average score
+
+  const filteredResults = sortedResults.filter(result => {
+    const score = calculateRelevanceScore(result, query)
+    return score >= threshold
+  })
+
+  // Enhance content with additional context
+  const enhancedResults = filteredResults.map(result => ({
+    ...result,
+    content: enhanceContent(result.content, query)
+  }))
+
+  // Add metadata about the enhancement process
+  const enhancedSearchResults: SearchResults = {
+    ...results,
+    results: enhancedResults,
+    number_of_results: enhancedResults.length,
+    metadata: {
+      ...results.metadata,
+      enhancement: {
+        original_count: results.results.length,
+        filtered_count: enhancedResults.length,
+        average_relevance_score: avgScore,
+        threshold_used: threshold
+      }
+    }
+  }
+
+  return enhancedSearchResults
+}
 
 export async function search(
   query: string,
