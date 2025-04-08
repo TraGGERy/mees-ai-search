@@ -2,7 +2,7 @@ export interface SearchResultItem {
   title: string
   url: string
   content: string
-  date?: string // Optional date field
+  date?: string // Optional date field for result timestamps
   // ... existing code ...
 }
 
