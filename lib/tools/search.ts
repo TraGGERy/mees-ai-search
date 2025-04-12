@@ -23,28 +23,28 @@ export const searchTool = tool({
     include_domains,
     exclude_domains
   }) => {
-    // Tavily API requires a minimum of 5 characters in the query
-    const filledQuery =
-      query.length < 5 ? query + ' '.repeat(5 - query.length) : query
+    try {
+      // Ensure minimum query length
+      const filledQuery = query.length < 5 ? query + ' '.repeat(5 - query.length) : query
     let searchResult: SearchResults
-    const searchAPI =
-      (process.env.SEARCH_API as 'tavily' | 'exa' | 'searxng') || 'tavily'
+      const searchAPI = (process.env.SEARCH_API as 'tavily' | 'exa' | 'searxng') || 'tavily'
 
-    const effectiveSearchDepth =
-      searchAPI === 'searxng' &&
-      process.env.SEARXNG_DEFAULT_DEPTH === 'advanced'
-        ? 'advanced'
-        : search_depth || 'basic'
+      // Log search parameters for debugging
+      console.log('Search parameters:', {
+        query: filledQuery,
+        max_results,
+        search_depth,
+        include_domains,
+        exclude_domains,
+        searchAPI
+      })
 
-    console.log(
-      `Using search API: ${searchAPI}, Search Depth: ${effectiveSearchDepth}`
-    )
+      const effectiveSearchDepth: 'basic' | 'advanced' = (search_depth as 'basic' | 'advanced') || 'basic'
 
     try {
       if (searchAPI === 'searxng' && effectiveSearchDepth === 'advanced') {
         // API route for advanced SearXNG search
-        const baseUrl =
-          process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
         const response = await fetch(`${baseUrl}/api/advanced-search`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -56,11 +56,17 @@ export const searchTool = tool({
             excludeDomains: exclude_domains
           })
         })
+
         if (!response.ok) {
-          throw new Error(
-            `Advanced search API error: ${response.status} ${response.statusText}`
-          )
-        }
+            const errorText = await response.text()
+            console.error('Advanced search API error:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorText
+            })
+            throw new Error(`Advanced search API error: ${response.status} ${response.statusText} - ${errorText}`)
+          }
+
         searchResult = await response.json()
       } else {
         searchResult = await (searchAPI === 'tavily'
@@ -70,29 +76,73 @@ export const searchTool = tool({
           : searxngSearch)(
           filledQuery,
           max_results,
-          effectiveSearchDepth === 'advanced' ? 'advanced' : 'basic',
+            effectiveSearchDepth,
           include_domains,
           exclude_domains
         )
-      }
+        }
 
-      // Enhance search results for Pro Search
-      if (effectiveSearchDepth === 'advanced') {
-        searchResult = enhanceSearchResults(searchResult, filledQuery)
-      }
+        // Log search results before enhancement
+        console.log('Search results before enhancement:', {
+          resultCount: searchResult.results?.length || 0,
+          hasImages: searchResult.images?.length > 0,
+          searchDepth: effectiveSearchDepth
+        })
 
-      return searchResult
+        // Enhance search results for Pro Search
+        if (effectiveSearchDepth === 'advanced') {
+          try {
+            searchResult = enhanceSearchResults(searchResult, filledQuery)
+            // Log enhanced results
+            console.log('Enhanced search results:', {
+              originalCount: searchResult.metadata?.enhancement?.original_count,
+              filteredCount: searchResult.metadata?.enhancement?.filtered_count,
+              averageScore: searchResult.metadata?.enhancement?.average_relevance_score
+            })
+          } catch (enhancementError) {
+            console.error('Error enhancing search results:', enhancementError)
+            // Return original results if enhancement fails
+            return searchResult
+          }
+        }
+
+        return searchResult
+      } catch (searchError) {
+        console.error('Search execution error:', searchError)
+        // Return a valid response structure even on error
+        return {
+          results: [],
+          images: [],
+          query: filledQuery,
+          number_of_results: 0,
+          metadata: {
+            enhancement: {
+              original_count: 0,
+              filtered_count: 0,
+              average_relevance_score: 0,
+              threshold_used: 0
+            }
+          }
+        }
+      }
     } catch (error) {
-      console.error('Search API error:', error)
-      searchResult = {
+      console.error('Critical search error:', error)
+      // Return a valid response structure even on critical error
+      return {
         results: [],
-        query: filledQuery,
         images: [],
-        number_of_results: 0
+        query: query,
+        number_of_results: 0,
+        metadata: {
+          enhancement: {
+            original_count: 0,
+            filtered_count: 0,
+            average_relevance_score: 0,
+            threshold_used: 0
+          }
+        }
       }
     }
-
-    return searchResult
   }
 })
 

@@ -142,8 +142,6 @@ export async function POST(request: Request) {
   const { query, maxResults, searchDepth, includeDomains, excludeDomains } =
     await request.json()
 
-  const SEARXNG_DEFAULT_DEPTH = process.env.SEARXNG_DEFAULT_DEPTH || 'basic'
-
   try {
     const cacheKey = `search:${query}:${maxResults}:${searchDepth}:${
       Array.isArray(includeDomains) ? includeDomains.join(',') : ''
@@ -159,7 +157,7 @@ export async function POST(request: Request) {
     const results = await advancedSearchXNGSearch(
       query,
       Math.min(maxResults, SEARXNG_MAX_RESULTS),
-      searchDepth || SEARXNG_DEFAULT_DEPTH,
+      searchDepth as 'basic' | 'advanced' || 'basic',
       Array.isArray(includeDomains) ? includeDomains : [],
       Array.isArray(excludeDomains) ? excludeDomains : []
     )

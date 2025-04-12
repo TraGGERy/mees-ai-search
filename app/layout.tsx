@@ -44,12 +44,68 @@ const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees-ai.co.zw'),
-  title,
-  description,
-  keywords,
+  title: {
+    default: 'Mees AI - Intelligent Search Companion',
+    template: '%s | Mees AI'
+  },
+  description: 'Your intelligent companion for precise and personalized search results',
+  keywords: ['AI search', 'intelligent search', 'research assistant', 'search engine'],
   authors: [{ name: 'Mees AI Team' }],
   creator: 'Mees AI',
   publisher: 'Mees AI',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover'
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Mees AI'
+  },
+  applicationName: 'Mees AI',
+  manifest: '/manifest.json',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' }
+  ],
+  icons: {
+    icon: [
+      { url: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
+      { url: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
+      { url: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png' },
+      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/icons/60.png', sizes: '60x60', type: 'image/png' },
+      { url: '/icons/76.png', sizes: '76x76', type: 'image/png' },
+      { url: '/icons/120.png', sizes: '120x120', type: 'image/png' },
+      { url: '/icons/152.png', sizes: '152x152', type: 'image/png' },
+      { url: '/icons/180.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/512.png', sizes: '512x512', type: 'image/png' }
+    ]
+  },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'format-detection': 'telephone=no',
+    'mobile-web-app-capable': 'yes',
+    'msapplication-TileColor': '#000000',
+    'msapplication-TileImage': '/icons/icon-144x144.png',
+    'msapplication-config': '/browserconfig.xml'
+  },
   robots: {
     index: true,
     follow: true,
@@ -87,13 +143,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: 'https://www.mees-ai.co.zw'
-  },
-  manifest: '/manifest.json',
-  themeColor: '#000000',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Mees AI',
   },
 }
 

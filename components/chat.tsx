@@ -6,7 +6,7 @@ import { PromptType } from '@/lib/utils/prompts'
 import { useUser } from '@clerk/nextjs'
 import { Message, useChat } from 'ai/react'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
 import { LoginModal } from './login-modal'
@@ -35,7 +35,7 @@ export function Chat({
   const [pricingModalOpen, setPricingModalOpen] = useState(false)
   const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
   const { user } = useUser()
-  const [promptTypeState, setPromptTypeState] = useState<PromptType>('default')
+  const [promptTypeState, setPromptTypeState] = useState<PromptType>(promptType || 'default')
 
   const {
     messages,
@@ -81,23 +81,25 @@ export function Chat({
   })
 
   useEffect(() => {
-    setMessages(savedMessages)
-  }, [id, setMessages, savedMessages])
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages)
+    }
+  }, [])
 
-  const onQuerySelect = (query: string) => {
+  const onQuerySelect = useCallback((query: string) => {
     append({
       role: 'user',
       content: query
     })
-  }
+  }, [append])
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setData(undefined)
     handleSubmit(e)
-  }
+  }, [handleSubmit, setData])
 
-  const fetchUsageData = async () => {
+  const fetchUsageData = useCallback(async () => {
     try {
       const response = await fetch('/api/user/usage')
       if (response.ok) {
@@ -107,23 +109,20 @@ export function Chat({
     } catch (error) {
       console.error('Error fetching usage data:', error)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (user) {
       fetchUsageData()
     }
-  }, [user])
+  }, [user, fetchUsageData])
 
-  useEffect(() => {
-    console.log('promptType state changed to:', promptTypeState)
-  }, [promptTypeState])
-
-  const handleTypeChange = (type: string) => {
+  const handleTypeChange = useCallback((type: string) => {
     if (onPromptTypeChange) {
       onPromptTypeChange(type)
     }
-  }
+    setPromptTypeState(type as PromptType)
+  }, [onPromptTypeChange])
 
   return (
     <>
@@ -148,13 +147,8 @@ export function Chat({
           append={append}
           reload={reload}
           promptType={promptTypeState}
-          onPromptTypeChange={(type) => {
-            console.log('PromptSelector changed to:', type)
-            setPromptTypeState(type as PromptType)
-            handleTypeChange(type)
-          }}
+          onPromptTypeChange={handleTypeChange}
         />
-        
       </div>
 
       <LoginModal 

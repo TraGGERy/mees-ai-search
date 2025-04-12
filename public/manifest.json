@@ -4,7 +4,7 @@
   "description": "Your intelligent companion for precise and personalized search results",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "form_factor": "wide",
@@ -57,7 +57,8 @@
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
@@ -77,7 +78,7 @@
     }
   ],
   "apple_mobile_web_app_capable": "yes",
-  "apple_mobile_web_app_status_bar_style": "default",
+  "apple_mobile_web_app_status_bar_style": "black-translucent",
   "apple_mobile_web_app_title": "Mees AI",
   "apple_touch_icon": [
     {
@@ -104,6 +105,53 @@
       "src": "/icons/180.png",
       "sizes": "180x180",
       "type": "image/png"
+    },
+    {
+      "src": "/icons/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Search",
+      "short_name": "Search",
+      "description": "Start a new search",
+      "url": "/search",
+      "icons": [{ "src": "/icons/search.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Recent Searches",
+      "short_name": "Recent",
+      "description": "View your recent searches",
+      "url": "/history",
+      "icons": [{ "src": "/icons/history.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "file_handlers": [
+    {
+      "action": "/open-file",
+      "accept": {
+        "text/*": [".txt", ".md", ".html"],
+        "application/pdf": [".pdf"]
+      }
     }
   ]
 }

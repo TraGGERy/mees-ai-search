@@ -33,14 +33,14 @@ export function AnswerSection({
   const message = content ? (
     <div className="flex flex-col gap-1">
       <BotMessage message={content} />
-      <div className="flex justify-end items-center gap-2">
-        <ExportOptions content={content} title="AI Research Report" />
+      <div className="flex justify-end items-center gap-1">
         <MessageActions
           message={content}
           chatId={chatId}
           messageId={messageId}
           enableShare={enableShare}
         />
+        <ExportOptions content={content} title="AI Research Report" />
       </div>
     </div>
   ) : (
