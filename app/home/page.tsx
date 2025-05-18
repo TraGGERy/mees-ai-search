@@ -16,7 +16,7 @@ interface PricingDetails {
   lifetimePriceId?: string;
 }
 
-export default function HomePage() {
+const HomePage = () => {
   // State for regional pricing
   const [pricingDetails, setPricingDetails] = useState<PricingDetails>({
     currency: '€',
