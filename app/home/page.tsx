@@ -16,7 +16,7 @@ interface PricingDetails {
   lifetimePriceId?: string;
 }
 
-const HomePage = () => {
+export default function HomePage() {
   // State for regional pricing
   const [pricingDetails, setPricingDetails] = useState<PricingDetails>({
     currency: '€',
@@ -160,7 +160,7 @@ const HomePage = () => {
             Powered by ChatGPT, Claude, Gemini and more — all in one place.
           </p>
           <p className="text-base sm:text-lg mt-4 text-center max-w-3xl mx-auto text-gray-400 px-4">
-            Stop wasting time switching between tools. Mees AI gives you fast, focused answers from the world's best AI models — in a single, private workspace.
+            Stop wasting time switching between tools. Mees AI gives you fast, focused answers from the world&apos;s best AI models — in a single, private workspace.
           </p>
           
           <motion.div 
@@ -191,7 +191,7 @@ const HomePage = () => {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-red-500 text-xl mt-0.5">•</span>
-                <p className="text-gray-300">You need a tool that's private, not tracking your searches.</p>
+                <p className="text-gray-300">You need a tool that&apos;s private, not tracking your searches.</p>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-red-500 text-xl mt-0.5">•</span>
@@ -319,7 +319,7 @@ const HomePage = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">Simple Pricing. No Surprises.</h2>
           {region && 
             <p className="text-center text-sm text-blue-300 mt-2">
-              Showing prices for your region: {region.replace(&apos;_&apos;, &apos; &apos;).replace(/\b\w/g, c => c.toUpperCase())}
+              Showing prices for your region: {region.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
             </p>
           }
           
@@ -486,7 +486,7 @@ const TestimonialCard = ({ quote, author, position }: TestimonialCardProps) => (
     whileHover={{ scale: 1.03 }}
     className="p-6 rounded-xl backdrop-blur-md bg-white/5 border border-gray-700/30"
   >
-    <p className="text-gray-200 mb-4 italic">"{quote}"</p>
+    <p className="text-gray-200 mb-4 italic">&quot;{quote}&quot;</p>
     <div>
       <p className="font-medium text-white">– {author}</p>
       <p className="text-sm text-gray-400">{position}</p>
