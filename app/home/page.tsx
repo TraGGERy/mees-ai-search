@@ -1,7 +1,7 @@
 'use client'
 
 import { WorldMap } from '@/components/ui/world-map'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -48,7 +48,7 @@ export default function HomePage() {
   }, []);
 
   // Animation variants
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: {},
     show: {
       transition: {
@@ -57,7 +57,7 @@ export default function HomePage() {
     },
   }
 
-  const fadeInUp = {
+  const fadeInUp: Variants = {
     hidden: {
       y: 30,
       opacity: 0,
