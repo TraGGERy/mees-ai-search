@@ -200,7 +200,7 @@ export default function HomePage() {
             </ul>
             
             <p className="text-center text-xl font-medium text-gray-200">
-              That's why we built Mees AI.
+              That&apos;s why we built Mees AI.
             </p>
             <p className="text-center text-lg text-gray-300 mt-2">
               A cleaner, faster, and more private AI search experience — made for real work.
@@ -319,7 +319,7 @@ export default function HomePage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">Simple Pricing. No Surprises.</h2>
           {region && 
             <p className="text-center text-sm text-blue-300 mt-2">
-              Showing prices for your region: {region.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              Showing prices for your region: {region.replace(&apos;_&apos;, &apos; &apos;).replace(/\b\w/g, c => c.toUpperCase())}
             </p>
           }
           

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -71,9 +71,9 @@ type Campaign = {
 };
 
 export function EmailCampaigns() {
+  const [isFetching, setIsFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [isFetching, setIsFetching] = useState(true);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -102,24 +102,7 @@ export function EmailCampaigns() {
     },
   });
 
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
-
-  useEffect(() => {
-    if (editingCampaign) {
-      editForm.reset({
-        name: editingCampaign.name,
-        subject: editingCampaign.subject,
-        template: editingCampaign.template,
-        audience: editingCampaign.audience,
-        scheduledFor: editingCampaign.scheduledFor || "",
-        content: editingCampaign.content || "",
-      });
-    }
-  }, [editingCampaign, editForm]);
-
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
     try {
       const response = await fetch("/api/email/campaigns");
       if (!response.ok) {
@@ -137,7 +120,24 @@ export function EmailCampaigns() {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, [fetchCampaigns]);
+
+  useEffect(() => {
+    if (editingCampaign) {
+      editForm.reset({
+        name: editingCampaign.name,
+        subject: editingCampaign.subject,
+        template: editingCampaign.template,
+        audience: editingCampaign.audience,
+        scheduledFor: editingCampaign.scheduledFor || "",
+        content: editingCampaign.content || "",
+      });
+    }
+  }, [editingCampaign, editForm]);
 
   const onSubmit = async (values: z.infer<typeof campaignSchema>) => {
     setIsLoading(true);

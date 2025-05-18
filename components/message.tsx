@@ -169,54 +169,7 @@ export function BotMessage({
               </pre>
             )
           },
-          img({ node, src, alt, ...props }) {
-            const [error, setError] = useState(false);
-            const [isZoomed, setIsZoomed] = useState(false);
-            
-            if (error) {
-              return (
-                <span className="my-4 p-3 border border-zinc-200 dark:border-zinc-800 rounded-md bg-zinc-50 dark:bg-zinc-900 block">
-                  <span className="text-sm text-red-500 block">Failed to load image: {src}</span>
-                  <span className="text-xs text-zinc-500 mt-1 block">{alt}</span>
-                </span>
-              );
-            }
-            
-            // Use span instead of div to avoid invalid nesting with p
-            return (
-              <>
-                <span className={`relative inline-block my-4 ${isZoomed ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : ''}`}>
-                  <img 
-                    src={src} 
-                    alt={alt || 'Image'} 
-                    className={`
-                      rounded-md h-auto object-contain 
-                      ${isZoomed 
-                        ? 'max-h-screen max-w-full cursor-zoom-out p-4' 
-                        : 'max-w-full max-h-[400px] cursor-zoom-in border border-zinc-200 dark:border-zinc-800'
-                      }
-                    `}
-                    onClick={() => setIsZoomed(!isZoomed)}
-                    onError={() => setError(true)}
-                    loading="lazy"
-                    {...props}
-                  />
-                  {isZoomed && (
-                    <button 
-                      className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white"
-                      onClick={() => setIsZoomed(false)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </span>
-                {alt && !isZoomed && <span className="text-xs text-center mt-1 text-muted-foreground block">{alt}</span>}
-              </>
-            )
-          },
+          img: ImageComponent,
         }}
         style={style}
       >
@@ -224,6 +177,55 @@ export function BotMessage({
       </MemoizedReactMarkdown>
     </div>
   )
+}
+
+// Image component with zoom functionality
+function ImageComponent({ node, src, alt, ...props }: any) {
+  const [error, setError] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  
+  if (error) {
+    return (
+      <span className="my-4 p-3 border border-zinc-200 dark:border-zinc-800 rounded-md bg-zinc-50 dark:bg-zinc-900 block">
+        <span className="text-sm text-red-500 block">Failed to load image: {src}</span>
+        <span className="text-xs text-zinc-500 mt-1 block">{alt}</span>
+      </span>
+    );
+  }
+  
+  return (
+    <>
+      <span className={`relative inline-block my-4 ${isZoomed ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/70' : ''}`}>
+        <img 
+          src={src} 
+          alt={alt || 'Image'} 
+          className={`
+            rounded-md h-auto object-contain 
+            ${isZoomed 
+              ? 'max-h-screen max-w-full cursor-zoom-out p-4' 
+              : 'max-w-full max-h-[400px] cursor-zoom-in border border-zinc-200 dark:border-zinc-800'
+            }
+          `}
+          onClick={() => setIsZoomed(!isZoomed)}
+          onError={() => setError(true)}
+          loading="lazy"
+          {...props}
+        />
+        {isZoomed && (
+          <button 
+            className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white"
+            onClick={() => setIsZoomed(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
+      </span>
+      {alt && !isZoomed && <span className="text-xs text-center mt-1 text-muted-foreground block">{alt}</span>}
+    </>
+  );
 }
 
 // Preprocess LaTeX equations to be rendered by KaTeX
