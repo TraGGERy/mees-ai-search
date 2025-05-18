@@ -30,28 +30,40 @@ export async function getChats() {
       return [] // Return empty array if no chats found
     }
 
-    const chats = await Promise.all(
-      chatIds.map(async (chatId) => {
-        try {
-          const chat = await redis.hgetall(chatId)
-          if (!chat) return null
-          
-          return {
-            ...chat,
-            id: chatId.replace('chat:', ''),
-            messages: typeof chat.messages === 'string' 
-              ? JSON.parse(chat.messages) 
-              : chat.messages || [],
-            createdAt: new Date(Number(chat.createdAt) || Date.now()),
-            title: String(chat.title || ''),
-            path: String(chat.path || '')
-          } as Chat
-        } catch (err) {
-          console.error(`Error fetching chat ${chatId}:`, err)
-          return null
-        }
-      })
-    )
+    // Use pipeline for more efficient batch retrieval
+    const pipeline = redis.pipeline()
+    chatIds.forEach(chatId => {
+      pipeline.hgetall(chatId)
+    })
+    
+    const results = await pipeline.exec()
+    
+    if (!results) return []
+    
+    const chats = results.map((result, index) => {
+      try {
+        if (!result || !result[1]) return null
+        
+        const chat = result[1]
+        const chatId = chatIds[index]
+        
+        if (!chat) return null
+        
+        return {
+          ...chat,
+          id: chatId.replace('chat:', ''),
+          messages: typeof chat.messages === 'string' 
+            ? JSON.parse(chat.messages) 
+            : chat.messages || [],
+          createdAt: new Date(Number(chat.createdAt) || Date.now()),
+          title: String(chat.title || ''),
+          path: String(chat.path || '')
+        } as Chat
+      } catch (err) {
+        console.error(`Error parsing chat data:`, err)
+        return null
+      }
+    })
 
     // Ensure we're working with an array and handle all filters
     return (chats || [])

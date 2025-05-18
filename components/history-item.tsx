@@ -4,12 +4,13 @@ import { Chat } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import React, { memo, useMemo } from 'react'
 
 type HistoryItemProps = {
   chat: Chat
 }
 
+// Memoized date formatter for better performance
 const formatDateWithTime = (date: Date | string) => {
   const parsedDate = new Date(date)
   const now = new Date()
@@ -48,15 +49,19 @@ const formatDateWithTime = (date: Date | string) => {
   }
 }
 
-const HistoryItem: React.FC<HistoryItemProps> = ({ chat }) => {
+const HistoryItem: React.FC<HistoryItemProps> = memo(({ chat }) => {
   const pathname = usePathname()
   const isActive = pathname === chat.path
+  
+  // Memoize the formatted date to prevent recalculation on re-renders
+  const formattedDate = useMemo(() => formatDateWithTime(chat.createdAt), [chat.createdAt])
 
   return (
     <Link
       href={chat.path}
+      prefetch={false} // Only prefetch when hovered
       className={cn(
-        'flex flex-col hover:bg-muted cursor-pointer p-2 rounded border',
+        'flex flex-col hover:bg-muted cursor-pointer p-2 rounded border transition-colors',
         isActive ? 'bg-muted/70 border-border' : 'border-transparent'
       )}
     >
@@ -64,10 +69,12 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ chat }) => {
         {chat.title}
       </div>
       <div className="text-xs text-muted-foreground">
-        {formatDateWithTime(chat.createdAt)}
+        {formattedDate}
       </div>
     </Link>
   )
-}
+})
+
+HistoryItem.displayName = 'HistoryItem'
 
 export default HistoryItem

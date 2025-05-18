@@ -1,5 +1,5 @@
 import { JSONValue, Message } from 'ai'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { RenderMessage } from './render-message'
 import { ToolSection } from './tool-section'
 import { Spinner } from './ui/spinner'
@@ -25,15 +25,19 @@ export function ChatMessages({
   // Add ref for the messages container
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Scroll to bottom function
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
-  }
+  // Scroll to bottom function with debounce
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      const behavior = messages.length > 10 ? 'smooth' : 'instant'
+      messagesEndRef.current.scrollIntoView({ behavior })
+    }
+  }, [messages.length])
 
   // Scroll to bottom on mount and when messages change
   useEffect(() => {
-    scrollToBottom()
-  }, [])
+    const timer = setTimeout(scrollToBottom, 100)
+    return () => clearTimeout(timer)
+  }, [messages, scrollToBottom])
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1]
@@ -42,21 +46,12 @@ export function ChatMessages({
     }
   }, [messages])
 
-  // get last tool data for manual tool call
+  // Memoize the last tool data calculation
   const lastToolData = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) return null
 
-    const lastItem = data[data.length - 1] as {
-      type: 'tool_call'
-      data: {
-        toolCallId: string
-        state: 'call' | 'result'
-        toolName: string
-        args: string
-      }
-    }
-
-    if (lastItem.type !== 'tool_call') return null
+    const lastItem = data[data.length - 1]
+    if (!lastItem || lastItem.type !== 'tool_call') return null
 
     const toolData = lastItem.data
     return {
@@ -67,20 +62,20 @@ export function ChatMessages({
     }
   }, [data])
 
-  if (!messages.length) return null
+  // Memoize the last user index calculation
+  const lastUserIndex = useMemo(() => {
+    if (!messages.length) return -1
+    return messages.length - 1 - [...messages].reverse().findIndex(msg => msg.role === 'user')
+  }, [messages])
 
-  const lastUserIndex =
-    messages.length -
-    1 -
-    [...messages].reverse().findIndex(msg => msg.role === 'user')
+  const showLoading = isLoading && messages[messages.length - 1]?.role === 'user'
 
-  const showLoading = isLoading && messages[messages.length - 1].role === 'user'
-
-  const getIsOpen = (id: string) => {
+  // Memoize the isOpen calculation
+  const getIsOpen = useCallback((id: string) => {
     const baseId = id.endsWith('-related') ? id.slice(0, -8) : id
     const index = messages.findIndex(msg => msg.id === baseId)
     return openStates[id] ?? index >= lastUserIndex
-  }
+  }, [messages, lastUserIndex, openStates])
 
   const handleOpenChange = (id: string, open: boolean) => {
     setOpenStates(prev => ({
@@ -88,6 +83,8 @@ export function ChatMessages({
       [id]: open
     }))
   }
+
+  if (!messages.length) return null
 
   return (
     <div className="relative mx-auto px-4 w-full">

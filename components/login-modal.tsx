@@ -29,8 +29,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <DialogHeader>
           <DialogTitle>Login Required</DialogTitle>
           <DialogDescription className="pt-4">
-            To use advanced models, please sign in or create an account.
-            The basic model (Auto Search) remains available without login.
+            To use advanced tools like Academic, Deep Search, Essay Plan, and others, please sign in or create an account.
+            The Web tool remains available without login.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-4 mt-4">

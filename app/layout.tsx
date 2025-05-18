@@ -16,41 +16,47 @@ const fontSans = FontSans({
   variable: '--font-sans'
 })
 
-const title = 'Mees AI - Advanced AI Search Engine | Smart Answers & Real-Time Insights';
+const title = 'Mees AI - Academic Search Engine | Research Assistant & Citation Generator';
 const description =
-  'Get instant AI-powered answers with Mees AI, the intelligent search engine. Explore real-time results, expert insights, and comprehensive solutions for research, education, and technical queries.';
+  'The leading Academic Search Engine for researchers and students. Get instant, citation-ready answers, humanized AI responses, and specialized tools for academic research and assignments. Transform your research workflow with AI-powered academic search.';
 const keywords = [
-  'AI search engine',
-  'MeesAI.app',
-  'AI search engine',
-  'smart answers',
-  'real-time AI',
+  'academic search engine',
   'research assistant',
+  'citation generator',
+  'AI for students',
+  'academic writing',
+  'research paper help',
+  'assignment workflow',
+  'humanized AI responses',
+  'scholarly search',
+  'academic citations',
+  'student research tool',
+  'academic AI assistant',
+  'research paper writing',
+  'citation management',
+  'academic workflow',
+  'student assignment help',
+  'research paper generator',
+  'academic content creation',
+  'scholarly writing assistant',
+  'academic knowledge engine',
   'academic search',
-  'question answering system',
-  'AI-powered insights',
-  'knowledge engine',
-  'instant answers',
-  'study tool',
-  "search engine",
-    "AI",
-    "perplexity.ai",
-    "perplexity",
-    'andra search',
-    "open source ai search engine",
-    "minimalistic ai search engine",
+  'scholarly research',
+  'academic database',
+  'research search engine',
+  'academic literature search'
 ].join(', ');
-const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';   
+const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.mees-ai.co.zw'),
+  metadataBase: new URL('https://www.mees-ai.app'),
   title: {
-    default: 'Mees AI - Intelligent Search Companion',
-    template: '%s | Mees AI'
+    default: 'Mees AI - Academic Search Engine & Research Assistant',
+    template: '%s | Mees AI Academic Search'
   },
-  description: 'Your intelligent companion for precise and personalized search results',
-  keywords: ['AI search', 'intelligent search', 'research assistant', 'search engine'],
-  authors: [{ name: 'Mees AI Team' }],
+  description: 'The leading Academic Search Engine for researchers and students. Get citation-ready answers and humanized AI responses for your academic work.',
+  keywords: ['academic search engine', 'research assistant', 'citation generator', 'student research', 'academic writing'],
+  authors: [{ name: 'Mees AI Academic Team' }],
   creator: 'Mees AI',
   publisher: 'Mees AI',
   formatDetection: {
@@ -68,9 +74,9 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Mees AI'
+    title: 'Mees AI Research'
   },
-  applicationName: 'Mees AI',
+  applicationName: 'Mees AI Research Assistant',
   manifest: '/manifest.json',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
@@ -120,30 +126,45 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.mees-ai.co.zw',
-    title: 'Mees AI - Next-Gen AI Search & Answer Engine',
-    description: 'Instant AI-powered answers for complex queries - Research, Education, Technology & More',
-    siteName: 'Mees AI',
+    url: 'https://www.mees-ai.app',
+    title: 'Mees AI - Academic Search Engine for Research & Writing',
+    description: 'Transform your research with our Academic Search Engine. Get AI-powered academic search, citations, and humanized responses. Perfect for students and researchers.',
+    siteName: 'Mees AI Academic Search',
     images: [
       {
         url: image,
         width: 1200,
         height: 630,
-        alt: 'Mees AI - Advanced AI Search Engine'
+        alt: 'Mees AI - Academic Search Engine'
       }
     ]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mees AI - Smart Search & AI Answers',
-    description: 'Get real-time AI insights and expert-level answers instantly',
+    title: 'Mees AI - Academic Search Engine & Research Assistant',
+    description: 'Transform your research with our Academic Search Engine. Get AI-powered academic search, citations, and humanized responses. Perfect for students and researchers.',
     creator: '@Iamtoxix',
     site: '@Iamtoxix',
     images: [image],
   },
   alternates: {
-    canonical: 'https://www.mees-ai.co.zw'
+    canonical: 'https://www.mees-ai.app',
+    languages: {
+      'en-US': 'https://www.mees-ai.app',
+      'en-ZW': 'https://www.mees-ai.co.zw'
+    }
   },
+  verification: {
+    google: 'your-google-site-verification-code',
+    yandex: 'your-yandex-verification-code',
+    other: {
+      'msvalidate.01': 'your-bing-verification-code'
+    }
+  },
+  referrer: 'origin-when-cross-origin',
+  generator: 'Next.js',
+  archives: ['https://www.mees-ai.app/archive', 'https://www.mees-ai.co.zw/archive'],
+  assets: ['https://www.mees-ai.app/assets', 'https://www.mees-ai.co.zw/assets']
 }
 
 export const viewport: Viewport = {
@@ -162,6 +183,32 @@ export default function RootLayout({
     process.env.NEXT_PUBLIC_ENABLE_SAVE_CHAT_HISTORY === 'true'
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "Mees AI",
+              "url": "https://www.mees-ai.co.zw",
+              "description": "Advanced AI-powered Academic Search Engine providing smart answers and real-time insights",
+              "applicationCategory": "SearchApplication",
+              "operatingSystem": "All",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "creator": {
+                "@type": "Organization",
+                "name": "Mees AI",
+                "url": "https://www.mees-ai.co.zw"
+              }
+            })
+          }}
+        />
+      </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
         <ClerkProvider>
          <Analytics />

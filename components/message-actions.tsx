@@ -23,8 +23,11 @@ export function MessageActions({
   enableShare = false,
   messageId
 }: MessageActionsProps) {
+  // Ensure we're using the proper chatId, defaulting to CHAT_ID if not provided
+  const chatIdToUse = chatId || CHAT_ID
+  
   const { isLoading, messages, setMessages, append } = useChat({
-    id: CHAT_ID
+    id: chatIdToUse
   })
   const { isSignedIn } = useUser()
   
@@ -39,28 +42,73 @@ export function MessageActions({
       return
     }
 
-    if (!messageId) return
+    if (!messageId) {
+      toast.error('Cannot regenerate - missing message ID')
+      return
+    }
 
-    // Find the user message that triggered this response
+    // Find the current message in the conversation
     const messageIndex = messages.findIndex(m => m.id === messageId)
-    if (messageIndex === -1) return
+    if (messageIndex === -1) {
+      console.error('Message not found in history:', messageId)
+      toast.error('Message not found in chat history')
+      return
+    }
 
-    // Get the user message that triggered this response
-    const userMessage = messages[messageIndex - 1]
-    if (!userMessage || userMessage.role !== 'user') return
+    // Find the most recent user message before this response
+    let userMessageIndex = -1
+    for (let i = messageIndex - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        userMessageIndex = i
+        break
+      }
+    }
 
-    // Remove the current response
+    if (userMessageIndex === -1) {
+      toast.error('Could not find the user message')
+      return
+    }
+
+    // Get user message content but create a new object with a new ID
+    const userMessageContent = messages[userMessageIndex].content
+    
+    // Store original messages in case we need to restore
+    const originalMessages = [...messages]
+    
+    try {
+      // Show a loading toast
+      toast.loading('Regenerating response...')
+      
+      // Trim the messages to remove the current response and any after it
     const newMessages = messages.slice(0, messageIndex)
     setMessages(newMessages)
 
-    // Regenerate the response
+      // Create a new message using the format expected by the AI SDK
+      setTimeout(async () => {
+        try {
+          // Create a simpler message object that the AI SDK expects
+          // This avoids potential issues with incompatible message formats
     await append({
       role: 'user',
-      content: userMessage.content,
-      id: crypto.randomUUID()
-    })
-
-    toast.success('Regenerating response...')
+            content: userMessageContent
+            // Don't specify an ID - let the SDK generate one automatically
+          })
+          toast.dismiss()
+          toast.success('New response generated')
+        } catch (err) {
+          console.error('Inner error generating response:', err)
+          toast.dismiss()
+          toast.error('Failed to generate new response')
+          setMessages(originalMessages)
+        }
+      }, 100)
+    } catch (error) {
+      console.error('Error in regeneration process:', error)
+      toast.dismiss()
+      toast.error('Regeneration failed')
+      // Restore original messages
+      setMessages(originalMessages)
+    }
   }
 
   if (isLoading) {

@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from 'react'
 import { PlusCircle } from 'lucide-react'
 import { SearchResultImage } from '@/lib/types'
+import Image from 'next/image'
 
 interface SearchResultsImageSectionProps {
   images: SearchResultImage[]
@@ -34,6 +35,26 @@ export const SearchResultsImageSection: React.FC<
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [imagesToRender, setImagesToRender] = useState<{url: string; description: string}[]>([])
+
+  // Convert images once and memoize them
+  useEffect(() => {
+    if (!images || images.length === 0) return;
+    
+    // If enabled the include_images_description is true, the images will be an array of { url: string, description: string }
+    // Otherwise, the images will be an array of strings
+    let convertedImages: { url: string; description: string }[] = []
+    if (typeof images[0] === 'string') {
+      convertedImages = (images as string[]).map(image => ({
+        url: image,
+        description: ''
+      }))
+    } else {
+      convertedImages = images as { url: string; description: string }[]
+    }
+    
+    setImagesToRender(convertedImages);
+  }, [images]);
 
   // Update the current and count state when the carousel api is available
   useEffect(() => {
@@ -56,25 +77,13 @@ export const SearchResultsImageSection: React.FC<
     }
   }, [api, selectedIndex])
 
-  if (!images || images.length === 0) {
+  if (!imagesToRender || imagesToRender.length === 0) {
     return <div className="text-muted-foreground">No images found</div>
-  }
-
-  // If enabled the include_images_description is true, the images will be an array of { url: string, description: string }
-  // Otherwise, the images will be an array of strings
-  let convertedImages: { url: string; description: string }[] = []
-  if (typeof images[0] === 'string') {
-    convertedImages = (images as string[]).map(image => ({
-      url: image,
-      description: ''
-    }))
-  } else {
-    convertedImages = images as { url: string; description: string }[]
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      {convertedImages.slice(0, 4).map((image, index) => (
+      {imagesToRender.slice(0, 4).map((image, index) => (
         <Dialog key={index}>
           <DialogTrigger asChild>
             <div
@@ -84,27 +93,34 @@ export const SearchResultsImageSection: React.FC<
               <Card className="flex-1 h-full">
                 <CardContent className="p-2 h-full w-full">
                   {image ? (
-                    <img
+                    <Image
                       src={image.url}
                       alt={`Image ${index + 1}`}
                       className="h-full w-full object-cover"
-                      onError={e =>
-                        (e.currentTarget.src = '/images/placeholder-image.png')
-                      }
+                      width={300}
+                      height={200}
+                      loading={index < 2 ? "eager" : "lazy"}
+                      placeholder="blur" 
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2hFD3dAAAAABJRU5ErkJggg=="
+                      onError={e => {
+                        // TypeScript requires type assertion for currentTarget
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/images/placeholder-image.png'
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-muted animate-pulse" />
                   )}
                 </CardContent>
               </Card>
-              {index === 3 && images.length > 4 && (
+              {index === 3 && imagesToRender.length > 4 && (
                 <div className="absolute inset-0 bg-black/30 rounded-md flex items-center justify-center text-white/80 text-sm">
                   <PlusCircle size={24} />
                 </div>
               )}
             </div>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-auto">
+          <DialogContent className="sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Search Images</DialogTitle>
               <DialogDescription className="text-sm">{query}</DialogDescription>
@@ -115,17 +131,20 @@ export const SearchResultsImageSection: React.FC<
                 className="w-full bg-muted max-h-[60vh]"
               >
                 <CarouselContent>
-                  {convertedImages.map((img, idx) => (
+                  {imagesToRender.map((img, idx) => (
                     <CarouselItem key={idx}>
                       <div className="p-1 flex items-center justify-center h-full">
-                        <img
+                        <Image
                           src={img.url}
                           alt={`Image ${idx + 1}`}
                           className="h-auto w-full object-contain max-h-[60vh]"
-                          onError={e =>
-                            (e.currentTarget.src =
-                              '/images/placeholder-image.png')
-                          }
+                          width={800}
+                          height={600}
+                          onError={e => {
+                            // TypeScript requires type assertion for currentTarget
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/images/placeholder-image.png'
+                          }}
                         />
                       </div>
                     </CarouselItem>

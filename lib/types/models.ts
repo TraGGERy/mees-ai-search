@@ -21,6 +21,7 @@ export const models: Model[] = [
     providerId: 'anthropic',
     description: '3x faster than Auto & detailed answers'
   },
+  
   // The following models are temporarily disabled.
   // Uncomment the lines below to enable these experimental models.
   // {

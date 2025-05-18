@@ -5,22 +5,44 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { SearchResultItem } from '@/lib/types'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { sanitizeUrl } from '@/lib/utils/index'
+import { memo } from 'react'
 
 export interface SearchResultsProps {
   results: SearchResultItem[]
 }
 
-export function SearchResults({ results }: SearchResultsProps) {
+export const SearchResults = memo(function SearchResults({ results }: SearchResultsProps) {
   // State to manage whether to display the results
   const [showAllResults, setShowAllResults] = useState(false)
 
+  // Number of results to show initially (optimized for viewport size)
+  const initialResultsToShow = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      // Determine based on screen size
+      return window.innerWidth < 768 ? 4 : 8
+    }
+    return 6 // Default value for SSR
+  }, [])
+
+  // Results to display based on state
+  const displayedResults = useMemo(() => {
+    return showAllResults 
+      ? results 
+      : results.slice(0, initialResultsToShow)
+  }, [results, showAllResults, initialResultsToShow])
+
+  // Calculate how many additional results are available
+  const additionalResultsCount = useMemo(() => {
+    return Math.max(0, results.length - initialResultsToShow)
+  }, [results.length, initialResultsToShow])
+
+  // Handle the "View more" button click
   const handleViewMore = () => {
     setShowAllResults(true)
   }
 
-  const displayedResults = showAllResults ? results : results.slice(0, 3)
-  const additionalResultsCount = results.length > 3 ? results.length - 3 : 0
   const displayUrlName = (url: string) => {
     const hostname = new URL(url).hostname
     const parts = hostname.split('.')
@@ -28,36 +50,34 @@ export function SearchResults({ results }: SearchResultsProps) {
   }
 
   return (
-    <div className="flex flex-wrap">
+    <div className="flex flex-wrap -m-1">
       {displayedResults.map((result, index) => (
-        <div className="w-1/2 md:w-1/4 p-1" key={index}>
-          <Link href={result.url} passHref target="_blank">
-            <Card className="flex-1 h-full">
-              <CardContent className="p-2 flex flex-col justify-between h-full">
-                <p className="text-xs line-clamp-2 min-h-[2rem]">
-                  {result.title || result.content}
-                </p>
-                <div className="mt-2 flex items-center space-x-1">
-                  <Avatar className="h-4 w-4">
-                    <AvatarImage
-                      src={`https://www.google.com/s2/favicons?domain=${
-                        new URL(result.url).hostname
-                      }`}
-                      alt={new URL(result.url).hostname}
-                    />
-                    <AvatarFallback>
-                      {new URL(result.url).hostname[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-xs opacity-60 truncate">
-                    {`${displayUrlName(result.url)} - ${index + 1}`}
-                  </div>
+        <div key={index} className="w-full md:w-1/2 p-1">
+          <Card>
+            <CardContent className="p-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold leading-tight">
+                  <a
+                    href={sanitizeUrl(result.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    {result.title}
+                  </a>
+                </h3>
+                <div className="text-xs text-muted-foreground line-clamp-1 opacity-70">
+                  {result.url}
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                  {result.content}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       ))}
+      
       {!showAllResults && additionalResultsCount > 0 && (
         <div className="w-1/2 md:w-1/4 p-1">
           <Card className="flex-1 flex h-full items-center justify-center">
@@ -75,4 +95,4 @@ export function SearchResults({ results }: SearchResultsProps) {
       )}
     </div>
   )
-}
+})

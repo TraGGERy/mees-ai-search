@@ -9,7 +9,8 @@ export function EmptyScreen({
   submitMessage: (message: string) => void
   className?: string
 }) {
-  const [currentTime, setCurrentTime] = useState(new Date())
+  // Initialize with null to avoid hydration mismatch
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [currentGreetingIndex, setCurrentGreetingIndex] = useState(0)
   
   // Multilingual greetings
@@ -21,6 +22,9 @@ export function EmptyScreen({
   ];
   
   useEffect(() => {
+    // Set time immediately on client-side to avoid hydration mismatch
+    setCurrentTime(new Date());
+    
     // Update time every minute
     const timeTimer = setInterval(() => {
       setCurrentTime(new Date());
@@ -39,14 +43,14 @@ export function EmptyScreen({
     };
   }, [greetings.length]);
   
-  // Format date and time
-  const formattedTime = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const formattedDate = currentTime.toLocaleDateString([], { 
+  // Format date and time only on client-side after initial render
+  const formattedTime = currentTime?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+  const formattedDate = currentTime?.toLocaleDateString([], { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 
-  });
+  }) || '';
   
   // Example questions
   const exampleQuestions = [

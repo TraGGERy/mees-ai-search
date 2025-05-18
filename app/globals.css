@@ -47,6 +47,15 @@
     --accent-blue: 210 100% 97%;
     --accent-blue-foreground: 210 100% 50%;
     --accent-blue-border: 210 100% 90%;
+    
+    /* Feature colors */
+    --humanize-primary: 210 100% 50%;
+    --humanize-light: 210 100% 95%;
+    --humanize-dark: 210 100% 30%;
+    
+    --rewrite-primary: 270 70% 60%;
+    --rewrite-light: 270 100% 95%;
+    --rewrite-dark: 270 70% 40%;
   }
 
   .dark {
@@ -86,6 +95,15 @@
     --accent-blue: 210 100% 10%;
     --accent-blue-foreground: 210 100% 80%;
     --accent-blue-border: 210 100% 25%;
+    
+    /* Feature colors - dark mode */
+    --humanize-primary: 210 100% 65%;
+    --humanize-light: 210 100% 25%;
+    --humanize-dark: 210 100% 85%;
+    
+    --rewrite-primary: 270 70% 75%;
+    --rewrite-light: 270 100% 20%;
+    --rewrite-dark: 270 70% 90%;
   }
 }
 
@@ -96,4 +114,273 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Responsive styles for mobile devices */
+@layer components {
+  /* Improve markdown content on mobile */
+  .mobile-message-container {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Handle long words and URLs */
+  .mobile-message-container p,
+  .mobile-message-container li,
+  .mobile-message-container h1,
+  .mobile-message-container h2,
+  .mobile-message-container h3,
+  .mobile-message-container h4,
+  .mobile-message-container h5,
+  .mobile-message-container h6 {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-word;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+  }
+
+  /* Make sure code blocks don't overflow on mobile */
+  .mobile-message-container pre,
+  .mobile-message-container code {
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  /* Make tables scroll horizontally on mobile */
+  .mobile-message-container table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Make images responsive */
+  .mobile-message-container img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Make list items wrap properly */
+  .mobile-message-container ul,
+  .mobile-message-container ol {
+    padding-left: 1.5rem;
+  }
+
+  /* Make sure links don't overflow */
+  .mobile-message-container a {
+    word-break: break-all;
+  }
+
+  /* Improve blockquotes on mobile */
+  .mobile-message-container blockquote {
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+    max-width: 100%;
+  }
+  
+  /* Prevent layout shifts during humanization */
+  .content-container {
+    min-height: inherit;
+    height: 100%;
+    transition: height 0.1s ease-out;
+    will-change: height;
+  }
+  
+  /* Ensure content maintains space during transitions */
+  .content-preserving-container {
+    min-height: 1.5em;
+    transition: height 0.1s ease-out;
+    contain: layout;
+  }
+  
+  /* Custom styling for the humanize button */
+  .humanize-btn {
+    background-color: hsl(var(--humanize-light));
+    color: hsl(var(--humanize-primary));
+    border: 1px solid hsl(var(--humanize-primary) / 0.2);
+    transition: all 0.2s ease;
+  }
+  
+  .humanize-btn:hover {
+    background-color: hsl(var(--humanize-primary) / 0.15);
+    border-color: hsl(var(--humanize-primary) / 0.5);
+  }
+  
+  /* Custom styling for the rewrite button */
+  .rewrite-btn {
+    background-color: hsl(var(--rewrite-light));
+    color: hsl(var(--rewrite-primary));
+    border: 1px solid hsl(var(--rewrite-primary) / 0.2);
+    transition: all 0.2s ease;
+  }
+  
+  .rewrite-btn:hover {
+    background-color: hsl(var(--rewrite-primary) / 0.15);
+    border-color: hsl(var(--rewrite-primary) / 0.5);
+  }
+}
+
+/* Animation for progress bar */
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-progress {
+  animation: progress 2s linear infinite;
+  background-image: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.2),
+    rgba(59, 130, 246, 0.6),
+    rgba(59, 130, 246, 0.2)
+  );
+  background-size: 200% 100%;
+}
+
+/* Improved skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite forwards;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1) 8%, rgba(255, 255, 255, 0.2) 18%, rgba(255, 255, 255, 0.1) 33%);
+  background-size: 1000px 100%;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(to right, rgba(30, 30, 30, 0.1) 8%, rgba(60, 60, 60, 0.2) 18%, rgba(30, 30, 30, 0.1) 33%);
+  background-size: 1000px 100%;
+}
+
+/* Animation for skeleton fade-out */
+@keyframes skeletonFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.skeleton-fade-out {
+  animation: skeletonFadeOut 0.3s ease-out forwards;
+}
+
+/* Animation for content fade-in */
+@keyframes contentFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.content-fade-in {
+  animation: contentFadeIn 0.3s ease-in forwards;
+}
+
+/* Animation for global loading indicator */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-in forwards;
+}
+
+/* Animations for floating menu - optimized for performance */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -95%) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Faster, more immediate appear animation for the floating menu */
+.instant-appear {
+  opacity: 0;
+  animation: instantAppear 0.1s ease-out forwards;
+}
+
+@keyframes instantAppear {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Prevent scroll jank during loading state transitions */
+html {
+  scroll-behavior: smooth;
+}
+
+.height-transition {
+  transition: height 0.2s ease-out;
+}
+
+/* Error message styling */
+.error-message {
+  animation: errorFadeIn 0.3s ease-out forwards;
+  transform-origin: top;
+}
+
+@keyframes errorFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Improved focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid hsl(var(--humanize-primary));
+  outline-offset: 2px;
 }

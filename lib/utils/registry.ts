@@ -41,6 +41,18 @@ export const registry = createProviderRegistry({
 export function getModel(model: string) {
   const [provider, ...modelNameParts] = model.split(':') ?? []
   const modelName = modelNameParts.join(':')
+  
+  // Add specific configuration for Google Gemini models
+  if (provider === 'google') {
+    const googleModel = registry.languageModel(model)
+    return wrapLanguageModel({
+      model: googleModel,
+      middleware: extractReasoningMiddleware({
+        tagName: 'think'
+      })
+    })
+  }
+
   if (model.includes('ollama')) {
     const ollama = createOllama({
       baseURL: `${process.env.OLLAMA_BASE_URL}/api`

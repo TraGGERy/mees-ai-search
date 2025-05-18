@@ -5,17 +5,18 @@ import { cn } from '@/lib/utils'
 import { PromptType } from '@/lib/utils/prompts'
 import { useUser } from '@clerk/nextjs'
 import { Message, useChat } from 'ai/react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
 import { LoginModal } from './login-modal'
 import { PricingModal } from './pricing-modal'
+import { toast } from 'sonner'
 
 interface ChatProps {
   id: string
   savedMessages: Message[]
-  promptType?: "default" | "academic" | "deepSearch"
+  promptType?: "default" | "academic" | "assignment" | "essayPlan" | "researchReport" | "literatureReview" | "caseStudy" | "debatePrep" | "labReport" | "presentationOutline"
   query?: string
   onPromptTypeChange?: (type: string) => void
   className?: string
@@ -29,6 +30,7 @@ export function Chat({
   onPromptTypeChange,
   className
 }: ChatProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const queryFromParams = searchParams?.get('message') ?? null
   const [loginModalOpen, setLoginModalOpen] = useState(false)
@@ -51,52 +53,102 @@ export function Chat({
     reload
   } = useChat({
     initialMessages: savedMessages,
-    id: CHAT_ID,
+    id: id || CHAT_ID,
     body: {
       id,
       previewToken: searchParams?.get('preview') ?? null,
       ...(queryFromParams && { query: queryFromParams }),
       promptType: promptTypeState
     },
-    onFinish: () => {
-      setTimeout(() => {
-        window.history.replaceState({}, '', `/search/${id}`)
-      }, 100)
+    onFinish: (message) => {
+      if (message) {
+        setMessages(prev => {
+          // Find and replace the message if it exists, otherwise append it
+          const index = prev.findIndex(m => m.id === message.id)
+          if (index !== -1) {
+            const newMessages = [...prev]
+            newMessages[index] = message
+            return newMessages
+          }
+          return [...prev, message]
+        })
+      }
+      // Clear loading state after message is received
+      setData(undefined)
     },
     onError: (error) => {
       try {
-        const errorData = error.message && JSON.parse(error.message)
-        if (errorData?.requiresLogin) {
-          setLoginModalOpen(true)
-        } else if (errorData?.needsUpgrade && errorData?.showPricing) {
-          if (errorData.remaining !== undefined) {
-            setUsageRemaining(errorData.remaining)
+        // First check if the error message is already a string
+        if (typeof error.message === 'string') {
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(error.message)
+            if (errorData?.requiresLogin) {
+              setLoginModalOpen(true)
+            } else if (errorData?.needsUpgrade && errorData?.showPricing) {
+              if (errorData.remaining !== undefined) {
+                setUsageRemaining(errorData.remaining)
+              }
+              setPricingModalOpen(true)
+            } else {
+              // If it's a valid JSON but not one of our known error types
+              toast.error(errorData.message || 'An error occurred')
+            }
+          } catch (parseError) {
+            // If parsing fails, it's likely a plain text error message
+            toast.error(error.message)
           }
-          setPricingModalOpen(true)
+        } else {
+          // If error.message is not a string, show a generic error
+          toast.error('An unexpected error occurred')
         }
       } catch (e) {
-        console.error('Error parsing error message:', e)
+        console.error('Error handling error:', e)
+        toast.error('An unexpected error occurred')
       }
+      // Clear loading state on error
+      setData(undefined)
     }
   })
 
+  // Ensure messages are properly initialized
   useEffect(() => {
     if (savedMessages.length > 0) {
       setMessages(savedMessages)
     }
-  }, [])
+  }, [savedMessages, setMessages])
+
+  // Handle URL updates when messages change
+  useEffect(() => {
+    if (messages.length > 0 && !id) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage?.id) {
+        const chatId = lastMessage.id.split('-')[0]
+        console.log('Updating URL with chat ID:', chatId)
+        router.replace(`/search/${chatId}`, { scroll: false })
+      }
+    }
+  }, [messages, id, router])
 
   const onQuerySelect = useCallback((query: string) => {
     append({
       role: 'user',
-      content: query
+      content: query,
+      id: crypto.randomUUID()
     })
   }, [append])
 
   const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setData(undefined)
-    handleSubmit(e)
+    
+    try {
+      handleSubmit(e)
+    } catch (error) {
+      console.error('Error submitting chat:', error)
+      toast.error('An error occurred while processing your request. Please try again.')
+      setData(undefined)
+    }
   }, [handleSubmit, setData])
 
   const fetchUsageData = useCallback(async () => {
@@ -118,11 +170,18 @@ export function Chat({
   }, [user, fetchUsageData])
 
   const handleTypeChange = useCallback((type: string) => {
+    // Check if the prompt type requires login (all except 'default' which is 'web')
+    if (type !== 'default' && !user) {
+      setLoginModalOpen(true)
+      // Don't change the prompt type - keep the current one
+      return
+    }
+    
     if (onPromptTypeChange) {
       onPromptTypeChange(type)
     }
     setPromptTypeState(type as PromptType)
-  }, [onPromptTypeChange])
+  }, [onPromptTypeChange, user])
 
   return (
     <>

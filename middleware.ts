@@ -1,6 +1,12 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/chat(.*)', '/admin(.*)', '/pricing(.*)'])
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/chat(.*)',
+  '/admin(.*)',
+  '/pricing(.*)',
+  '/api/humanize(.*)'  // Add humanize API route to protected routes
+])
 
 // Add share routes to public paths
 const isPublicPath = createRouteMatcher([

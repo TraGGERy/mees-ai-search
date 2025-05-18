@@ -32,11 +32,11 @@ export function CollapsibleMessage({
   showIcon = true
 }: CollapsibleMessageProps) {
   const { user, isLoaded } = useUser()
-  const content = <div className="py-2 flex-1">{children}</div>
+  const content = <div className="py-2 flex-1 w-full overflow-hidden">{children}</div>
 
   return (
-    <div className="flex gap-3">
-      <div className="relative flex flex-col items-center">
+    <div className="flex gap-3 w-full max-w-full overflow-hidden">
+      <div className="relative flex flex-col items-center flex-shrink-0">
         <div className={cn('mt-[10px] w-5', role === 'assistant' && 'mt-4')}>
           {showIcon &&
             (role === 'user' ? (
@@ -59,7 +59,7 @@ export function CollapsibleMessage({
       {isCollapsible ? (
         <div
           className={cn(
-            'flex-1 rounded-2xl p-4',
+            'flex-1 rounded-2xl p-4 w-full overflow-hidden',
             showBorder && 'border border-border/50'
           )}
         >
@@ -71,17 +71,17 @@ export function CollapsibleMessage({
             <CollapsibleTrigger className="flex items-center justify-between w-full group">
               <div className="flex items-center justify-between w-full gap-2">
                 {header && <div className="text-sm w-full">{header}</div>}
-                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180 flex-shrink-0" />
               </div>
             </CollapsibleTrigger>
-            <CollapsibleContent className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down">
+            <CollapsibleContent className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down w-full overflow-hidden">
               <Separator className="my-4 border-border/50" />
               {content}
             </CollapsibleContent>
           </Collapsible>
         </div>
       ) : (
-        <div className="flex-1 rounded-2xl px-4">{content}</div>
+        <div className="flex-1 rounded-2xl px-4 w-full overflow-hidden">{content}</div>
       )}
     </div>
   )

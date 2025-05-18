@@ -17,6 +17,7 @@ import { PromptSelector } from './prompt-selector'
 import { SearchModeToggle } from './search-mode-toggle'
 import { Button } from './ui/button'
 import { UsageIndicator } from './usage-indicator'
+import { ExportButton } from './export-button'
 
 interface ChatPanelProps {
   input: string
@@ -58,7 +59,7 @@ export function ChatPanel({
   const [isComposing, setIsComposing] = useState(false) // Composition state
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
   const [loginModalOpen, setLoginModalOpen] = useState(false)
-  const { isSignedIn } = useUser()
+  const { isSignedIn, user } = useUser()
   const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
   const [showUsageWarning, setShowUsageWarning] = useState(false)
 
@@ -108,7 +109,7 @@ export function ChatPanel({
     }
   }, [isSignedIn])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (isComposing) return
@@ -121,7 +122,65 @@ export function ChatPanel({
       return
     }
 
-    onSubmit(e)
+    // Check if the prompt type requires login (all except 'default' which is 'web')
+    if (promptType !== 'default' && !isSignedIn) {
+      setLoginModalOpen(true)
+      return
+    }
+
+    // Submit the form immediately
+    try {
+      await onSubmit(e)
+      
+      // Ensure messages are properly updated for follow-up questions
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage?.role === 'assistant') {
+          // If the last message was from the assistant, we're doing a follow-up
+          // Ensure the chat ID is maintained
+          if (id) {
+            router.replace(`/search/${id}`, { scroll: false })
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      toast.error('An error occurred while processing your request. Please try again.')
+    }
+
+    // Track prompt usage in the background without blocking
+    if (promptType !== 'default' && isSignedIn && user) {
+      // Use void to explicitly indicate we're ignoring the promise
+      void (async () => {
+        try {
+          const response = await fetch('/api/cold-prompt-usage', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              email: user.emailAddresses[0].emailAddress,
+              promptType
+            }),
+          })
+
+          const data = await response.json()
+
+          // Only show important notifications
+          if (!response.ok) {
+            if (response.status === 403) {
+              toast.error(`Daily prompt limit reached. Please try again tomorrow or upgrade your plan.`)
+            }
+          } else if (data.remaining <= 3) {
+            toast.info(`You have ${data.remaining} prompt${data.remaining === 1 ? '' : 's'} remaining today.`)
+          }
+        } catch (error) {
+          // Silently log errors without disturbing the user
+          console.error('Background usage tracking error:', error)
+        }
+      })()
+    }
   }
 
   const handleShare = async () => {
@@ -244,27 +303,37 @@ export function ChatPanel({
                   promptType={promptType} 
                   onPromptTypeChange={(type) => onPromptTypeChange(type)} 
                 />
-                
               </div>
               <div className="flex items-center gap-2">
                 {messages.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleNewChat}
-                    className="shrink-0 rounded-full group"
-                    type="button"
-                    disabled={isLoading}
-                  >
-                    <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleNewChat}
+                      className="shrink-0 rounded-full group"
+                      type="button"
+                      disabled={isLoading}
+                    >
+                      <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
+                    </Button>
+                    <ExportButton 
+                      messages={messages} 
+                      isLoading={isLoading}
+                    />
+                  </>
                 )}
                 <Button
                   type={isLoading ? 'button' : 'submit'}
                   size={'icon'}
                   variant={'outline'}
-                  className={cn(isLoading && 'animate-pulse', 'rounded-full')}
-                  disabled={input.length === 0 && !isLoading}
+                  className={cn(
+                    isLoading && 'animate-pulse',
+                    'rounded-full',
+                    // Disable the button if we're not signed in and not using the default prompt
+                    !isSignedIn && promptType !== 'default' && 'opacity-50 cursor-not-allowed'
+                  )}
+                  disabled={input.length === 0 || (!isSignedIn && promptType !== 'default')}
                   onClick={isLoading ? stop : undefined}
                 >
                   {isLoading ? <Square size={20} /> : <ArrowUp size={20} />}
@@ -295,7 +364,6 @@ export function ChatPanel({
             <UsageWarning remaining={usageRemaining} />
           </div>
         )}
-        
       </div>
     </>
   )

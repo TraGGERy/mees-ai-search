@@ -9,13 +9,14 @@ import { CHAT_ID } from '@/lib/constants'
 type UserMessageProps = {
   message: string
   messageId: string
+  chatId?: string
 }
 
-export const UserMessage: React.FC<UserMessageProps> = ({ message, messageId }) => {
+export const UserMessage: React.FC<UserMessageProps> = ({ message, messageId, chatId }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedMessage, setEditedMessage] = useState(message)
   const { setMessages, messages, append } = useChat({
-    id: CHAT_ID
+    id: chatId || CHAT_ID
   })
 
   const handleEdit = () => {
@@ -33,19 +34,30 @@ export const UserMessage: React.FC<UserMessageProps> = ({ message, messageId }) 
       return
     }
 
-    // Remove the current message and its response
+    // Find the current message index
     const messageIndex = messages.findIndex(m => m.id === messageId)
-    if (messageIndex !== -1) {
-      const newMessages = messages.slice(0, messageIndex)
-      setMessages(newMessages)
-      
-      // Append the edited message
-      await append({
-        role: 'user',
-        content: editedMessage.trim(),
-        id: crypto.randomUUID()
-      })
+    if (messageIndex === -1) {
+      setIsEditing(false)
+      return
     }
+
+    // Check if there's a response message after this user message
+    const hasResponseAfter = 
+      messageIndex < messages.length - 1 && 
+      messages[messageIndex + 1].role === 'assistant'
+    
+    // Remove the current message and all subsequent messages (including any response)
+    const newMessages = messages.slice(0, messageIndex)
+    
+    // Update the messages array
+    setMessages(newMessages)
+    
+    // Append the edited message to generate new response
+    await append({
+      role: 'user',
+      content: editedMessage.trim(),
+      id: crypto.randomUUID()
+    })
 
     setIsEditing(false)
   }

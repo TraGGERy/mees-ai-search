@@ -99,34 +99,58 @@ export async function executeToolCall(
       toolCall.parameters?.exclude_domains ?? []
     )
 
-    // Stream partial results immediately if available
+    // Stream results in smaller chunks for faster initial display
     if (searchResults?.results?.length > 0) {
-      const partialResults = {
+      // First show a minimal result set (2 items) very quickly for immediate feedback
+      const initialResults = {
         ...searchResults,
-        results: searchResults.results.slice(0, 5) // Show first 5 results immediately
+        results: searchResults.results.slice(0, 2),
+        images: searchResults.images?.slice(0, 2) || []
       }
       
-      const partialAnnotation = {
+      const initialAnnotation = {
         ...toolCallAnnotation,
         data: {
           ...toolCallAnnotation.data,
-          result: JSON.stringify(partialResults),
+          result: JSON.stringify(initialResults),
           state: 'partial'
         }
       }
-      dataStream.writeMessageAnnotation(partialAnnotation)
+      dataStream.writeMessageAnnotation(initialAnnotation)
+      
+      // Small delay to let UI process
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
 
-    // Stream full results when complete
-    const updatedToolCallAnnotation = {
-      ...toolCallAnnotation,
-      data: {
-        ...toolCallAnnotation.data,
-        result: JSON.stringify(searchResults),
-        state: 'result'
+    // Then stream results in multiple small batches for better responsiveness
+    const chunkSize = 3;
+    const delayBetweenChunks = 60; // ms
+    
+    // Stream results in small chunks
+    for (let i = 0; i < searchResults.results.length; i += chunkSize) {
+      const chunk = searchResults.results.slice(i, i + chunkSize)
+      const chunkResults = {
+        ...searchResults,
+        results: chunk,
+        // Include a subset of images with each chunk to improve UX
+        images: searchResults.images?.slice(0, Math.min(i + 2, searchResults.images?.length || 0)) || []
+      }
+      
+      const chunkAnnotation = {
+        ...toolCallAnnotation,
+        data: {
+          ...toolCallAnnotation.data,
+          result: JSON.stringify(chunkResults),
+          state: i + chunkSize >= searchResults.results.length ? 'result' : 'partial'
+        }
+      }
+      dataStream.writeMessageAnnotation(chunkAnnotation)
+      
+      // Add a small delay between chunks to let the UI breathe
+      if (i + chunkSize < searchResults.results.length) {
+        await new Promise(resolve => setTimeout(resolve, delayBetweenChunks));
       }
     }
-    dataStream.writeMessageAnnotation(updatedToolCallAnnotation)
 
     const toolCallDataAnnotation: ExtendedCoreMessage = {
       role: 'data',

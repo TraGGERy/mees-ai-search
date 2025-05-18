@@ -89,7 +89,7 @@ export function RenderMessage({
   }, [reasoningAnnotation])
 
   if (message.role === 'user') {
-    return <UserMessage message={message.content} messageId={message.id} />
+    return <UserMessage message={message.content} messageId={message.id} chatId={chatId} />
   }
 
   // New way: Use parts instead of toolInvocations

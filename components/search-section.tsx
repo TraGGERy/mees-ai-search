@@ -2,8 +2,8 @@
 
 import { CHAT_ID } from '@/lib/constants'
 import type { SearchResults as TypeSearchResults } from '@/lib/types'
-import { ToolInvocation } from 'ai'
 import { useChat } from 'ai/react'
+import { memo, useMemo } from 'react'
 import { CollapsibleMessage } from './collapsible-message'
 import { SearchSkeleton } from './default-skeleton'
 import { SearchResults } from './search-results'
@@ -25,7 +25,7 @@ interface SearchSectionProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function SearchSection({
+export const SearchSection = memo(function SearchSection({
   tool,
   isOpen,
   onOpenChange
@@ -33,18 +33,22 @@ export function SearchSection({
   const { isLoading } = useChat({
     id: CHAT_ID
   })
+  
   const isToolLoading = tool.state === 'call'
   const isPartial = tool.state === 'partial'
   const hasError = tool.state === 'error'
   const searchResults: TypeSearchResults | undefined =
     tool.state === 'result' || tool.state === 'partial' ? tool.result : undefined
   const query = tool.args.query as string | undefined
-  const includeDomains = tool.args.includeDomains as string[] | undefined
-  const includeDomainsString = includeDomains
-    ? ` [${includeDomains.join(', ')}]`
-    : ''
+  
+  // Memoize the domains string to avoid recalculating on every render
+  const includeDomainsString = useMemo(() => {
+    const includeDomains = tool.args.includeDomains as string[] | undefined
+    return includeDomains ? ` [${includeDomains.join(', ')}]` : ''
+  }, [tool.args.includeDomains])
 
-  const header = (
+  // Memoize the header component to avoid recreating on every render
+  const header = useMemo(() => (
     <div className="flex items-center gap-2">
       <ToolArgsSection
         tool="search"
@@ -66,7 +70,7 @@ export function SearchSection({
         </Badge>
       )}
     </div>
-  )
+  ), [query, includeDomainsString, searchResults?.results?.length, isToolLoading, isPartial, hasError])
 
   // Show loading state immediately when tool is called
   if (isToolLoading) {
@@ -142,4 +146,4 @@ export function SearchSection({
       </div>
     </CollapsibleMessage>
   )
-}
+})

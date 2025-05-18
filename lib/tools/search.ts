@@ -6,7 +6,7 @@ import {
   SearXNGResponse,
   SearXNGResult
 } from '@/lib/types'
-import { sanitizeUrl } from '@/lib/utils'
+import { sanitizeUrl } from '@/lib/utils/index'
 import { tool } from 'ai'
 import Exa from 'exa-js'
 import {
