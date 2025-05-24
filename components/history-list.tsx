@@ -3,72 +3,240 @@
 import { getChats } from '@/lib/actions/chat'
 import { Chat } from '@/lib/types'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
-import { LogIn } from 'lucide-react'
+import { LogIn, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import { ClearHistory } from './clear-history'
 import { SettingsMenu } from './settings-menu'
 import { Button } from './ui/button'
+import { HistorySkeleton } from './history-skeleton'
 
 interface HistoryListProps {
-  userId: string;
+  userId?: string; // Make userId optional since it can be undefined for non-authenticated users
+}
+
+const CACHE_DURATION = 60000 // 1 minute in milliseconds
+const REFRESH_INTERVAL = 30000 // 30 seconds in milliseconds
+
+type CacheData = {
+  chats: Chat[]
+  timestamp: number
 }
 
 export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
-  const { user } = useUser()
+  console.log('HistoryList - Component initialized with userId prop:', userId || 'undefined')
+  
+  // Get client-side auth state from Clerk
+  const { user, isSignedIn } = useUser()
+  
+  // Determine if user is actually authenticated (both server and client side)
+  const isUserAuthenticated = !!(userId && isSignedIn && user)
+  
+  console.log('HistoryList - Authentication state:', { 
+    serverUserId: userId || 'undefined',
+    clientIsSignedIn: isSignedIn,
+    hasUserObject: !!user,
+    isUserAuthenticated,
+    userIdFromClient: user?.id || 'none',
+    userEmail: user?.emailAddresses?.[0]?.emailAddress || 'none'
+  })
+  
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Use memoization to prevent unnecessary re-fetches
-  const loadChats = useCallback(async () => {
+  const renderChatItem = useCallback((chat: Chat) => {
+    console.log('HistoryList - Rendering chat item:', { 
+      id: chat.id, 
+      title: chat.title || 'Untitled Chat',
+      hasMessages: Array.isArray(chat.messages) && chat.messages.length > 0
+    })
+    
+    return (
+      <Link 
+        key={chat.id} 
+        href={`/search/${chat.id}`}
+        prefetch={true}
+        className="block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+      >
+        {chat.title || 'Untitled Chat'}
+      </Link>
+    )
+  }, [])
+
+  const renderUserSection = useCallback(() => (
+    <div className="flex items-center justify-between px-2 mb-4">
+      <div className="flex items-center gap-2">
+        <UserButton afterSignOutUrl="/" />
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">
+            {user?.fullName || 'Guest'}
+          </span>
+        </div>
+      </div>
+      <SettingsMenu t={undefined} />
+    </div>
+  ), [user])
+
+  const getCachedData = useCallback((): CacheData | null => {
     try {
-      setLoading(true)
-      setError(null)
-      
-      // Check if we have cached data in sessionStorage
-      const cachedChats = sessionStorage.getItem('cached_chat_history')
-      const cachedTimestamp = sessionStorage.getItem('cached_chat_timestamp')
-      const now = Date.now()
-      
-      // Use cached data if it exists and is less than 1 minute old
-      if (cachedChats && cachedTimestamp && (now - parseInt(cachedTimestamp) < 60000)) {
-        setChats(JSON.parse(cachedChats).filter((chat): chat is Chat => chat !== null))
-        setLoading(false)
-        
-        // Refresh in background after using cache
-        getChats().then(loadedChats => {
-          const filteredChats = loadedChats.filter((chat): chat is Chat => chat !== null)
-          setChats(filteredChats)
-          sessionStorage.setItem('cached_chat_history', JSON.stringify(filteredChats))
-          sessionStorage.setItem('cached_chat_timestamp', now.toString())
-        }).catch(console.error)
-      } else {
-        // No valid cache, load directly
-        const loadedChats = await getChats()
-        const filteredChats = loadedChats.filter((chat): chat is Chat => chat !== null)
-        setChats(filteredChats)
-        
-        // Cache the results
-        sessionStorage.setItem('cached_chat_history', JSON.stringify(filteredChats))
-        sessionStorage.setItem('cached_chat_timestamp', now.toString())
-      }
-    } catch (err) {
-      console.error('Error loading chats:', err)
-      setError('Failed to load chat history')
-    } finally {
-      setLoading(false)
+      const cachedData = sessionStorage.getItem('chat_history_cache')
+      return cachedData ? JSON.parse(cachedData) : null
+    } catch {
+      return null
     }
   }, [])
 
-  useEffect(() => {
-    if (user) {
-      loadChats()
+  const setCachedData = useCallback((chats: Chat[]) => {
+    const cacheData: CacheData = {
+      chats,
+      timestamp: Date.now()
     }
-  }, [user, loadChats])
+    sessionStorage.setItem('chat_history_cache', JSON.stringify(cacheData))
+  }, [])
 
-  // If user is not logged in, show sign in prompt
-  if (!user) {
+  const filterValidChats = useCallback((chats: Chat[]) => {
+    return chats.filter((chat): chat is NonNullable<typeof chat> => chat !== null)
+  }, [])
+
+  const loadChats = useCallback(async () => {
+    console.log('HistoryList - loadChats called with state:', { 
+      isUserAuthenticated, 
+      serverUserId: userId || 'undefined',
+      clientIsSignedIn: isSignedIn 
+    })
+    
+    try {
+      // For non-authenticated users, use cached data if available and not expired
+      if (!isUserAuthenticated) {
+        console.log('HistoryList - User not authenticated, checking cache')
+        const cachedData = getCachedData()
+        const now = Date.now()
+
+        if (cachedData && (now - cachedData.timestamp < CACHE_DURATION)) {
+          console.log('HistoryList - Using cached data:', cachedData.chats.length, 'chats')
+          setChats(filterValidChats(cachedData.chats))
+          return
+        } else {
+          console.log('HistoryList - No valid cache for non-authenticated user, setting empty chats')
+          setChats([])
+          return
+        }
+      }
+
+      setLoading(true)
+      setError(null)
+
+      console.log('HistoryList - Fetching chats from server for authenticated user:', { 
+        isUserAuthenticated, 
+        serverUserId: userId || 'undefined',
+        hasUser: !!user,
+        userEmail: user?.emailAddresses?.[0]?.emailAddress || 'none'
+      })
+      
+      // Important: We're using the server-side auth in getChats(), not passing userId
+      // This is intentional as the server-side auth is more secure
+      const loadedChats = await getChats()
+      console.log('HistoryList - Fetched chats from server:', {
+        count: loadedChats?.length || 0,
+        chatIds: loadedChats?.map(c => c.id).slice(0, 5) || []
+      })
+      
+      const filteredChats = filterValidChats(loadedChats)
+      console.log('HistoryList - Valid chats after filtering:', {
+        count: filteredChats?.length || 0,
+        chatIds: filteredChats?.map(c => c.id).slice(0, 5) || []
+      })
+      
+      setChats(filteredChats)
+      if (!isSignedIn) {
+        setCachedData(filteredChats)
+      }
+    } catch (err: unknown) {
+      console.error('HistoryList - Error loading chats:', err)
+      console.log('HistoryList - Error details:', {
+        name: err instanceof Error ? err.name : 'Unknown',
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : 'No stack trace'
+      })
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load chat history'
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [isUserAuthenticated, getCachedData, setCachedData, filterValidChats, user, userId, isSignedIn])
+
+  useEffect(() => {
+    console.log('HistoryList - useEffect triggered with dependencies:', { 
+      isUserAuthenticated, 
+      serverUserId: userId || 'undefined',
+      clientIsSignedIn: isSignedIn,
+      userObject: !!user,
+      userEmail: user?.emailAddresses?.[0]?.emailAddress || 'none'
+    })
+    
+    let isSubscribed = true
+
+    const fetchData = async () => {
+      try {
+        console.log('HistoryList - Fetching data in useEffect')
+        await loadChats()
+      } catch (err) {
+        if (isSubscribed) {
+          console.error('HistoryList - Error in background refresh:', err)
+        }
+      }
+    }
+
+    // Initial fetch
+    fetchData()
+    
+    // Set up refresh interval for authenticated users
+    let refreshInterval: NodeJS.Timeout | null = null
+    if (isUserAuthenticated) {
+      console.log(`HistoryList - Setting up refresh interval: ${REFRESH_INTERVAL}ms`)
+      refreshInterval = setInterval(fetchData, REFRESH_INTERVAL)
+    } else {
+      console.log('HistoryList - No refresh interval (user not authenticated)')
+    }
+    
+    // Cleanup function
+    return () => {
+      console.log('HistoryList - Cleaning up useEffect')
+      isSubscribed = false
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
+      }
+    }
+  }, [loadChats, isUserAuthenticated, userId, user, isSignedIn, REFRESH_INTERVAL])
+
+  console.log('HistoryList - Rendering with state:', { 
+    isUserAuthenticated, 
+    serverUserId: userId || 'undefined',
+    clientIsSignedIn: isSignedIn,
+    hasUser: !!user, 
+    loading, 
+    error, 
+    chatsCount: chats?.length || 0 
+  })
+
+  // If user is signed in but user object is not loaded yet, show loading state
+  if (isSignedIn && !user) {
+    console.log('HistoryList - User signed in but user object not loaded yet')
+    return (
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-center p-2">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <div className="text-sm text-muted-foreground">Loading your chat history...</div>
+        </div>
+        <HistorySkeleton />
+      </div>
+    )
+  }
+
+  if (!isUserAuthenticated) {
+    console.log('HistoryList - User not authenticated, showing sign-in prompt')
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 space-y-4">
         <p className="text-sm text-muted-foreground text-center">
@@ -86,8 +254,12 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-muted-foreground">Loading history...</p>
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-center p-2">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <div className="text-sm text-muted-foreground">Loading chat history...</div>
+        </div>
+        <HistorySkeleton />
       </div>
     )
   }
@@ -96,10 +268,17 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-sm text-red-500">{error}</p>
+        <Button variant="outline" size="sm" className="mt-2" onClick={loadChats}>
+          Retry
+        </Button>
       </div>
     )
   }
 
+
+
+  console.log('HistoryList - Final render with chats:', { count: chats?.length || 0 })
+  
   return (
     <div className="flex flex-col flex-1 space-y-3 h-full">
       <div className="flex flex-col space-y-0.5 flex-1 overflow-y-auto">
@@ -108,32 +287,24 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
             No search history
           </div>
         ) : (
-          chats?.map(
-            (chat: Chat) => chat && (
-              <Link 
-                key={chat.id} 
-                href={`/search/${chat.id}`}
-                prefetch={true}
-                className="block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-              >
-                {chat.title || 'Untitled Chat'}
-              </Link>
-            )
-          )
+          chats.map((chat, index) => {
+            console.log(`HistoryList - Rendering chat ${index}:`, { 
+              id: chat?.id || 'undefined', 
+              title: chat?.title || 'undefined',
+              valid: !!chat
+            })
+            
+            if (!chat) {
+              console.log(`HistoryList - Invalid chat at index ${index}, skipping`)
+              return null
+            }
+            
+            return renderChatItem(chat)
+          })
         )}
       </div>
       <div className="mt-auto border-t pt-4">
-        <div className="flex items-center justify-between px-2 mb-4">
-          <div className="flex items-center gap-2">
-            <UserButton afterSignOutUrl="/" />
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">
-                {user?.fullName || 'Guest'}
-              </span>
-            </div>
-          </div>
-          <SettingsMenu t={undefined} />
-        </div>
+        {renderUserSection()}
         <ClearHistory empty={!chats?.length} />
       </div>
     </div>

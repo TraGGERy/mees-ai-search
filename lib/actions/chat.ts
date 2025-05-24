@@ -18,15 +18,28 @@ function getUserChatKey(userId: string) {
 export async function getChats() {
   try {
     // Get the current user's ID from Clerk
-    const { userId: authUserId } = await auth() || { userId: null }
+    const authResult = await auth()
+    console.log('getChats - Full auth result:', authResult)
+    
+    // Extract userId safely with fallback
+    const authUserId = authResult?.userId
+    console.log('getChats - User ID from auth():', authUserId)
+    
+    // Use anonymous for non-authenticated users
     const userId = authUserId || 'anonymous'
+    console.log('getChats - Final User ID used:', userId)
     
     const redis = await getRedisClient()
     const userChatKey = getUserChatKey(userId)
     
+    console.log('getChats - User Chat Key:', userChatKey)
+    
     // First, check if we can get the chat IDs
     const chatIds = await redis.zrange(userChatKey, 0, -1, { rev: true })
+    console.log('getChats - Chat IDs found:', chatIds?.length || 0, chatIds)
+    
     if (!chatIds || !chatIds.length) {
+      console.log('getChats - No chat IDs found, returning empty array')
       return [] // Return empty array if no chats found
     }
 
@@ -37,19 +50,30 @@ export async function getChats() {
     })
     
     const results = await pipeline.exec()
+    console.log('getChats - Pipeline results:', results?.length || 0)
     
-    if (!results) return []
+    if (!results) {
+      console.log('getChats - No results from pipeline, returning empty array')
+      return []
+    }
     
     const chats = results.map((result, index) => {
       try {
-        if (!result || !result[1]) return null
+        // Redis pipeline returns the chat data directly, not in [error, data] format
+        if (!result || typeof result !== 'object' || Object.keys(result).length === 0) {
+          console.log(`getChats - Empty or invalid result at index ${index}:`, result)
+          return null
+        }
         
-        const chat = result[1]
+        const chat = result as Record<string, any>
         const chatId = chatIds[index]
         
-        if (!chat) return null
+        if (!chat || Object.keys(chat).length === 0) {
+          console.log(`getChats - Empty chat data for ID ${chatId}`)
+          return null
+        }
         
-        return {
+        const processedChat = {
           ...chat,
           id: chatId.replace('chat:', ''),
           messages: typeof chat.messages === 'string' 
@@ -59,19 +83,35 @@ export async function getChats() {
           title: String(chat.title || ''),
           path: String(chat.path || '')
         } as Chat
+        
+        console.log(`getChats - Processed chat ${index}:`, {
+          id: processedChat.id,
+          title: processedChat.title,
+          messagesCount: Array.isArray(processedChat.messages) ? processedChat.messages.length : 'unknown'
+        })
+        
+        return processedChat
       } catch (err) {
-        console.error(`Error parsing chat data:`, err)
+        console.error(`Error parsing chat data at index ${index}:`, err)
         return null
       }
     })
 
     // Ensure we're working with an array and handle all filters
-    return (chats || [])
+    const filteredChats = (chats || [])
       .filter((chat): chat is NonNullable<typeof chat> => chat !== null)
       .sort((a, b) => Number(b.createdAt) - Number(a.createdAt))
+    
+    console.log(`getChats - Final filtered chats: ${filteredChats.length}`)
+    return filteredChats
 
   } catch (error) {
     console.error('Error getting chats:', error)
+    console.log('getChats - Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    })
     return [] // Return empty array on error
   }
 }
