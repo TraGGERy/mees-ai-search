@@ -193,7 +193,7 @@ export function EmailSubscribers() {
                 <TableCell>{subscriber.name}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={subscriber.subscribed ? "success" : "secondary"}
+                    variant={subscriber.subscribed ? "default" : "secondary"}
                   >
                     {subscriber.subscribed ? "Subscribed" : "Unsubscribed"}
                   </Badge>
@@ -254,4 +254,4 @@ export function EmailSubscribers() {
       </div>
     </div>
   );
-} 
+}
