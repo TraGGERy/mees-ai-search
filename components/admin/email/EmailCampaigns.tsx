@@ -454,9 +454,9 @@ export function EmailCampaigns() {
                   <Badge
                     variant={
                       campaign.status === "sent"
-                        ? "success"
+                        ? "default"
                         : campaign.status === "scheduled"
-                        ? "warning"
+                        ? "default"
                         : "secondary"
                     }
                   >
@@ -677,4 +677,4 @@ export function EmailCampaigns() {
       </div>
     </div>
   );
-} 
+}
