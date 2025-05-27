@@ -67,6 +67,7 @@ export function ExportButton({ messages, isLoading }: ExportButtonProps) {
           message.parts.forEach(part => {
             if (part.type === 'tool-invocation' && 
                 part.toolInvocation.toolName === 'search' && 
+                part.toolInvocation.state === 'result' &&
                 part.toolInvocation.result?.images) {
               
               const images = part.toolInvocation.result.images as SearchResultImage[]
@@ -180,6 +181,7 @@ export function ExportButton({ messages, isLoading }: ExportButtonProps) {
           message.parts.forEach(part => {
             if (part.type === 'tool-invocation' && 
                 part.toolInvocation.toolName === 'search' && 
+                part.toolInvocation.state === 'result' &&
                 part.toolInvocation.result?.images) {
               
               imagesToProcess.push(...(part.toolInvocation.result.images as SearchResultImage[]))
@@ -326,4 +328,4 @@ export function ExportButton({ messages, isLoading }: ExportButtonProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-} 
+}
