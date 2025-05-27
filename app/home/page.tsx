@@ -157,7 +157,7 @@ export default function HomePage() {
             </motion.h1>
           </motion.div>
           <p className="text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto text-gray-300 px-4">
-            Powered by ChatGPT, Claude, Gemini and more — all in one place.
+            Powered by ChatGPT, Claude, Gemini, DeepSeek and more — all in one place.
           </p>
           <p className="text-base sm:text-lg mt-4 text-center max-w-3xl mx-auto text-gray-400 px-4">
             Stop wasting time switching between tools. Mees AI gives you fast, focused answers from the world&apos;s best AI models — in a single, private workspace.
