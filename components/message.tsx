@@ -104,7 +104,7 @@ export function BotMessage({
   }
 
   return (
-    <div ref={contentRef} className={`w-full overflow-x-auto mobile-message-container ${contentClass}`}>
+    <div ref={contentRef} className={`w-full overflow-x-auto mobile-message-container ${contentClass}`} style={style}>
       <MemoizedReactMarkdown
         rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
         remarkPlugins={[remarkGfm]}
@@ -115,50 +115,19 @@ export function BotMessage({
         )}
         components={{
           code({ node, inline, className, children, ...props }) {
-            if (children.length) {
-              if (children[0] == '▍') {
-                return (
-                  <span className="mt-1 cursor-default animate-pulse">▍</span>
-                )
-              }
-
-              children[0] = (children[0] as string).replace('`▍`', '▍')
-            }
-
             const match = /language-(\w+)/.exec(className || '')
 
-            if (inline) {
-              return (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              )
-            }
-
-            return (
+            return !inline ? (
               <CodeBlock
                 key={Math.random()}
                 language={(match && match[1]) || ''}
                 value={String(children).replace(/\n$/, '')}
                 {...props}
               />
-            )
-          },
-          a: Citing,
-          // Handle long text in paragraphs by adding proper wrapping
-          p({ node, children, ...props }) {
-            return (
-              <p className="whitespace-pre-wrap break-words" {...props}>
+            ) : (
+              <code className={cn('bg-zinc-200 dark:bg-zinc-800 rounded-md px-1 py-0.5', className)} {...props}>
                 {children}
-              </p>
-            )
-          },
-          // Ensure tables are scrollable on mobile
-          table({ node, children, ...props }) {
-            return (
-              <div className="overflow-x-auto w-full">
-                <table {...props}>{children}</table>
-              </div>
+              </code>
             )
           },
           // Handle long pre text with scrolling
@@ -171,7 +140,6 @@ export function BotMessage({
           },
           img: ImageComponent,
         }}
-        style={style}
       >
         {messageWithLoading}
       </MemoizedReactMarkdown>
