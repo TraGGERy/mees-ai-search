@@ -50,16 +50,50 @@ export function ChatMessages({
   const lastToolData = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) return null
 
-    const lastItem = data[data.length - 1]
-    if (!lastItem || lastItem.type !== 'tool_call') return null
+    const lastItem = data[data.length - 1];
 
-    const toolData = lastItem.data
+    if (
+      !lastItem ||
+      typeof lastItem !== 'object' ||
+      lastItem === null ||
+      !('type' in lastItem) ||
+      (lastItem as any).type !== 'tool_call' ||
+      !('data' in lastItem) || // Ensure lastItem.data exists
+      typeof (lastItem as any).data !== 'object' || // Ensure lastItem.data is an object
+      (lastItem as any).data === null
+    ) {
+      return null;
+    }
+
+    const toolData = (lastItem as any).data;
+
+    if (
+      typeof toolData.toolCallId !== 'string' ||
+      typeof toolData.toolName !== 'string'
+    ) {
+      console.error('Invalid or incomplete tool_call data properties:', toolData);
+      return null;
+    }
+
+    let parsedArgs;
+    if (typeof toolData.args === 'string') {
+      try {
+        parsedArgs = JSON.parse(toolData.args);
+      } catch (e) {
+        console.error('Failed to parse tool_call.data.args:', toolData.args, e);
+        // parsedArgs remains undefined
+      }
+    } else if (toolData.args !== undefined) {
+      console.warn('tool_call.data.args expected string, got:', typeof toolData.args);
+      // parsedArgs remains undefined
+    }
+
     return {
       state: 'call' as const,
       toolCallId: toolData.toolCallId,
       toolName: toolData.toolName,
-      args: toolData.args ? JSON.parse(toolData.args) : undefined
-    }
+      args: parsedArgs
+    };
   }, [data])
 
   // Memoize the last user index calculation
