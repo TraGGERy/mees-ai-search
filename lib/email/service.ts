@@ -110,7 +110,7 @@ export async function sendCampaignEmail(campaign: {
             to: user.email,
             subject: campaign.subject,
             html: emailContent,
-            reply_to: 'support@mees-ai.app'
+            replyTo: 'support@mees-ai.app'
           });
           console.log(`Successfully sent email to ${user.email}`);
           return { status: 'fulfilled', value: result };
