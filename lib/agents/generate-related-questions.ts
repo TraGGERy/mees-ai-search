@@ -24,11 +24,11 @@ export async function generateRelatedQuestions(
 
   try {
     // Create a new message array with just the user query
-    const cleanMessages = [
+    const cleanMessages: CoreMessage[] = [
       {
         role: 'user',
         content: userQuery
-      }
+      } as CoreMessage
     ]
 
     const result = await generateObject({
