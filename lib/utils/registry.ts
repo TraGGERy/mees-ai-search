@@ -5,13 +5,13 @@ import { createFireworks, fireworks } from '@ai-sdk/fireworks'
 import { google } from '@ai-sdk/google'
 import { groq } from '@ai-sdk/groq'
 import { createOpenAI, openai } from '@ai-sdk/openai'
+import { xai } from '@ai-sdk/xai'
 import {
   experimental_createProviderRegistry as createProviderRegistry,
   extractReasoningMiddleware,
   wrapLanguageModel
 } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
-import { proResearchCompanion } from '../agents/pro-research-companion'
 
 export const registry = createProviderRegistry({
   openai,
@@ -35,24 +35,13 @@ export const registry = createProviderRegistry({
   'openai-compatible': createOpenAI({
     apiKey: process.env.OPENAI_COMPATIBLE_API_KEY,
     baseURL: process.env.OPENAI_COMPATIBLE_API_BASE_URL
-  })
+  }),
+  xai
 })
 
 export function getModel(model: string) {
   const [provider, ...modelNameParts] = model.split(':') ?? []
   const modelName = modelNameParts.join(':')
-  
-  // Add specific configuration for Google Gemini models
-  if (provider === 'google') {
-    const googleModel = registry.languageModel(model)
-    return wrapLanguageModel({
-      model: googleModel,
-      middleware: extractReasoningMiddleware({
-        tagName: 'think'
-      })
-    })
-  }
-
   if (model.includes('ollama')) {
     const ollama = createOllama({
       baseURL: `${process.env.OLLAMA_BASE_URL}/api`
@@ -94,7 +83,30 @@ export function getModel(model: string) {
     })
   }
 
-  return registry.languageModel(model)
+  // Add specific configuration for Google Gemini models
+  if (provider === 'google') {
+    const googleModel = registry.languageModel(model as `google:${string}`)
+    return wrapLanguageModel({
+      model: googleModel,
+      middleware: extractReasoningMiddleware({
+        tagName: 'think'
+      })
+    })
+  }
+
+  // Cast model to the union of all possible template literal types
+  return registry.languageModel(model as
+    | `google:${string}`
+    | `openai:${string}`
+    | `anthropic:${string}`
+    | `groq:${string}`
+    | `ollama:${string}`
+    | `azure:${string}`
+    | `deepseek:${string}`
+    | `fireworks:${string}`
+    | `openai-compatible:${string}`
+    | `xai:${string}`
+  )
 }
 
 export function isProviderEnabled(providerId: string): boolean {
@@ -115,6 +127,8 @@ export function isProviderEnabled(providerId: string): boolean {
       return !!process.env.DEEPSEEK_API_KEY
     case 'fireworks':
       return !!process.env.FIREWORKS_API_KEY
+    case 'xai':
+      return !!process.env.XAI_API_KEY
     case 'openai-compatible':
       return (
         !!process.env.OPENAI_COMPATIBLE_API_KEY &&
@@ -176,10 +190,3 @@ export function isReasoningModel(model: string): boolean {
     model.includes('o3-mini')
   )
 }
-
-export const AGENTS = {
-  // ... existing agents ...
-  'pro-research-companion': proResearchCompanion,
-} as const
-
-export type AgentType = keyof typeof AGENTS
