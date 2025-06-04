@@ -17,7 +17,7 @@ import { PromptSelector } from './prompt-selector'
 import { SearchModeToggle } from './search-mode-toggle'
 import { Button } from './ui/button'
 import { UsageIndicator } from './usage-indicator'
-import { ExportButton } from './export-button'
+
 
 interface ChatPanelProps {
   input: string
@@ -317,10 +317,7 @@ export function ChatPanel({
                     >
                       <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
                     </Button>
-                    <ExportButton 
-                      messages={messages} 
-                      isLoading={isLoading}
-                    />
+                    
                   </>
                 )}
                 <Button

@@ -147,15 +147,15 @@ export async function POST(req: Request) {
       .set(promptUsageRecord)
       .where(eq(promptUsage.userId, userId));
 
-    // Determine which model to use based on prompt usage
+    // Determine which model to use based on prompt usage and cookie
     const selectedModel = getModelBasedOnUsage(promptUsageRecord);
     let model;
     if (userId) {
-      // For logged-in users, always use usage-based selection
-      model = selectedModel;
-    } else {
-      // For non-logged-in users, allow cookie override (if you want)
+      // For logged-in users, prefer cookie if present and valid
       model = normalizedModelFromCookie || selectedModel;
+    } else {
+      // For non-logged-in users, always use gpt-4o-mini
+      model = 'openai:gpt-4o-mini';
     }
     
     // Force gpt-4o-mini for non-logged-in users

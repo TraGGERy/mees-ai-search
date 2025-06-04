@@ -7,11 +7,37 @@ import { Button } from './ui/button'
 import { CitationPopup } from './citation-popup'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
+import html2canvas from 'html2canvas'
 
 interface ExportOptionsProps {
   content: string
   title?: string
   onBulletPointsClick?: () => void
+}
+
+// Utility to export a chart or SVG as a high-res PNG image using html2canvas
+declare global {
+  interface Window {
+    canvg?: any;
+  }
+}
+
+async function exportElementAsImage(element: HTMLElement): Promise<string | null> {
+  try {
+    // If it's an SVG, rasterize it
+    if (element.tagName.toLowerCase() === 'svg') {
+      // Use html2canvas for SVG rasterization
+      const canvas = await html2canvas(element, { backgroundColor: null, scale: 2 });
+      return canvas.toDataURL('image/png');
+    } else {
+      // For charts or other elements
+      const canvas = await html2canvas(element, { backgroundColor: null, scale: 2 });
+      return canvas.toDataURL('image/png');
+    }
+  } catch (error) {
+    console.error('Error exporting element as image:', error);
+    return null;
+  }
 }
 
 export function ExportOptions({ 
@@ -59,7 +85,7 @@ export function ExportOptions({
   const exportAsPDF = async () => {
     setIsExporting(true)
     try {
-      toast.info("Preparing PDF with images, please wait...", { duration: 3000 });
+      toast.info("Preparing PDF with images and charts, please wait...", { duration: 3000 });
       
       // Create PDF document with font embedding
       const pdf = new jsPDF({
@@ -81,7 +107,6 @@ export function ExportOptions({
       const images: { alt: string, url: string, index: number, processed: boolean }[] = []
       let imageMatch: RegExpExecArray | null
       let contentCopy = content
-      
       while ((imageMatch = imageRegex.exec(contentCopy)) !== null) {
         images.push({
           alt: imageMatch[1],
@@ -94,98 +119,124 @@ export function ExportOptions({
       // Pre-load all images before starting PDF creation
       toast.info(`Loading ${images.length} images...`, { duration: 2000 });
       
-      // Function to load an image and convert to data URL
-      const loadImageAsDataUrl = (url: string): Promise<string | null> => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = "Anonymous";
-          
-          // Set up load handler
-          img.onload = () => {
-            try {
-              // Create canvas to get image data
-              const canvas = document.createElement('canvas');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext('2d');
-              
-              if (ctx) {
-                // Draw image to canvas
-                ctx.drawImage(img, 0, 0);
-                
-                // Get data URL
-                const dataUrl = canvas.toDataURL('image/jpeg');
-                resolve(dataUrl);
-              } else {
-                resolve(null);
-              }
-            } catch (err) {
-              console.error("Error converting image to data URL:", err);
-              resolve(null);
-            }
-          };
-          
-          // Set up error handler
-          img.onerror = () => {
-            console.error("Error loading image:", url);
-            resolve(null);
-          };
-          
-          // Try to load the image with credentials
-          img.crossOrigin = "anonymous";
-          img.src = url;
-          
-          // Set a timeout in case the image takes too long to load
-          setTimeout(() => {
-            if (!img.complete) {
-              console.error("Image load timeout:", url);
-              resolve(null);
-            }
-          }, 5000);
-        });
-      };
-      
-      // Try multiple methods to load images
+      // Preload all images as data URLs with better error handling
       const loadedImages = await Promise.all(
         images.map(async (img) => {
-          // First try direct loading
-          let dataUrl = await loadImageAsDataUrl(img.url);
+          let dataUrl: string | null = null;
           
-          // If direct loading fails, try proxy or other methods
-          if (!dataUrl) {
-            // Try using a CORS proxy if the image is from a different domain
-            if (img.url.startsWith('http') && !img.url.includes(window.location.hostname)) {
-              const proxyUrl = `https://cors-anywhere.herokuapp.com/${img.url}`;
-              dataUrl = await loadImageAsDataUrl(proxyUrl).catch(() => null);
-            }
-            
-            // If still no success, try a data URL approach for common image types
-            if (!dataUrl && img.url.match(/\.(jpeg|jpg|png|gif)$/i)) {
-              try {
-                const response = await fetch(img.url, { mode: 'no-cors' }).catch(() => null);
-                if (response) {
-                  const blob = await response.blob().catch(() => null);
-                  if (blob) {
-                    dataUrl = await new Promise<string | null>((resolve) => {
-                      const reader = new FileReader();
-                      reader.onloadend = () => resolve(reader.result as string);
-                      reader.onerror = () => resolve(null);
-                      reader.readAsDataURL(blob);
-                    });
-                  }
-                }
-              } catch (error) {
-                console.error("Error fetching image:", error);
+          try {
+            if (img.url.endsWith('.svg')) {
+              // Try to find the SVG in the DOM and rasterize it
+              const svgEl = document.querySelector(`img[src='${img.url}'], svg[src='${img.url}']`) as HTMLElement | null;
+              if (svgEl) {
+                dataUrl = await exportElementAsImage(svgEl);
               }
+            } else {
+              // Multi-strategy image loading with fallbacks
+              dataUrl = await new Promise<string | null>((resolve) => {
+                let attempts = 0;
+                const maxAttempts = 3;
+                
+                const tryLoadImage = (strategy: 'cors' | 'no-cors' | 'proxy') => {
+                  const image = new window.Image();
+                  let imageUrl = img.url;
+                  
+                  // Apply strategy-specific settings
+                  if (strategy === 'cors') {
+                    image.crossOrigin = 'anonymous';
+                  } else if (strategy === 'proxy') {
+                    // Use a CORS proxy as last resort
+                    imageUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(img.url)}`;
+                  }
+                  
+                  // Set a timeout to prevent hanging
+                  const timeout = setTimeout(() => {
+                    console.warn(`Image loading timeout (${strategy}) for: ${img.url}`);
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                      const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                      tryLoadImage(nextStrategy);
+                    } else {
+                      resolve(null);
+                    }
+                  }, 3000); // 3 second timeout per attempt
+                  
+                  image.onload = () => {
+                    clearTimeout(timeout);
+                    try {
+                      const canvas = document.createElement('canvas');
+                      canvas.width = image.naturalWidth || image.width;
+                      canvas.height = image.naturalHeight || image.height;
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                        ctx.drawImage(image, 0, 0);
+                        resolve(canvas.toDataURL('image/png'));
+                      } else {
+                        console.error('Failed to get canvas context for:', img.url);
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                          const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                          tryLoadImage(nextStrategy);
+                        } else {
+                          resolve(null);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error processing image:', img.url, error);
+                      attempts++;
+                      if (attempts < maxAttempts) {
+                        const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                        tryLoadImage(nextStrategy);
+                      } else {
+                        resolve(null);
+                      }
+                    }
+                  };
+                  
+                  image.onerror = (error) => {
+                    clearTimeout(timeout);
+                    console.error(`Image load error (${strategy}) for: ${img.url}`, error);
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                      const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                      console.log(`Retrying with ${nextStrategy} for: ${img.url}`);
+                      tryLoadImage(nextStrategy);
+                    } else {
+                      console.warn(`All loading strategies failed for: ${img.url}`);
+                      resolve(null);
+                    }
+                  };
+                  
+                  // Try to load the image
+                  image.src = imageUrl;
+                };
+                
+                // Start with CORS strategy
+                tryLoadImage('cors');
+              });
             }
+          } catch (error) {
+            console.error('Error loading image:', img.url, error);
+            dataUrl = null;
           }
           
-          return {
-            ...img,
-            dataUrl
-          };
+          return { ...img, dataUrl, processed: false };
         })
       );
+      
+      // Find all chart elements in the DOM and export them as images
+      const chartElements = document.querySelectorAll('.export-chart[data-export-id]');
+      const chartImages: { id: string, dataUrl: string }[] = [];
+      for (const el of Array.from(chartElements)) {
+        const id = el.getAttribute('data-export-id');
+        const dataUrl = await exportElementAsImage(el as HTMLElement);
+        if (id && dataUrl) {
+          chartImages.push({ id, dataUrl });
+        } else if (id) {
+          // Fallback: insert alt text if chart export fails
+          chartImages.push({ id, dataUrl: '' });
+        }
+      }
       
       // Add title
       pdf.setFontSize(16)
@@ -226,8 +277,24 @@ export function ExportOptions({
         })
       }
       
+      // Replace chart placeholders in content
+      let processedContent = contentCopy;
+      for (const chart of chartImages) {
+        if (chart.dataUrl) {
+          processedContent = processedContent.replace(
+            `[CHART:${chart.id}]`,
+            `![Chart](${chart.dataUrl})`
+          );
+        } else {
+          processedContent = processedContent.replace(
+            `[CHART:${chart.id}]`,
+            `[Chart could not be exported]`
+          );
+        }
+      }
+      
       // Clean markdown content
-      let processedText = content
+      let processedText = processedContent
         .replace(/#{1,6}\s+(.+)/g, '$1') // Clean headings but keep text
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
         .replace(/\*(.*?)\*/g, '$1') // Remove italic
@@ -364,128 +431,100 @@ export function ExportOptions({
             try {
               if (imageToProcess.dataUrl) {
                 // We have a data URL, use it directly
-                const imgWidth = usableWidth * 0.8; // 80% of usable width
-                const imgHeight = imgWidth * 0.75; // Approximate aspect ratio
+                console.log('Adding image to PDF:', imageToProcess.url);
                 
-                pdf.addImage(
-                  imageToProcess.dataUrl,
-                  'JPEG',
-                  margin + (usableWidth - imgWidth) / 2, // Center horizontally
-                  yPosition,
-                  imgWidth,
-                  imgHeight
-                );
-                
-                // Update position
-                yPosition += imgHeight + lineHeight;
-                
-                // Add caption if available
-                if (imageToProcess.alt) {
-                  pdf.setFontSize(9);
-                  pdf.setFont('helvetica', 'italic');
-                  
-                  const captionLines = pdf.splitTextToSize(
-                    `Figure: ${imageToProcess.alt}`,
-                    usableWidth
-                  );
-                  
-                  // Center the caption
-                  captionLines.forEach((captionLine: string) => {
-                    const textWidth = pdf.getStringUnitWidth(captionLine) * 9 * 0.352778; // Convert to mm
-                    const xPosition = margin + (usableWidth - textWidth) / 2;
-                    pdf.text(captionLine, xPosition, yPosition);
-                    yPosition += lineHeight * 0.8;
-                  });
-                  
-                  // Reset font
-                  pdf.setFontSize(11);
-                  pdf.setFont('helvetica', 'normal');
-                  
-                  yPosition += lineHeight;
-                }
-              } else {
-                // Try one more approach - direct embedding
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
+                // Create a temporary image to get actual dimensions
+                const tempImg = new Image();
+                tempImg.src = imageToProcess.dataUrl;
                 
                 await new Promise<void>((resolve) => {
-                  img.onload = () => {
+                  tempImg.onload = () => {
                     try {
-                      // Calculate dimensions
-                      const imgWidth = usableWidth * 0.8;
-                      const imgHeight = (img.height / img.width) * imgWidth;
+                      // Calculate proper dimensions maintaining aspect ratio
+                      const maxWidth = usableWidth * 0.8;
+                      const maxHeight = usableHeight * 0.4; // Don't use more than 40% of page height
                       
-                      // Create canvas
-                      const canvas = document.createElement('canvas');
-                      canvas.width = img.width;
-                      canvas.height = img.height;
-                      const ctx = canvas.getContext('2d');
+                      let imgWidth = tempImg.width;
+                      let imgHeight = tempImg.height;
                       
-                      if (ctx) {
-                        ctx.drawImage(img, 0, 0);
-                        const imgData = canvas.toDataURL('image/jpeg');
+                      // Scale down if too large
+                      const widthRatio = maxWidth / imgWidth;
+                      const heightRatio = maxHeight / imgHeight;
+                      const scale = Math.min(widthRatio, heightRatio, 1); // Don't scale up
+                      
+                      imgWidth *= scale;
+                      imgHeight *= scale;
+                      
+                      // Convert pixels to mm (assuming 96 DPI)
+                      const mmWidth = imgWidth * 0.264583;
+                      const mmHeight = imgHeight * 0.264583;
+                      
+                      pdf.addImage(
+                        imageToProcess.dataUrl || '',
+                        'PNG',
+                        margin + (usableWidth - mmWidth) / 2, // Center horizontally
+                        yPosition,
+                        mmWidth,
+                        mmHeight
+                      );
+                      
+                      // Update position
+                      yPosition += mmHeight + lineHeight;
+                      
+                      // Add caption if available
+                      if (imageToProcess.alt) {
+                        pdf.setFontSize(9);
+                        pdf.setFont('helvetica', 'italic');
                         
-                        // Add to PDF
-                        pdf.addImage(
-                          imgData,
-                          'JPEG',
-                          margin + (usableWidth - imgWidth) / 2,
-                          yPosition,
-                          imgWidth,
-                          imgHeight
+                        const captionLines = pdf.splitTextToSize(
+                          `Figure: ${imageToProcess.alt}`,
+                          usableWidth
                         );
                         
-                        yPosition += imgHeight + lineHeight;
+                        // Center the caption
+                        captionLines.forEach((captionLine: string) => {
+                          const textWidth = pdf.getStringUnitWidth(captionLine) * 9 * 0.352778; // Convert to mm
+                          const xPosition = margin + (usableWidth - textWidth) / 2;
+                          pdf.text(captionLine, xPosition, yPosition);
+                          yPosition += lineHeight * 0.8;
+                        });
                         
-                        // Add caption
-                        if (imageToProcess.alt) {
-                          pdf.setFontSize(9);
-                          pdf.setFont('helvetica', 'italic');
-                          
-                          const caption = `Figure: ${imageToProcess.alt}`;
-                          const captionWidth = pdf.getStringUnitWidth(caption) * 9 * 0.352778;
-                          pdf.text(caption, margin + (usableWidth - captionWidth) / 2, yPosition);
-                          
-                          pdf.setFontSize(11);
-                          pdf.setFont('helvetica', 'normal');
-                          yPosition += lineHeight * 1.5;
-                        }
+                        // Reset font
+                        pdf.setFontSize(11);
+                        pdf.setFont('helvetica', 'normal');
+                        
+                        yPosition += lineHeight;
                       }
-                    } catch (err) {
-                      console.error("Error embedding image:", err);
+                      
+                      resolve();
+                    } catch (error) {
+                      console.error('Error adding image to PDF:', error);
+                      // Fallback to text
                       pdf.setFont('helvetica', 'italic');
                       pdf.text(`[Image: ${imageToProcess.alt || 'Figure'}]`, margin, yPosition);
-                      pdf.text(`(${imageToProcess.url})`, margin, yPosition + lineHeight);
                       pdf.setFont('helvetica', 'normal');
-                      yPosition += lineHeight * 3;
-                    }
-                    resolve();
-                  };
-                  
-                  img.onerror = () => {
-                    pdf.setFont('helvetica', 'italic');
-                    pdf.text(`[Image: ${imageToProcess.alt || 'Figure'}]`, margin, yPosition);
-                    pdf.text(`(${imageToProcess.url})`, margin, yPosition + lineHeight);
-                    pdf.setFont('helvetica', 'normal');
-                    yPosition += lineHeight * 3;
-                    resolve();
-                  };
-                  
-                  // Set a timeout
-                  const timeout = setTimeout(() => {
-                    if (!img.complete) {
-                      img.src = ''; // Cancel the load
-                      pdf.setFont('helvetica', 'italic');
-                      pdf.text(`[Image: ${imageToProcess.alt || 'Figure'}]`, margin, yPosition);
-                      pdf.text(`(${imageToProcess.url})`, margin, yPosition + lineHeight);
-                      pdf.setFont('helvetica', 'normal');
-                      yPosition += lineHeight * 3;
+                      yPosition += lineHeight * 2;
                       resolve();
                     }
-                  }, 3000);
+                  };
                   
-                  img.src = imageToProcess.url;
+                  tempImg.onerror = () => {
+                    console.error('Error loading image for dimensions:', imageToProcess.url);
+                    // Fallback to text
+                    pdf.setFont('helvetica', 'italic');
+                    pdf.text(`[Image: ${imageToProcess.alt || 'Figure'}]`, margin, yPosition);
+                    pdf.setFont('helvetica', 'normal');
+                    yPosition += lineHeight * 2;
+                    resolve();
+                  };
                 });
+              } else {
+                // Image failed to load, show placeholder without URL
+                console.warn('Image failed to load:', imageToProcess.url);
+                pdf.setFont('helvetica', 'italic');
+                pdf.text(`[Image: ${imageToProcess.alt || 'Figure'} - Failed to load]`, margin, yPosition);
+                pdf.setFont('helvetica', 'normal');
+                yPosition += lineHeight * 2;
               }
             } catch (err) {
               console.error('Error embedding image:', err);
@@ -571,10 +610,10 @@ export function ExportOptions({
     setIsExporting(false);
   }
 
-  const exportAsDoc = () => {
+  const exportAsDoc = async () => {
     setIsExporting(true)
     try {
-      toast.info("Preparing Word document with images, please wait...", { duration: 3000 });
+      toast.info("Preparing Word document with images and charts, please wait...", { duration: 3000 });
       
       // Create a proper Word document with enhanced formatting
       const header = `
@@ -685,6 +724,36 @@ w\\:* { behavior: url(#default#VML); }
 <h1>${title}</h1>
 `;
 
+      // Find all chart elements in the DOM and export them as images
+      const chartElements = document.querySelectorAll('.export-chart[data-export-id]');
+      const chartImages: { id: string, dataUrl: string }[] = [];
+      for (const el of Array.from(chartElements)) {
+        const id = el.getAttribute('data-export-id');
+        const dataUrl = await exportElementAsImage(el as HTMLElement);
+        if (id && dataUrl) {
+          chartImages.push({ id, dataUrl });
+        } else if (id) {
+          // Fallback: insert alt text if chart export fails
+          chartImages.push({ id, dataUrl: '' });
+        }
+      }
+      
+      // Replace chart placeholders in content
+      let processedContent = content;
+      for (const chart of chartImages) {
+        if (chart.dataUrl) {
+          processedContent = processedContent.replace(
+            `[CHART:${chart.id}]`,
+            `![Chart](${chart.dataUrl})`
+          );
+        } else {
+          processedContent = processedContent.replace(
+            `[CHART:${chart.id}]`,
+            `[Chart could not be exported]`
+          );
+        }
+      }
+      
       // Process content by converting markdown to enhanced HTML
       
       // Step 1: Extract citations for later reference
@@ -706,7 +775,7 @@ w\\:* { behavior: url(#default#VML); }
       // Step 2: Process markdown tables
       // Find all markdown tables and convert them to HTML tables
       const tableRegex = /(\|[^\n]+\|\n)((?:\|:?[-]+:?)+\|)(\n(?:\|[^\n]+\|\n?)*)/g;
-      let htmlContent = content.replace(tableRegex, (match, headerRow, alignmentRow, bodyRows) => {
+      let htmlContent = processedContent.replace(tableRegex, (match, headerRow, alignmentRow, bodyRows) => {
         // Process header row
         const headers = headerRow
           .trim()
@@ -1322,4 +1391,14 @@ w\\:* { behavior: url(#default#VML); }
       )}
     </>
   )
-} 
+}
+
+export async function exportChartAsImage(chartElement: HTMLElement): Promise<string | null> {
+  try {
+    const canvas = await html2canvas(chartElement, { backgroundColor: null, scale: 2 });
+    return canvas.toDataURL('image/png');
+  } catch (error) {
+    console.error('Error exporting chart as image:', error);
+    return null;
+  }
+}

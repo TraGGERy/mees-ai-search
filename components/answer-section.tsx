@@ -258,6 +258,17 @@ const floatingMenuStyles = `
       width: 1.75rem !important;
     }
   }
+
+  @keyframes pulse-academic {
+    0% { box-shadow: 0 0 0 0 #c4b5fd; }
+    70% { box-shadow: 0 0 0 8px rgba(147, 51, 234, 0); }
+    100% { box-shadow: 0 0 0 0 #c4b5fd; }
+  }
+  .academic-btn.animate-pulse-academic {
+    animation: pulse-academic 1.2s infinite;
+    border-color: #9333ea;
+    color: #9333ea;
+  }
 `;
 
 // Function to clean API response text, removing any unwanted prefixes or system messages
@@ -343,6 +354,7 @@ const SlateEditor = ({ content, onSave, onCancel }: {
   const [isHumanizing, setIsHumanizing] = useState(false)
   const [isRewriting, setIsRewriting] = useState(false)
   const [selectedTextToHumanize, setSelectedTextToHumanize] = useState('')
+  const [isGeneratingAcademic, setIsGeneratingAcademic] = useState(false)
 
   // This effect updates the editor content when the content prop changes
   useEffect(() => {
@@ -719,6 +731,36 @@ const SlateEditor = ({ content, onSave, onCancel }: {
     }
   }
 
+  // Add the academic paper generation function here
+  const generateAcademicPaperFromSelection = async () => {
+    const { selection } = editor
+    if (!selection || Editor.string(editor, selection).length === 0) {
+      // No text selected
+      return
+    }
+    const selectedText = Editor.string(editor, selection)
+    if (!selectedText.trim()) return
+    setIsGeneratingAcademic(true)
+    try {
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: selectedText, tone: 'academic' }),
+      })
+      if (!response.ok) throw new Error('Failed to generate academic paper')
+      const data = await response.json()
+      let academicText = data.summary || ''
+      if (!academicText) return
+      academicText = cleanApiResponseText(academicText)
+      Transforms.delete(editor, { at: selection })
+      Transforms.insertText(editor, academicText, { at: selection.anchor })
+    } catch (error) {
+      console.error('Error generating academic paper:', error)
+    } finally {
+      setIsGeneratingAcademic(false)
+    }
+  }
+
   return (
     <div className="space-y-2 w-full">
       <div className="w-full min-h-[60px] p-2 rounded-md border border-input bg-background overflow-x-auto">
@@ -875,7 +917,7 @@ const SlateEditor = ({ content, onSave, onCancel }: {
             size="sm"
             className={`h-8 w-8 p-0 relative flex-shrink-0`}
             onClick={humanizeSelectedText}
-            disabled={isHumanizing || isRewriting}
+            disabled={isHumanizing || isRewriting || isGeneratingAcademic}
             title="Humanize Selected Text"
           >
             <UserCheck className="h-4 w-4" />
@@ -884,13 +926,14 @@ const SlateEditor = ({ content, onSave, onCancel }: {
           <Button
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 relative flex-shrink-0`}
-            onClick={rewriteSelectedText}
-            disabled={isHumanizing || isRewriting}
-            title="Rewrite Selected Text"
+            className={`h-8 w-8 p-0 relative flex-shrink-0 academic-btn ${isGeneratingAcademic ? 'animate-pulse-academic' : ''}`}
+            onClick={generateAcademicPaperFromSelection}
+            disabled={isHumanizing || isRewriting || isGeneratingAcademic}
+            title="Generate Academic Paper from Selected Text"
+            style={{ borderColor: '#9333ea', color: '#9333ea', boxShadow: isGeneratingAcademic ? '0 0 0 4px #c4b5fd' : undefined }}
           >
-            <Wand2 className="h-4 w-4" />
-            {isRewriting && <span className="animate-spin absolute inset-0 flex items-center justify-center">⌛</span>}
+            <BookOpen className="h-4 w-4" />
+            {isGeneratingAcademic && <span className="animate-spin absolute inset-0 flex items-center justify-center">⌛</span>}
           </Button>
         </div>
         {showLinkInput && (
@@ -1616,6 +1659,7 @@ export function AnswerSection({
   const [error, setError] = useState<string | null>(null);
   const [showFAB, setShowFAB] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isGeneratingAcademic, setIsGeneratingAcademic] = useState(false)
   
   // Add auto-dismiss effect
   useEffect(() => {

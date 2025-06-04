@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { academicHumanize } from '@/lib/wordHumanizer';
 
 // Trusted source domains and platforms
 const TRUSTED_SOURCES = {
@@ -80,48 +81,68 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing input or tone.' }, { status: 400 });
   }
 
-  let systemPrompt = `You are a specialized citation verifier and formatter. Your task is to create accurately cited summaries using verified sources.
+  let systemPrompt = `You are an academic writing assistant. Your task is to write a well-structured, well-formatted, and comprehensive research paper based on the provided information, using only verified and trusted sources for citations.
 
-CITATION RULES:
-1. SOURCE VERIFICATION
+PAPER REQUIREMENTS:
+1. STRUCTURE
+   - Title page (with title, author, date)
+   - Abstract (concise summary of the paper)
+   - Introduction (background, context, and thesis statement)
+   - Main Body (multiple sections with headings, in-depth analysis, arguments, evidence, and discussion)
+   - Conclusion (summarize findings, implications, and future directions)
+   - References (properly formatted, only trusted sources)
+
+2. CITATION RULES
    - Use only well-known and trusted sources
    - Verify source authenticity against known domains
    - Include complete dates when available
    - Use official names for sources
+   - Use in-text citations in APA style (Author, Year)
+   - Provide a full reference list at the end
 
-2. CITATION FORMAT
-   News/Gaming: According to [Source Name] (YYYY-MM-DD): "[EXACT QUOTE]"
-   Academic: According to [Journal/Institution] (YYYY): "[EXACT QUOTE]"
-   
-3. TRUSTED SOURCES
+3. FORMATTING
+   - Academic tone and style
+   - Well-organized paragraphs and sections
+   - Use bullet points, numbered lists, and tables where appropriate
+   - Maximum clarity and coherence
+   - The paper MUST be at least 5 to 6 full pages (minimum 4000 words; aim for 4000+ words)
+
+4. TRUSTED SOURCES
    Gaming: IGN, GameSpot, Polygon, PC Gamer, Eurogamer
    News: Reuters, AP News, BBC, Guardian, NYTimes
    Academic: Nature, Science, Research Institutions
    Tech: TechCrunch, Wired, The Verge, Ars Technica
 
-4. MANDATORY CHECKS
+5. MANDATORY CHECKS
    - Verify source against trusted domains
    - Include complete dates
-   - Use exact quotes
-   - Maximum 5 lines total`;
+   - Use exact quotes for direct citations
+   - Ensure all references are from trusted sources
+   - The output must be at least 5 to 6 full pages (minimum 4000 words)`;
 
-  let userPrompt = `Create a ${tone} summary with verified citations. Follow these steps:
+  let userPrompt = `Write a comprehensive, well-formatted research paper in an academic style, based on the following information. Follow these steps:
 
-1. SOURCE SELECTION
+1. STRUCTURE
+   - Title page
+   - Abstract
+   - Introduction
+   - Main Body (with sections and headings)
+   - Conclusion
+   - References (APA style, trusted sources only)
+
+2. CITATION FORMAT
+   - Use in-text citations (Author, Year)
+   - Reference list at the end
    - Use only trusted sources from the provided list
    - Include full dates where available
    - Use exact source names
-   
-2. CITATION FORMAT
-   Use these exact structures:
-   - Gaming/News: According to [Source] (YYYY-MM-DD): "[QUOTE]"
-   - Academic: According to [Source] (YYYY): "[QUOTE]"
 
 3. VERIFICATION CHECKLIST
    ✓ Use trusted sources only
    ✓ Include complete dates
-   ✓ Use exact quotes
-   ✓ Maximum 5 lines total
+   ✓ Use exact quotes for direct citations
+   ✓ Academic tone and formatting
+   ✓ The paper MUST be at least 5 to 6 full pages (minimum 4000 words; aim for 4000+ words)
 
 Input text to process:
 ${input}`;
@@ -150,7 +171,10 @@ ${input}`;
     }
 
     const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content?.trim() || '';
+    let summary = data.choices?.[0]?.message?.content?.trim() || '';
+
+    // Humanize the AI-generated text for more natural output
+    summary = academicHumanize(summary);
 
     // Verify each citation in the summary
     const citations = summary.split('\n').filter((line: string) => line.trim());
