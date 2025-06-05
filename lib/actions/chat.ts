@@ -355,9 +355,11 @@ export async function getAllChats(page: number = 1, pageSize: number = 50) {
         userId: chat.userId || 'unknown',
       };
     }).filter(Boolean);
-
     // Sort by createdAt descending
-    chats = chats.sort((a, b) => b.createdAt - a.createdAt);
+    chats = chats.sort((a, b) => {
+      if (!a || !b) return 0;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
     const total = chats.length;
     // Paginate
     const start = (page - 1) * pageSize;
