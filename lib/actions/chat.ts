@@ -307,3 +307,65 @@ export async function deleteChat(id: string): Promise<{ error?: string }> {
     return { error: 'Failed to delete chat' }
   }
 }
+
+// ADMIN: Get all chats from all users, paginated
+export async function getAllChats(page: number = 1, pageSize: number = 50) {
+  try {
+    const redis = await getRedisClient();
+    // Force Upstash-compatible scan logic
+    let cursor = 0;
+    let userChatKeys: string[] = [];
+    do {
+      const result = await (redis as any).client.scan(cursor, {
+        match: 'user:v2:chat:*',
+        count: 100,
+      });
+      cursor = Number(result[0]);
+      userChatKeys.push(...result[1]);
+    } while (cursor !== 0);
+
+    // For each user chat key, get all chat IDs
+    let allChatIds: string[] = [];
+    for (const userChatKey of userChatKeys) {
+      const chatIds = await redis.zrange(userChatKey, 0, -1, { rev: true });
+      allChatIds.push(...chatIds);
+    }
+    if (!allChatIds.length) return { chats: [], total: 0 };
+
+    // Use pipeline to fetch all chat objects
+    const pipeline = redis.pipeline();
+    allChatIds.forEach(chatId => {
+      pipeline.hgetall(chatId);
+    });
+    const results = await pipeline.exec();
+    if (!results) return { chats: [], total: 0 };
+
+    // Map and filter valid chats
+    let chats = results.map((result, index) => {
+      if (!result || typeof result !== 'object' || Object.keys(result).length === 0) return null;
+      const chat = result as Record<string, any>;
+      const chatId = allChatIds[index];
+      return {
+        ...chat,
+        id: chatId.replace('chat:', ''),
+        messages: typeof chat.messages === 'string' ? JSON.parse(chat.messages) : chat.messages || [],
+        createdAt: new Date(Number(chat.createdAt) || Date.now()),
+        title: String(chat.title || ''),
+        path: String(chat.path || ''),
+        userId: chat.userId || 'unknown',
+      };
+    }).filter(Boolean);
+
+    // Sort by createdAt descending
+    chats = chats.sort((a, b) => b.createdAt - a.createdAt);
+    const total = chats.length;
+    // Paginate
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const pagedChats = chats.slice(start, end);
+    return { chats: pagedChats, total };
+  } catch (error) {
+    console.error('Error getting all chats (admin):', error);
+    return { chats: [], total: 0 };
+  }
+}
