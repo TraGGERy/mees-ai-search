@@ -67,7 +67,6 @@ const mockTemplates: Template[] = [
 
 export function EmailTemplates() {
   const [isLoading, setIsLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
@@ -164,39 +163,6 @@ export function EmailTemplates() {
                   Use {"{{featureName}}"} or {"{{content}}"} for dynamic content
                 </FormDescription>
                 <FormMessage />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="mt-2"
-                  disabled={isLoading || aiLoading}
-                  onClick={async () => {
-                    setAiLoading(true);
-                    try {
-                      // Mock AI rewrite function
-                      const aiRewrite = async (text: string) => {
-                        return (
-                          "[AI Rewritten]: " + text.replace(/\bexcited\b/gi, "thrilled")
-                        );
-                      };
-                      const rewritten = await aiRewrite(field.value);
-                      form.setValue("content", rewritten, { shouldDirty: true });
-                      toast({
-                        title: "AI Rewrite Complete",
-                        description: "The email content has been rewritten by AI.",
-                      });
-                    } catch (e) {
-                      toast({
-                        title: "AI Rewrite Failed",
-                        description: "There was an error rewriting the content.",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setAiLoading(false);
-                    }
-                  }}
-                >
-                  {aiLoading ? "Rewriting..." : "Rewrite with AI"}
-                </Button>
               </FormItem>
             )}
           />
