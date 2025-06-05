@@ -100,8 +100,7 @@ export async function getChats() {
     // Ensure we're working with an array and handle all filters
     const filteredChats = (chats || [])
       .filter((chat): chat is NonNullable<typeof chat> => chat !== null)
-      .sort((a, b) => Number(b.createdAt) - Number(a.createdAt))
-    
+    // Chats should already be sorted by Redis zrange with rev: true
     console.log(`getChats - Final filtered chats: ${filteredChats.length}`)
     return filteredChats
 
@@ -283,5 +282,28 @@ export async function shareChat(id: string) {
   } catch (error) {
     console.error('Error sharing chat:', error)
     return null
+  }
+}
+
+export async function deleteChat(id: string): Promise<{ error?: string }> {
+  try {
+    // Get the current user's ID from Clerk
+    const { userId: authUserId } = await auth() || { userId: null }
+    const userId = authUserId || 'anonymous'
+    const redis = await getRedis()
+    const userChatKey = getUserChatKey(userId)
+    const chatKey = `chat:${id.replace(/^chat:/, '')}`
+
+    // Remove the chat from Redis and from the user's chat list
+    const pipeline = redis.pipeline()
+    pipeline.del(chatKey)
+    pipeline.zrem(userChatKey, chatKey)
+    await pipeline.exec()
+
+    revalidatePath('/')
+    return {}
+  } catch (error) {
+    console.error('Error deleting chat:', error)
+    return { error: 'Failed to delete chat' }
   }
 }

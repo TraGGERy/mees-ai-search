@@ -5,9 +5,11 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { memo, useMemo } from 'react'
+import { X } from 'lucide-react'
 
 type HistoryItemProps = {
   chat: Chat
+  onDelete?: (id: string) => void
 }
 
 // Memoized date formatter for better performance
@@ -49,7 +51,7 @@ const formatDateWithTime = (date: Date | string) => {
   }
 }
 
-const HistoryItem: React.FC<HistoryItemProps> = memo(({ chat }) => {
+const HistoryItem: React.FC<HistoryItemProps> = memo(({ chat, onDelete }) => {
   const pathname = usePathname()
   const isActive = pathname === chat.path
   
@@ -57,21 +59,37 @@ const HistoryItem: React.FC<HistoryItemProps> = memo(({ chat }) => {
   const formattedDate = useMemo(() => formatDateWithTime(chat.createdAt), [chat.createdAt])
 
   return (
-    <Link
-      href={chat.path}
-      prefetch={false} // Only prefetch when hovered
-      className={cn(
-        'flex flex-col hover:bg-muted cursor-pointer p-2 rounded border transition-colors',
-        isActive ? 'bg-muted/70 border-border' : 'border-transparent'
+    <div className={cn(
+      'relative group flex flex-col hover:bg-muted cursor-pointer p-2 rounded border transition-colors',
+      isActive ? 'bg-muted/70 border-border' : 'border-transparent'
+    )}>
+      <Link
+        href={chat.path}
+        prefetch={false}
+        className="flex-1 min-w-0"
+      >
+        <div className="text-xs font-medium truncate select-none">
+          {chat.title}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {formattedDate}
+        </div>
+      </Link>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={e => {
+            e.preventDefault()
+            e.stopPropagation()
+            onDelete(chat.id)
+          }}
+          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
+          title="Delete"
+        >
+          <X className="w-3.5 h-3.5 text-red-500" />
+        </button>
       )}
-    >
-      <div className="text-xs font-medium truncate select-none">
-        {chat.title}
-      </div>
-      <div className="text-xs text-muted-foreground">
-        {formattedDate}
-      </div>
-    </Link>
+    </div>
   )
 })
 

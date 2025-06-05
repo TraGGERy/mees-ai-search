@@ -1,15 +1,17 @@
 'use client'
 
-import { getChats } from '@/lib/actions/chat'
+import { getChats, deleteChat } from '@/lib/actions/chat'
 import { Chat } from '@/lib/types'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
-import { LogIn, Loader2 } from 'lucide-react'
+import { LogIn, Loader2, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
 import { ClearHistory } from './clear-history'
 import { SettingsMenu } from './settings-menu'
 import { Button } from './ui/button'
 import { HistorySkeleton } from './history-skeleton'
+import HistoryItem from './history-item'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface HistoryListProps {
   userId?: string; // Make userId optional since it can be undefined for non-authenticated users
@@ -44,6 +46,9 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const pathname = usePathname()
+  const router = useRouter()
 
   const renderChatItem = useCallback((chat: Chat) => {
     console.log('HistoryList - Rendering chat item:', { 
@@ -167,6 +172,25 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
     }
   }, [isUserAuthenticated, getCachedData, setCachedData, filterValidChats, user, userId, isSignedIn])
 
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    try {
+      const result = await deleteChat(id)
+      if (!result.error) {
+        setChats(prev => prev.filter(chat => chat.id !== id))
+        // If the current route is the deleted chat, redirect to home
+        if (pathname === `/search/${id}`) {
+          router.push('/')
+        }
+      } else {
+        // Optionally show error toast
+        alert(result.error)
+      }
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   useEffect(() => {
     console.log('HistoryList - useEffect triggered with dependencies:', { 
       isUserAuthenticated, 
@@ -275,8 +299,6 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
     )
   }
 
-
-
   console.log('HistoryList - Final render with chats:', { count: chats?.length || 0 })
   
   return (
@@ -288,18 +310,20 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
           </div>
         ) : (
           chats.map((chat, index) => {
-            console.log(`HistoryList - Rendering chat ${index}:`, { 
-              id: chat?.id || 'undefined', 
-              title: chat?.title || 'undefined',
-              valid: !!chat
-            })
-            
-            if (!chat) {
-              console.log(`HistoryList - Invalid chat at index ${index}, skipping`)
-              return null
-            }
-            
-            return renderChatItem(chat)
+            if (!chat) return null
+            return (
+              <div key={chat.id} className="relative">
+                <HistoryItem
+                  chat={chat}
+                  onDelete={deletingId === chat.id ? undefined : handleDelete}
+                />
+                {deletingId === chat.id && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-black/40 z-10">
+                    <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                  </div>
+                )}
+              </div>
+            )
           })
         )}
       </div>
