@@ -21,7 +21,6 @@ import {
 import { useEffect, useState } from 'react'
 import { PlusCircle } from 'lucide-react'
 import { SearchResultImage } from '@/lib/types'
-import Image from 'next/image'
 
 interface SearchResultsImageSectionProps {
   images: SearchResultImage[]
@@ -93,18 +92,16 @@ export const SearchResultsImageSection: React.FC<
               <Card className="flex-1 h-full">
                 <CardContent className="p-2 h-full w-full">
                   {image ? (
-                    <Image
+                    <img
                       src={image.url}
                       alt={`Image ${index + 1}`}
                       className="h-full w-full object-cover"
                       width={300}
                       height={200}
-                      loading={index < 2 ? "eager" : "lazy"}
-                      placeholder="blur" 
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2hFD3dAAAAABJRU5ErkJggg=="
+                      loading={index < 2 ? 'eager' : 'lazy'}
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                       onError={e => {
-                        // TypeScript requires type assertion for currentTarget
-                        const target = e.target as HTMLImageElement;
+                        const target = e.currentTarget as HTMLImageElement;
                         target.src = '/images/placeholder-image.png'
                       }}
                     />
@@ -134,15 +131,15 @@ export const SearchResultsImageSection: React.FC<
                   {imagesToRender.map((img, idx) => (
                     <CarouselItem key={idx}>
                       <div className="p-1 flex items-center justify-center h-full">
-                        <Image
+                        <img
                           src={img.url}
                           alt={`Image ${idx + 1}`}
                           className="h-auto w-full object-contain max-h-[60vh]"
                           width={800}
                           height={600}
+                          style={{ objectFit: 'contain', width: '100%', maxHeight: '60vh' }}
                           onError={e => {
-                            // TypeScript requires type assertion for currentTarget
-                            const target = e.target as HTMLImageElement;
+                            const target = e.currentTarget as HTMLImageElement;
                             target.src = '/images/placeholder-image.png'
                           }}
                         />
