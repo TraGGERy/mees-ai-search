@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import { getAllChats as getAllChatsAction, deleteChat } from "@/lib/actions/chat";
 
-function ChatTable({ chats, onDelete, deletingId }) {
+interface ChatTableProps {
+  chats: any[];
+  onDelete: (id: string) => void;
+  deletingId: string | null;
+}
+
+function ChatTable({ chats, onDelete, deletingId }: ChatTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white dark:bg-gray-900 rounded-lg shadow">
