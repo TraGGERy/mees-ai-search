@@ -229,10 +229,14 @@ export function ChatPanel({
         {messages.length === 0 && (
           <div className="mb-8 flex flex-col items-center gap-2">
             <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r dark:from-white dark:to-purple-500 from-black to-gray-500">
-              Mees AI
+              {isSignedIn && user ? (
+                <>Hello{user.fullName ? `, ${user.fullName.split(' ')[0]}` : user.username ? `, ${user.username}` : user.emailAddresses && user.emailAddresses[0] ? `, ${user.emailAddresses[0].emailAddress}` : ''}</>
+              ) : (
+                'Mees AI'
+              )}
             </h1>
             <p className="text-sm text-center text-muted-foreground">
-              Your intelligent companion for precise and personalized search results
+              Mees Ai Your intelligent companion for precise and personalized search results
             </p>
           </div>
         )}
