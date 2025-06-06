@@ -1,6 +1,6 @@
 'use client'
 
-import { Text, UserCheck, BookOpen, X, Check, Pencil, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Code, Link, Image, Quote, Strikethrough, Highlighter, Wand2, RotateCcw, Lock } from 'lucide-react'
+import { Text, UserCheck, BookOpen, X, Check, Pencil, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Code, Link, Image, Quote, Strikethrough, Highlighter, Wand2, RotateCcw, Lock, AlertCircle, ShieldCheck, GraduationCap } from 'lucide-react'
 import { CollapsibleMessage } from './collapsible-message'
 import { DefaultSkeleton } from './default-skeleton'
 import { ExportOptions } from './export-options'
@@ -21,6 +21,7 @@ import { saveChat } from '@/lib/actions/chat'
 import { useUser, SignInButton } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { LoginModal } from './login-modal'
+import ReactMarkdown from 'react-markdown'
 
 // Add custom CSS for the floating menu and buttons
 const floatingMenuStyles = `
@@ -62,7 +63,7 @@ const floatingMenuStyles = `
     top: -8px;
     right: -8px;
     bottom: -8px;
-    left: -8px;
+    left: -12px;
     z-index: -1;
   }
   
@@ -355,6 +356,21 @@ const SlateEditor = ({ content, onSave, onCancel }: {
   const [isRewriting, setIsRewriting] = useState(false)
   const [selectedTextToHumanize, setSelectedTextToHumanize] = useState('')
   const [isGeneratingAcademic, setIsGeneratingAcademic] = useState(false)
+  const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false)
+  const [plagiarismResult, setPlagiarismResult] = useState<string | null>(null)
+  const [showPlagiarismModal, setShowPlagiarismModal] = useState(false)
+  // Quiz state
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false)
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([])
+  const [showQuizModal, setShowQuizModal] = useState(false)
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0)
+  const [userAnswers, setUserAnswers] = useState<string[]>([])
+  const [quizScore, setQuizScore] = useState<number | null>(null)
+  // Tutor state
+  const [isTutorModalOpen, setIsTutorModalOpen] = useState(false);
+  const [isTutorLoading, setIsTutorLoading] = useState(false);
+  const [tutorQuestion, setTutorQuestion] = useState('');
+  const [tutorResult, setTutorResult] = useState<string | null>(null);
 
   // This effect updates the editor content when the content prop changes
   useEffect(() => {
@@ -761,6 +777,118 @@ const SlateEditor = ({ content, onSave, onCancel }: {
     }
   }
 
+  const handleCheckPlagiarism = async () => {
+    setIsCheckingPlagiarism(true);
+    setPlagiarismResult(null);
+    try {
+      const text = value.map(node => {
+        if (SlateElement.isElement(node)) {
+          return node.children.map(child => SlateText.isText(child) ? child.text : '').join('');
+        }
+        return '';
+      }).join('\n');
+      const response = await fetch('/api/plagiarism', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) throw new Error('Failed to check plagiarism');
+      const data = await response.json();
+      setPlagiarismResult(data.result || 'No result');
+      setShowPlagiarismModal(true);
+    } catch (error) {
+      setPlagiarismResult('Error checking plagiarism.');
+      setShowPlagiarismModal(true);
+    } finally {
+      setIsCheckingPlagiarism(false);
+    }
+  };
+
+  // Quiz handler
+  const handleGenerateQuiz = async () => {
+    setIsGeneratingQuiz(true);
+    setQuizQuestions([]);
+    setCurrentQuizIndex(0);
+    setUserAnswers([]);
+    setQuizScore(null);
+    try {
+      const text = value.map(node => {
+        if (SlateElement.isElement(node)) {
+          return node.children.map(child => SlateText.isText(child) ? child.text : '').join('');
+        }
+        return '';
+      }).join('\n');
+      const response = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) throw new Error('Failed to generate quiz');
+      const data = await response.json();
+      if (data.questions && Array.isArray(data.questions)) {
+        setQuizQuestions(data.questions);
+        setShowQuizModal(true);
+      } else {
+        setQuizQuestions([]);
+        setShowQuizModal(true);
+      }
+    } catch (error) {
+      setQuizQuestions([]);
+      setShowQuizModal(true);
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  const handleQuizAnswer = (answer: string) => {
+    const updatedAnswers = [...userAnswers, answer];
+    setUserAnswers(updatedAnswers);
+    if (currentQuizIndex < quizQuestions.length - 1) {
+      setCurrentQuizIndex(currentQuizIndex + 1);
+    } else {
+      // Calculate score
+      let score = 0;
+      quizQuestions.forEach((q, i) => {
+        if (updatedAnswers[i] && q.answer && updatedAnswers[i].toUpperCase() === q.answer.toUpperCase()) {
+          score++;
+        }
+      });
+      setQuizScore(score);
+    }
+  };
+
+  const handleQuizRestart = () => {
+    setCurrentQuizIndex(0);
+    setUserAnswers([]);
+    setQuizScore(null);
+  };
+
+  // Tutor handler
+  const handleTutorAsk = async () => {
+    setIsTutorLoading(true);
+    setTutorResult(null);
+    try {
+      const text = value.map(node => {
+        if (SlateElement.isElement(node)) {
+          return node.children.map(child => SlateText.isText(child) ? child.text : '').join('');
+        }
+        return '';
+      }).join('\n');
+      const response = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, question: tutorQuestion }),
+      });
+      if (!response.ok) throw new Error('Failed to get tutor help');
+      const data = await response.json();
+      setTutorResult(data.result || 'No result');
+    } catch (error) {
+      setTutorResult('Error getting tutor help.');
+    } finally {
+      setIsTutorLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-2 w-full">
       <div className="w-full min-h-[60px] p-2 rounded-md border border-input bg-background overflow-x-auto">
@@ -935,6 +1063,36 @@ const SlateEditor = ({ content, onSave, onCancel }: {
             <BookOpen className="h-4 w-4" />
             {isGeneratingAcademic && <span className="animate-spin absolute inset-0 flex items-center justify-center">⌛</span>}
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 flex-shrink-0 ${isCheckingPlagiarism ? 'opacity-60' : ''}`}
+            onClick={handleCheckPlagiarism}
+            title="Check Plagiarism"
+            disabled={isCheckingPlagiarism}
+          >
+            <ShieldCheck className="h-4 w-4 text-green-600" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 flex-shrink-0 ${isGeneratingQuiz ? 'opacity-60' : ''}`}
+            onClick={handleGenerateQuiz}
+            title="Generate Quiz"
+            disabled={isGeneratingQuiz}
+          >
+            <BookOpen className="h-4 w-4 text-blue-600" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 flex-shrink-0 ${isTutorLoading ? 'opacity-60' : ''}`}
+            onClick={() => setIsTutorModalOpen(true)}
+            title="Ask Tutor"
+            disabled={isTutorLoading}
+          >
+            <GraduationCap className="h-4 w-4 text-emerald-600" />
+          </Button>
         </div>
         {showLinkInput && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -1002,6 +1160,121 @@ const SlateEditor = ({ content, onSave, onCancel }: {
           <Check className="h-4 w-4" />
         </Button>
       </div>
+      {showPlagiarismModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 max-w-md w-full flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-blue-500" />
+              <span className="font-semibold text-lg">Plagiarism Check Result</span>
+            </div>
+            <div className="text-sm text-zinc-800 dark:text-zinc-100 mb-4 text-center whitespace-pre-line">
+              {plagiarismResult}
+            </div>
+            <Button onClick={() => setShowPlagiarismModal(false)} className="mt-2">Close</Button>
+          </div>
+        </div>
+      )}
+      {showQuizModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 max-w-md w-full flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-2">
+              <BookOpen className="h-5 w-5 text-blue-500" />
+              <span className="font-semibold text-lg">Quiz</span>
+            </div>
+            {quizQuestions.length === 0 ? (
+              <div className="text-sm text-zinc-800 dark:text-zinc-100 mb-4 text-center">No quiz generated.</div>
+            ) : quizScore === null ? (
+              <>
+                <div className="text-base font-medium mb-4 text-center">{quizQuestions[currentQuizIndex]?.question}</div>
+                <div className="flex flex-col gap-2 w-full">
+                  {quizQuestions[currentQuizIndex]?.options?.map((opt: string, idx: number) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleQuizAnswer(opt[0])}
+                      disabled={userAnswers.length > currentQuizIndex}
+                    >
+                      {opt}
+                    </Button>
+                  ))}
+                </div>
+                <div className="mt-4 text-xs text-zinc-500">Question {currentQuizIndex + 1} of {quizQuestions.length}</div>
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-semibold mb-2 text-center">Quiz Complete!</div>
+                <div className="text-base mb-4 text-center">You scored {quizScore} out of {quizQuestions.length}.</div>
+                <Button onClick={handleQuizRestart} className="mb-2">Retake Quiz</Button>
+              </>
+            )}
+            <Button onClick={() => setShowQuizModal(false)} className="mt-2">Close</Button>
+          </div>
+        </div>
+      )}
+      {isTutorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-0 max-w-md w-full flex flex-col" style={{ maxHeight: '90vh' }}>
+            <div className="flex items-center gap-2 px-6 pt-6 pb-2">
+              <GraduationCap className="h-5 w-5 text-emerald-500" />
+              <span className="font-semibold text-lg">Tutor Assistant</span>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6" style={{ maxHeight: '50vh' }}>
+              {tutorResult && (() => {
+                // Split the result into explanation and follow-up questions
+                const followupHeader = /Follow[- ]?up Questions?:/i;
+                const parts = tutorResult.split(followupHeader);
+                const explanation = parts[0]?.replace(/^Explanation:/i, '').trim();
+                let followups: string[] = [];
+                if (parts[1]) {
+                  // Extract numbered or bulleted questions
+                  followups = parts[1].split(/\n|\r/)
+                    .map(line => line.trim())
+                    .filter(line => line.match(/^\d+\.|[-*]/));
+                  // If not found, fallback to all non-empty lines
+                  if (followups.length === 0) {
+                    followups = parts[1].split(/\n|\r/).map(line => line.trim()).filter(Boolean);
+                  }
+                }
+                return (
+                  <div className="text-sm text-zinc-800 dark:text-zinc-100 mb-4 text-left prose prose-sm dark:prose-invert max-w-none">
+                    {explanation && <ReactMarkdown>{explanation}</ReactMarkdown>}
+                    {followups.length > 0 && (
+                      <div className="mt-4">
+                        <div className="font-semibold mb-1">Follow-up Questions:</div>
+                        <ol className="list-decimal ml-5">
+                          {followups.map((q, i) => (
+                            <li key={i}>{q.replace(/^\d+\.|[-*]/, '').trim()}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="w-full px-6 pb-6 pt-2 bg-white dark:bg-zinc-900 flex flex-col gap-2 sticky bottom-0">
+              <input
+                type="text"
+                className="w-full px-3 py-2 rounded border border-zinc-300 dark:border-zinc-700 bg-background text-sm"
+                placeholder="What part don't you understand? Ask a question..."
+                value={tutorQuestion}
+                onChange={e => setTutorQuestion(e.target.value)}
+                disabled={isTutorLoading}
+                onKeyDown={e => { if (e.key === 'Enter') handleTutorAsk(); }}
+              />
+              <Button
+                onClick={handleTutorAsk}
+                disabled={isTutorLoading || !tutorQuestion.trim()}
+                className="w-full"
+              >
+                {isTutorLoading ? 'Loading...' : 'Ask Tutor'}
+              </Button>
+              <Button onClick={() => { setIsTutorModalOpen(false); setTutorResult(null); setTutorQuestion(''); }} className="w-full" variant="outline">Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1660,7 +1933,13 @@ export function AnswerSection({
   const [showFAB, setShowFAB] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isGeneratingAcademic, setIsGeneratingAcademic] = useState(false)
-  
+  // Tutor state
+  const [isTutorModalOpen, setIsTutorModalOpen] = useState(false);
+  const [isTutorLoading, setIsTutorLoading] = useState(false);
+  const [tutorQuestion, setTutorQuestion] = useState('');
+  const [tutorResult, setTutorResult] = useState<string | null>(null);
+  const [handleTutorAsk, setHandleTutorAsk] = useState<() => void>(() => {});
+
   // Add auto-dismiss effect
   useEffect(() => {
     if (error) {
@@ -2561,6 +2840,69 @@ export function AnswerSection({
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
       />
+      {isTutorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-0 max-w-md w-full flex flex-col" style={{ maxHeight: '90vh' }}>
+            <div className="flex items-center gap-2 px-6 pt-6 pb-2">
+              <GraduationCap className="h-5 w-5 text-emerald-500" />
+              <span className="font-semibold text-lg">Tutor Assistant</span>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6" style={{ maxHeight: '50vh' }}>
+              {tutorResult && (() => {
+                // Split the result into explanation and follow-up questions
+                const followupHeader = /Follow[- ]?up Questions?:/i;
+                const parts = tutorResult.split(followupHeader);
+                const explanation = parts[0]?.replace(/^Explanation:/i, '').trim();
+                let followups: string[] = [];
+                if (parts[1]) {
+                  // Extract numbered or bulleted questions
+                  followups = parts[1].split(/\n|\r/)
+                    .map(line => line.trim())
+                    .filter(line => line.match(/^\d+\.|[-*]/));
+                  // If not found, fallback to all non-empty lines
+                  if (followups.length === 0) {
+                    followups = parts[1].split(/\n|\r/).map(line => line.trim()).filter(Boolean);
+                  }
+                }
+                return (
+                  <div className="text-sm text-zinc-800 dark:text-zinc-100 mb-4 text-left prose prose-sm dark:prose-invert max-w-none">
+                    {explanation && <ReactMarkdown>{explanation}</ReactMarkdown>}
+                    {followups.length > 0 && (
+                      <div className="mt-4">
+                        <div className="font-semibold mb-1">Follow-up Questions:</div>
+                        <ol className="list-decimal ml-5">
+                          {followups.map((q, i) => (
+                            <li key={i}>{q.replace(/^\d+\.|[-*]/, '').trim()}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="w-full px-6 pb-6 pt-2 bg-white dark:bg-zinc-900 flex flex-col gap-2 sticky bottom-0">
+              <input
+                type="text"
+                className="w-full px-3 py-2 rounded border border-zinc-300 dark:border-zinc-700 bg-background text-sm"
+                placeholder="What part don't you understand? Ask a question..."
+                value={tutorQuestion}
+                onChange={e => setTutorQuestion(e.target.value)}
+                disabled={isTutorLoading}
+                onKeyDown={e => { if (e.key === 'Enter') handleTutorAsk(); }}
+              />
+              <Button
+                onClick={handleTutorAsk}
+                disabled={isTutorLoading || !tutorQuestion.trim()}
+                className="w-full"
+              >
+                {isTutorLoading ? 'Loading...' : 'Ask Tutor'}
+              </Button>
+              <Button onClick={() => { setIsTutorModalOpen(false); setTutorResult(null); setTutorQuestion(''); }} className="w-full" variant="outline">Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
