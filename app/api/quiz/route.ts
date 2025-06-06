@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     let questions = []
     try {
       // Find the first JSON array in the response
-      const match = response.text?.match(/\[.*\]/s)
+      // The 's' flag is not supported in some environments, so use a workaround
+      const match = response.text?.match(/\[[\s\S]*\]/)
       if (match) {
         questions = JSON.parse(match[0])
       }
