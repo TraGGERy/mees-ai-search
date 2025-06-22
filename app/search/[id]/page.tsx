@@ -48,6 +48,7 @@ export async function generateMetadata({ params }: PageProps) {
         'en-US': `https://www.mees-ai.app/search/${id}`
       }
     }
+  }
 }
 
 export default async function SearchIdPage({ params }: PageProps) {
