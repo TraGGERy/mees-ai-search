@@ -150,8 +150,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.mees-ai.app',
     languages: {
-      'en-US': 'https://www.mees-ai.app',
-      'en-ZW': 'https://www.mees-ai.co.zw'
+      'en-US': 'https://www.mees-ai.app'
     }
   },
   verification: {
@@ -163,8 +162,8 @@ export const metadata: Metadata = {
   },
   referrer: 'origin-when-cross-origin',
   generator: 'Next.js',
-  archives: ['https://www.mees-ai.app/archive', 'https://www.mees-ai.co.zw/archive'],
-  assets: ['https://www.mees-ai.app/assets', 'https://www.mees-ai.co.zw/assets']
+  archives: ['https://www.mees-ai.app/archive'],
+  assets: ['https://www.mees-ai.app/assets']
 }
 
 export const viewport: Viewport = {
@@ -191,7 +190,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebApplication",
               "name": "Mees AI",
-              "url": "https://www.mees-ai.co.zw",
+              "url": "https://www.mees-ai.app",
               "description": "Advanced AI-powered Academic Search Engine providing smart answers and real-time insights",
               "applicationCategory": "SearchApplication",
               "operatingSystem": "All",
@@ -203,14 +202,14 @@ export default function RootLayout({
               "creator": {
                 "@type": "Organization",
                 "name": "Mees AI",
-                "url": "https://www.mees-ai.co.zw"
+                "url": "https://www.mees-ai.app"
               }
             })
           }}
         />
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
-        <ClerkProvider>
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} frontendApi="clerk.mees-ai.app">
          <Analytics />
          <SpeedInsights/>
           <ThemeProvider

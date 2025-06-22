@@ -60,8 +60,8 @@ export default function TermsOfService() {
             <h2 className="text-xl font-semibold mb-4">5. Contact Information</h2>
             <p>
               Questions about the Terms of Service should be sent to us at:{' '}
-              <a href="mailto:contact@mees-ai.co.zw" className="text-blue-600 dark:text-blue-400 hover:underline">
-                support@mees-ai.co.zw
+              <a href="mailto:contact@mees-ai.app" className="text-blue-600 dark:text-blue-400 hover:underline">
+                support@mees-ai.app
               </a>
             </p>
           </section>
@@ -69,4 +69,4 @@ export default function TermsOfService() {
       </div>
     </div>
   )
-} 
+}

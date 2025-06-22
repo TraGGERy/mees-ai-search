@@ -67,8 +67,8 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-semibold mb-4">Contact Us</h2>
             <p>
               If you have any questions about this Privacy Policy, please contact us at:{' '}
-              <a href="mailto:contact@mees-ai.co.zw" className="text-blue-600 dark:text-blue-400 hover:underline">
-                support@mees-ai.co.zw
+              <a href="mailto:contact@mees-ai.app" className="text-blue-600 dark:text-blue-400 hover:underline">
+                support@mees-ai.app
               </a>
             </p>
           </section>
@@ -76,4 +76,4 @@ export default function PrivacyPolicy() {
       </div>
     </div>
   )
-} 
+}

@@ -45,11 +45,9 @@ export async function generateMetadata({ params }: PageProps) {
     alternates: {
       canonical: `https://www.mees-ai.app/search/${id}`,
       languages: {
-        'en-US': `https://www.mees-ai.app/search/${id}`,
-        'en-ZW': `https://www.mees-ai.co.zw/search/${id}`
+        'en-US': `https://www.mees-ai.app/search/${id}`
       }
     }
-  }
 }
 
 export default async function SearchIdPage({ params }: PageProps) {

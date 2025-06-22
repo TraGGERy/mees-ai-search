@@ -34,10 +34,10 @@ export default function Help() {
                 Get help via email
               </p>
               <a 
-                href="mailto:support@mees-ai.co.zw" 
-                className="text-blue-600 hover:underline text-sm"
-              >
-                support@mees-ai.co.zw
+                href="mailto:support@mees-ai.app" 
+              className="text-blue-600 hover:underline text-sm"
+            >
+              support@mees-ai.app
               </a>
             </div>
 
@@ -103,4 +103,4 @@ export default function Help() {
       </div>
     </div>
   )
-} 
+}

@@ -21,4 +21,3 @@ Crawl-delay: 10
 
 # Sitemaps
 Sitemap: https://www.mees-ai.app/sitemap.xml
-Sitemap: https://www.mees-ai.co.zw/sitemap.xml 
