@@ -61,7 +61,7 @@ export function PWAInstallButton() {
       deferredPrompt.prompt()
 
       const { outcome } = await deferredPrompt.userChoice
-      console.log(`User response to the install prompt: ${outcome}`)
+      console.log(`User response to the install prompt: ${outcome}`);
 
       setDeferredPrompt(null)
       setIsInstallable(false)
@@ -116,7 +116,7 @@ export function PWAInstallButton() {
                 <p className="text-sm font-medium">Tap the Share button</p>
                 <div className="flex items-center">
                   <Share2 className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Use the Share button in Safari's toolbar</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Use the Share button in Safari&apos;s toolbar</p>
                 </div>
               </div>
             </div>
@@ -125,10 +125,10 @@ export function PWAInstallButton() {
                 <span className="text-sm font-semibold text-blue-600 dark:text-blue-300">2</span>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Scroll down and tap "Add to Home Screen"</p>
+                <p className="text-sm font-medium">Scroll down and tap &quot;Add to Home Screen&quot;</p>
                 <div className="flex items-center">
                   <PlusCircle className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Look for the "Add to Home Screen" option</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Look for the &quot;Add to Home Screen&quot; option</p>
                 </div>
               </div>
             </div>
@@ -137,7 +137,7 @@ export function PWAInstallButton() {
                 <span className="text-sm font-semibold text-blue-600 dark:text-blue-300">3</span>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Tap "Add" in the top-right corner</p>
+                <p className="text-sm font-medium">Tap &quot;Add&quot; in the top-right corner</p>
                 <div className="flex items-center">
                   <Smartphone className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
                   <p className="text-xs text-gray-500 dark:text-gray-400">Mees AI will be added to your home screen</p>
