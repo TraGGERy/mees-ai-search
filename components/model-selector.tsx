@@ -7,6 +7,8 @@ import { Check, ChevronsUpDown, Lightbulb, Microscope, Target, Zap } from 'lucid
 import { useEffect, useState } from 'react'
 import { createModelId } from '../lib/utils'
 import { Button } from './ui/button'
+import { useUser } from '@clerk/nextjs'
+import { LoginModal } from './login-modal'
 
 import {
   Command,
@@ -48,6 +50,8 @@ const getModelIcon = (model: Model) => {
 export function ModelSelector() {
   const [open, setOpen] = useState(false)
   const [selectedModelId, setSelectedModelId] = useState<string>('')
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const { isSignedIn } = useUser()
 
   useEffect(() => {
     const savedModel = getCookie('selected-model')
@@ -57,14 +61,22 @@ export function ModelSelector() {
   }, [])
 
   const handleModelSelect = (id: string) => {
+    const selectedModel = models.find(m => createModelId(m) === id)
+    
+    // Check if the model requires login and user is not signed in
+    if (selectedModel?.requiresLogin && !isSignedIn) {
+      setLoginModalOpen(true)
+      // Don't change the model - keep the current one
+      return
+    }
+    
     setSelectedModelId(id === selectedModelId ? '' : id)
     setCookie('selected-model', id)
     setOpen(false)
     
-    // Add logging for Pro model selection
-    const selectedModel = models.find(m => createModelId(m) === id)
-    if (selectedModel?.name === 'Pro') {
-      console.log('Pro model selected:', {
+    // Add logging for premium model selection
+    if (selectedModel?.requiresLogin) {
+      console.log(`${selectedModel.name} model selected:`, {
         id: selectedModel.id,
         name: selectedModel.name,
         provider: selectedModel.provider,
@@ -77,14 +89,15 @@ export function ModelSelector() {
   const selectedModel = models.find(m => createModelId(m) === selectedModelId)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="text-sm rounded-full shadow-none focus:ring-0"
-        >
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="text-sm rounded-full shadow-none focus:ring-0"
+          >
           {selectedModel ? (
             <div className="flex items-center space-x-1">
               {getModelIcon(selectedModel)}
@@ -145,6 +158,12 @@ export function ModelSelector() {
           </CommandList>
         </Command>
       </PopoverContent>
-    </Popover>
+      </Popover>
+      
+      <LoginModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+      />
+    </>
   )
 }

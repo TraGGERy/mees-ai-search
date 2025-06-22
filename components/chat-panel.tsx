@@ -4,6 +4,7 @@ import { LoginModal } from '@/components/login-modal'
 import { UsageWarning } from '@/components/usage-warning'
 import { cn } from '@/lib/utils'
 import { PromptType } from '@/lib/utils/prompts'
+import { setCookie } from '@/lib/utils/cookies'
 import { useUser } from '@clerk/nextjs'
 import { Message } from 'ai'
 import { ArrowUp, MessageCirclePlus, Share, Square } from 'lucide-react'
@@ -119,7 +120,9 @@ export function ChatPanel({
     
     if (modelRequiresLogin && !isSignedIn) {
       setLoginModalOpen(true)
-      return
+      // Continue with gpt-4o-mini instead of stopping
+      setCookie('selected-model', 'openai:gpt-4o-mini')
+      // Don't return here, continue with submission using gpt-4o-mini
     }
 
     // Check if the prompt type requires login (all except 'default' which is 'web')

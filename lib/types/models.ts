@@ -4,6 +4,7 @@ export interface Model {
   provider: string
   providerId: string
   description: string
+  requiresLogin?: boolean
 }
 
 export const models: Model[] = [
@@ -19,7 +20,8 @@ export const models: Model[] = [
     name: 'Pro',
     provider: 'Anthropic',
     providerId: 'anthropic',
-    description: '3x faster than Auto & detailed answers'
+    description: '3x faster than Auto & detailed answers',
+    requiresLogin: true
   },
   
   // The following models are temporarily disabled.
@@ -56,8 +58,9 @@ export const models: Model[] = [
     name: 'R1',
     provider: 'DeepSeek',
     providerId: 'deepseek',
-     description: 'Strong logical reasoning capabilities'
-     },
+    description: 'Strong logical reasoning capabilities',
+    requiresLogin: true
+  },
   //{
   //  id: 'deepseek-reasoner',
   //  name: 'DeepSeek R1',
@@ -90,7 +93,8 @@ export const models: Model[] = [
     name: 'Deep',
     provider: 'Google Generative AI',
     providerId: 'google',
-    description: 'In-depth reports on complex topics'
+    description: 'In-depth reports on complex topics',
+    requiresLogin: true
   },
  // {
  //   id: 'deepseek-r1-distill-llama-70b',

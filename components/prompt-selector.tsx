@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import * as React from 'react'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
+import { LoginModal } from './login-modal'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -96,6 +97,7 @@ export function PromptSelector({
   const [selectedPrompt, setSelectedPrompt] = React.useState<PromptType>(promptType)
   const { isSignedIn, user } = useUser()
   const [isLoading, setIsLoading] = React.useState(false)
+  const [loginModalOpen, setLoginModalOpen] = React.useState(false)
   
   // Find the current prompt label
   const currentPrompt = promptOptions.find(
@@ -105,11 +107,8 @@ export function PromptSelector({
   const handleSelect = async (value: string) => {
     // Check if the prompt requires login (all except 'default' which is 'web')
     if (value !== 'default' && !isSignedIn) {
-      // Show toast message
-      toast.info("Please login first to use professional tools", {
-        duration: 3000,
-        position: "top-center",
-      })
+      // Open login modal instead of just showing a toast
+      setLoginModalOpen(true)
       // Don't change the prompt type - keep the current one
       setOpen(false)
       return
@@ -137,6 +136,10 @@ export function PromptSelector({
   return (
     <TooltipProvider>
       <div className="relative">
+        <LoginModal 
+          isOpen={loginModalOpen} 
+          onClose={() => setLoginModalOpen(false)} 
+        />
         <Tooltip>
           <TooltipTrigger asChild>
             <Popover 
@@ -253,4 +256,4 @@ export function PromptSelector({
       </div>
     </TooltipProvider>
   )
-} 
+}
