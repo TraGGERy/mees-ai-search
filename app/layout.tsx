@@ -209,7 +209,7 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-sans antialiased', fontSans.variable)}>
-        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} frontendApi="clerk.mees-ai.app">
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} >
          <Analytics />
          <SpeedInsights/>
           <ThemeProvider
