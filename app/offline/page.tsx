@@ -1,11 +1,8 @@
-import { Metadata } from 'next';
+
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-
-export const metadata: Metadata = {
-  title: 'Offline - Mees AI',
-  description: 'You are currently offline. Some features may be limited.',
-};
 
 export default function OfflinePage() {
   return (
