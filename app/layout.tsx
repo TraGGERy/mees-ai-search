@@ -48,6 +48,14 @@ const keywords = [
 ].join(', ');
 const image = 'https://mees-ai-search.vercel.app/opengraph-image.png';
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover'
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mees-ai.app'),
   title: {
@@ -64,14 +72,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover',
-    orientation: 'portrait'
-  },
+
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -167,13 +168,7 @@ export const metadata: Metadata = {
   assets: ['https://www.mees-ai.app/assets']
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  minimumScale: 1,
-  maximumScale: 1,
-  orientation: 'portrait'
-}
+
 
 export default function RootLayout({
   children
