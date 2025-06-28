@@ -69,7 +69,8 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: 'cover'
+    viewportFit: 'cover',
+    orientation: 'portrait'
   },
   appleWebApp: {
     capable: true,
@@ -170,7 +171,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   minimumScale: 1,
-  maximumScale: 1
+  maximumScale: 1,
+  orientation: 'portrait'
 }
 
 export default function RootLayout({

@@ -4,7 +4,7 @@
   "description": "Your intelligent companion for precise and personalized search results",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "form_factor": "wide",
