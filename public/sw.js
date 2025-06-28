@@ -1,17 +1,25 @@
 // A simple service worker with basic caching.
 // You can expand this logic to suit your needs.
 
-const CACHE_NAME = "mees-ai-cache-v1";
+const CACHE_NAME = "mees-ai-cache-v2";
 const OFFLINE_URL = "/offline";
+const HOME_URL = "/";
 
 // Resources to pre-cache
 const PRECACHE_ASSETS = [
-  "/",
+  HOME_URL,
   OFFLINE_URL,
   "/manifest.json",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
   // Add other critical assets like CSS, JS, images
+  "/icons/icon-72x72.png",
+  "/icons/icon-96x96.png",
+  "/icons/icon-128x128.png",
+  "/icons/icon-144x144.png",
+  "/icons/icon-152x152.png",
+  // Add CSS and JS files that are critical for the UI
+  "/globals.css"
 ];
 
 // Install event
@@ -66,8 +74,15 @@ self.addEventListener("fetch", (event) => {
           return cachedResponse;
         }
 
-        // If the request is for a page, show offline page
+        // If the request is for a page, try to show the home page first
         if (event.request.mode === 'navigate') {
+          // Try to serve the home page from cache first
+          const homeResponse = await caches.match(HOME_URL);
+          if (homeResponse) {
+            return homeResponse;
+          }
+          
+          // If home page is not in cache, fall back to the offline page
           const offlineResponse = await caches.match(OFFLINE_URL);
           if (offlineResponse) {
             return offlineResponse;
@@ -103,4 +118,4 @@ self.addEventListener('notificationclick', function(event) {
   event.waitUntil(
     clients.openWindow('/discover')
   );
-}); 
+});
