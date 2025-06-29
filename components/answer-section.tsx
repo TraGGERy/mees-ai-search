@@ -68,6 +68,18 @@ const floatingMenuStyles = `
   }
   
   @media (max-width: 768px) {
+    /* Ensure all content containers are mobile responsive */
+    .answer-section-container {
+      max-width: 100vw;
+      overflow-x: hidden;
+      padding: 0 0.5rem;
+    }
+    
+    .answer-section-container * {
+      max-width: 100%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
     button:after, .btn:after, [role="button"]:after {
       top: -12px;
       right: -12px;
@@ -257,6 +269,34 @@ const floatingMenuStyles = `
     .permanent-btn-left .h-7 {
       height: 1.75rem !important;
       width: 1.75rem !important;
+    }
+    
+    /* Mobile text and content handling */
+    .prose {
+      max-width: 100% !important;
+      overflow-x: hidden;
+    }
+    
+    .prose p, .prose div, .prose span {
+      overflow-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
+    }
+    
+    /* Mobile code blocks */
+    .prose pre {
+      max-width: calc(100vw - 2rem);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    /* Mobile tables */
+    .prose table {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+      font-size: 0.875rem;
     }
   }
 

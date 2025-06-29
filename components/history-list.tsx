@@ -249,12 +249,18 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
   if (isSignedIn && !user) {
     console.log('HistoryList - User signed in but user object not loaded yet')
     return (
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-center p-2">
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <div className="text-sm text-muted-foreground">Loading your chat history...</div>
+      <div className="flex flex-col flex-1 space-y-3 h-full">
+        <div className="flex flex-col space-y-0.5 flex-1 overflow-y-auto">
+          <div className="flex items-center justify-center p-2">
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            <div className="text-sm text-muted-foreground">Loading your chat history...</div>
+          </div>
+          <HistorySkeleton />
         </div>
-        <HistorySkeleton />
+        <div className="mt-auto border-t pt-4">
+          {renderUserSection()}
+          <ClearHistory empty={true} />
+        </div>
       </div>
     )
   }
@@ -278,23 +284,37 @@ export const HistoryList: React.FC<HistoryListProps> = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-center p-2">
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <div className="text-sm text-muted-foreground">Loading chat history...</div>
+      <div className="flex flex-col flex-1 space-y-3 h-full">
+        <div className="flex flex-col space-y-0.5 flex-1 overflow-y-auto">
+          <div className="flex items-center justify-center p-2">
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            <div className="text-sm text-muted-foreground">Loading chat history...</div>
+          </div>
+          <HistorySkeleton />
         </div>
-        <HistorySkeleton />
+        <div className="mt-auto border-t pt-4">
+          {renderUserSection()}
+          <ClearHistory empty={true} />
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-red-500">{error}</p>
-        <Button variant="outline" size="sm" className="mt-2" onClick={loadChats}>
-          Retry
-        </Button>
+      <div className="flex flex-col flex-1 space-y-3 h-full">
+        <div className="flex flex-col space-y-0.5 flex-1 overflow-y-auto">
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            <p className="text-sm text-red-500 mb-2">{error}</p>
+            <Button variant="outline" size="sm" onClick={loadChats}>
+              Retry
+            </Button>
+          </div>
+        </div>
+        <div className="mt-auto border-t pt-4">
+          {renderUserSection()}
+          <ClearHistory empty={true} />
+        </div>
       </div>
     )
   }

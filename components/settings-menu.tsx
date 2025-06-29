@@ -1,6 +1,6 @@
 'use client'
 
-import { StripeCheckout } from '@/components/stripe-checkout'
+
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -12,7 +12,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SignInButton, useClerk, useUser } from '@clerk/nextjs'
 import {
-    Check as CheckIcon,
     CreditCard,
     Database,
     FileText,
@@ -30,28 +29,16 @@ import {
 import { useTheme } from 'next-themes'
 import { useState } from 'react'
 import { PWAInstallButton } from './pwa-install-button'
+import { PricingModal } from './pricing-modal'
 
-// Add pricing constants
-const PRICING = {
-  monthly: {
-    price: 9.50,
-    originalPrice: 20.00,
-    interval: 'month'
-  },
-  lifetime: {
-    price: 200.00,
-    originalPrice: 400.99,
-    interval: 'one-time'
-  }
-}
+
 
 export function SettingsMenu({ t }: { t: any }) {
   const { user } = useUser()
   const { signOut } = useClerk()
   const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
-  const [showPricing, setShowPricing] = useState(false)
-  const [billingInterval, setBillingInterval] = useState<'monthly' | 'lifetime'>('monthly')
+  const [showPricingModal, setShowPricingModal] = useState(false)
 
   const handleLogout = async () => {
     await signOut()
@@ -68,7 +55,7 @@ export function SettingsMenu({ t }: { t: any }) {
   const handleUpgradeClick = () => {
     setOpen(false)  // Close settings dialog
     setTimeout(() => {
-      setShowPricing(true)  // Open pricing dialog after a brief delay
+      setShowPricingModal(true)  // Open pricing modal after a brief delay
     }, 100)
   }
 
@@ -190,98 +177,11 @@ export function SettingsMenu({ t }: { t: any }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showPricing} onOpenChange={setShowPricing}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Upgrade to Plus</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="flex items-center space-x-2 bg-muted p-2 rounded-lg">
-                <button
-                  onClick={() => setBillingInterval('monthly')}
-                  className={`px-4 py-2 rounded-md ${
-                    billingInterval === 'monthly' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-muted-foreground/10'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingInterval('lifetime')}
-                  className={`px-4 py-2 rounded-md ${
-                    billingInterval === 'lifetime'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted-foreground/10'
-                  }`}
-                >
-                  Lifetime
-                </button>
-              </div>
-
-              <div className="w-full max-w-sm rounded-lg border p-6 space-y-4">
-                <h3 className="text-2xl font-bold text-center">
-                  {billingInterval === 'monthly' ? 'Pro Monthly' : 'Pro Lifetime'}
-                </h3>
-                
-                <div className="text-center">
-                  <div className="flex justify-center items-baseline space-x-2">
-                    <span className="text-3xl font-bold">
-                      ${PRICING[billingInterval].price}
-                    </span>
-                    {billingInterval === 'monthly' && (
-                      <span className="text-muted-foreground">/ month</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground line-through">
-                    ${PRICING[billingInterval].originalPrice}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Access to all models</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>o3-mini</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Claude 3 Opus</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Deepseek Coder 33B</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Deepseek Code V2</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Unlimited messages</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckIcon className="mr-2 h-4 w-4" />
-                    <span>Priority support</span>
-                  </div>
-                </div>
-
-                <StripeCheckout 
-                  priceId={
-                    billingInterval === 'monthly'
-                      ? process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID || ''
-                      : process.env.NEXT_PUBLIC_STRIPE_LIFETIME_PRICE_ID || ''
-                  } 
-                />
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)}
+        onSelectFree={() => setShowPricingModal(false)}
+      />
     </>
   )
-} 
+}

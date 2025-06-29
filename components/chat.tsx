@@ -186,7 +186,7 @@ export function Chat({
 
   return (
     <>
-      <div className={cn("flex flex-col w-full max-w-3xl pt-14 pb-60 mx-auto stretch", className)}>
+      <div className={cn("flex flex-col w-full max-w-3xl pt-14 pb-60 mx-auto stretch px-4 sm:px-6 lg:px-8", className)}>
         <ChatMessages
           messages={messages}
           data={data}

@@ -205,7 +205,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={cn('font-sans antialiased', fontSans.variable)}>
+      <body className={cn('font-sans antialiased overflow-x-hidden w-full max-w-full', fontSans.variable)}>
         <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} >
          <Analytics />
          <SpeedInsights/>

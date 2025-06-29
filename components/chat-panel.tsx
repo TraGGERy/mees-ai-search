@@ -223,10 +223,10 @@ export function ChatPanel({
     <>
       <div
         className={cn(
-          'mx-auto w-full',
+          'mx-auto w-full max-w-full overflow-x-hidden',
           messages.length > 0
-            ? 'fixed bottom-0 left-0 right-0 bg-background'
-            : 'fixed bottom-8 left-0 right-0 top-6 flex flex-col items-center justify-center'
+            ? 'fixed bottom-0 left-0 right-0 bg-background px-2 sm:px-4'
+            : 'fixed bottom-8 left-0 right-0 top-6 flex flex-col items-center justify-center px-4 sm:px-6'
         )}
       >
         {messages.length === 0 && (
@@ -246,11 +246,11 @@ export function ChatPanel({
         <form
           onSubmit={handleSubmit}
           className={cn(
-            'max-w-3xl w-full mx-auto',
-            messages.length > 0 ? 'px-2 py-4' : 'px-6'
+            'max-w-3xl w-full mx-auto overflow-x-hidden',
+            messages.length > 0 ? 'px-2 py-4' : 'px-2 sm:px-6'
           )}
         >
-          <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
+          <div className="relative flex flex-col w-full max-w-full gap-2 bg-muted rounded-3xl border border-input overflow-hidden">
             {usageRemaining !== null && usageRemaining !== Infinity && (
               <div className="absolute -top-8 right-0">
                 <UsageIndicator className="mr-2" />
@@ -276,7 +276,7 @@ export function ChatPanel({
               placeholder="Ask a question..."
               spellCheck={false}
               value={input}
-              className="resize-none w-full min-h-12 bg-transparent border-0 px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="resize-none w-full max-w-full min-h-12 bg-transparent border-0 px-3 sm:px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-hidden"
               onChange={e => {
                 handleInputChange(e)
                 setShowEmptyScreen(e.target.value.length === 0)
@@ -302,8 +302,8 @@ export function ChatPanel({
             />
 
             {/* Bottom menu area */}
-            <div className="flex items-center justify-between p-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between p-2 sm:p-3 gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <ModelSelector />
                 <SearchModeToggle />
                 <PromptSelector 
@@ -311,7 +311,7 @@ export function ChatPanel({
                   onPromptTypeChange={(type) => onPromptTypeChange(type)} 
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 {messages.length > 0 && (
                   <>
                     <Button
