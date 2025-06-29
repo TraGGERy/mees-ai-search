@@ -6,6 +6,7 @@ import { Message } from 'ai'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { SearchResultImage } from '@/lib/types'
+import { useUser } from '@clerk/nextjs'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,25 @@ interface ExportButtonProps {
 
 export function ExportButton({ messages, isLoading }: ExportButtonProps) {
   const [exporting, setExporting] = useState(false)
+  const { user, isSignedIn } = useUser()
+
+  // Helper function to generate filename with username if logged in
+  const generateFilename = (extension: string) => {
+    const baseFilename = 'mees-ai-search-results'
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')
+    
+    if (isSignedIn && user) {
+      // Try to get a clean username from available user data
+      const username = user.firstName || 
+                      user.lastName || 
+                      user.username || 
+                      user.emailAddresses?.[0]?.emailAddress?.split('@')[0] ||
+                      'user'
+      const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '') // Remove special characters
+      return `${baseFilename}-${cleanUsername}-${timestamp}.${extension}`
+    }
+    return `${baseFilename}-${timestamp}.${extension}`
+  }
 
   const handleExportHTML = async () => {
     try {
@@ -113,7 +133,7 @@ export function ExportButton({ messages, isLoading }: ExportButtonProps) {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = 'mees-ai-search-results.html'
+      link.download = generateFilename('html')
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -208,13 +228,29 @@ export function ExportButton({ messages, isLoading }: ExportButtonProps) {
         container.appendChild(messageEl)
       }
       
+      // Add watermark to container before PDF conversion
+      const watermark = document.createElement('div')
+      watermark.textContent = 'MEES AI'
+      watermark.style.position = 'fixed'
+      watermark.style.top = '50%'
+      watermark.style.left = '50%'
+      watermark.style.transform = 'translate(-50%, -50%) rotate(45deg)'
+      watermark.style.fontSize = '72px'
+      watermark.style.fontWeight = 'bold'
+      watermark.style.color = 'rgba(128, 128, 128, 0.1)'
+      watermark.style.zIndex = '1000'
+      watermark.style.pointerEvents = 'none'
+      watermark.style.userSelect = 'none'
+      watermark.style.fontFamily = 'Arial, sans-serif'
+      container.appendChild(watermark)
+      
       // Append container to body temporarily for html2pdf to work
       document.body.appendChild(container)
       
       // Generate PDF with html2pdf
       const options = {
         margin: 10,
-        filename: 'mees-ai-search-results.pdf',
+        filename: generateFilename('pdf'),
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }

@@ -49,7 +49,25 @@ export function ExportOptions({
   const [showExportOptions, setShowExportOptions] = useState(false)
   const [showCitationPopup, setShowCitationPopup] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-  const { user } = useUser()
+  const { user, isSignedIn } = useUser()
+
+  // Helper function to generate filename with username if logged in
+  const generateFilename = (extension: string, baseTitle: string = title) => {
+    const baseFilename = baseTitle.replace(/\s+/g, '_')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')
+    
+    if (isSignedIn && user) {
+      // Try to get a clean username from available user data
+      const username = user.firstName || 
+                      user.lastName || 
+                      user.username || 
+                      user.emailAddresses?.[0]?.emailAddress?.split('@')[0] ||
+                      'user'
+      const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '') // Remove special characters
+      return `${baseFilename}-${cleanUsername}-${timestamp}.${extension}`
+    }
+    return `${baseFilename}-${timestamp}.${extension}`
+  }
   
   // Handle click outside to close the dropdown
   useEffect(() => {
@@ -102,24 +120,48 @@ export function ExportOptions({
       const usableWidth = pageWidth - (margin * 2)
       const usableHeight = pageHeight - (margin * 2) // Equal margins
       
-      // Extract images for special handling
-      const imageRegex = /!\[(.*?)\]\((.*?)\)/g
+      // Extract images for special handling - handle both standard and backtick formats
+      const imageRegex = /!\[(.*?)\]\(\s*`?([^`)\s]+)`?\s*\)/g
       const images: { alt: string, url: string, index: number, processed: boolean }[] = []
       let imageMatch: RegExpExecArray | null
       let contentCopy = content
+      
+      // Debug: Test the regex with sample content
+      console.log('PDF Export: Processing content for images...');
+      
       while ((imageMatch = imageRegex.exec(contentCopy)) !== null) {
+        console.log('Found image match:', { alt: imageMatch[1], url: imageMatch[2], fullMatch: imageMatch[0] });
         images.push({
           alt: imageMatch[1],
-          url: imageMatch[2],
+          url: imageMatch[2].trim(), // Clean the URL
           index: imageMatch.index,
           processed: false
         })
       }
       
-      // Pre-load all images before starting PDF creation
-      toast.info(`Loading ${images.length} images...`, { duration: 2000 });
+      // If no images found with standard regex, try flexible approach
+      if (images.length === 0) {
+        console.log('No images found with standard regex, trying flexible approach...');
+        const flexibleImageRegex = /!([^\(]*?)\(\s*`?([^`)\s]+)`?\s*\)/g;
+        let flexibleMatch: RegExpExecArray | null;
+        while ((flexibleMatch = flexibleImageRegex.exec(contentCopy)) !== null) {
+          console.log('Found flexible image match:', { alt: flexibleMatch[1].trim(), url: flexibleMatch[2], fullMatch: flexibleMatch[0] });
+          images.push({
+            alt: flexibleMatch[1].trim(),
+            url: flexibleMatch[2].trim(),
+            index: flexibleMatch.index,
+            processed: false
+          })
+        }
+      }
       
-      // Preload all images as data URLs with better error handling
+      // Pre-load all images before starting PDF creation
+      if (images.length > 0) {
+        console.log(`PDF Export: Found ${images.length} images to load`);
+        toast.info(`Loading ${images.length} images...`, { duration: 2000 });
+      }
+      
+      // Preload all images as data URLs with enhanced error handling and fallbacks
       const loadedImages = await Promise.all(
         images.map(async (img) => {
           let dataUrl: string | null = null;
@@ -132,21 +174,48 @@ export function ExportOptions({
                 dataUrl = await exportElementAsImage(svgEl);
               }
             } else {
-              // Multi-strategy image loading with fallbacks
+              // Enhanced multi-strategy image loading with better fallbacks
               dataUrl = await new Promise<string | null>((resolve) => {
                 let attempts = 0;
-                const maxAttempts = 3;
+                const maxAttempts = 4; // Increased attempts
                 
-                const tryLoadImage = (strategy: 'cors' | 'no-cors' | 'proxy') => {
+                const tryLoadImage = (strategy: 'cors' | 'no-cors' | 'proxy' | 'base64') => {
+                  console.log(`Trying to load image with strategy '${strategy}':`, img.url);
                   const image = new window.Image();
                   let imageUrl = img.url;
                   
                   // Apply strategy-specific settings
                   if (strategy === 'cors') {
                     image.crossOrigin = 'anonymous';
+                  } else if (strategy === 'no-cors') {
+                    image.crossOrigin = null;
                   } else if (strategy === 'proxy') {
-                    // Use a CORS proxy as last resort
-                    imageUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(img.url)}`;
+                    // Use multiple CORS proxies as fallbacks
+                    const proxies = [
+                      `https://api.allorigins.win/raw?url=${encodeURIComponent(img.url)}`,
+                      `https://cors-anywhere.herokuapp.com/${img.url}`,
+                      `https://thingproxy.freeboard.io/fetch/${img.url}`
+                    ];
+                    imageUrl = proxies[attempts % proxies.length];
+                  } else if (strategy === 'base64') {
+                    // Try to fetch as blob and convert to base64
+                    fetch(img.url, { mode: 'no-cors' })
+                      .then(response => response.blob())
+                      .then(blob => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.onerror = () => {
+                          attempts++;
+                          if (attempts < maxAttempts) {
+                            resolve(null);
+                          } else {
+                            resolve(null);
+                          }
+                        };
+                        reader.readAsDataURL(blob);
+                      })
+                      .catch(() => resolve(null));
+                    return;
                   }
                   
                   // Set a timeout to prevent hanging
@@ -154,15 +223,17 @@ export function ExportOptions({
                     console.warn(`Image loading timeout (${strategy}) for: ${img.url}`);
                     attempts++;
                     if (attempts < maxAttempts) {
-                      const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                      const strategies = ['cors', 'no-cors', 'proxy', 'base64'];
+                      const nextStrategy = strategies[attempts] as 'cors' | 'no-cors' | 'proxy' | 'base64';
                       tryLoadImage(nextStrategy);
                     } else {
                       resolve(null);
                     }
-                  }, 3000); // 3 second timeout per attempt
+                  }, 5000); // Increased timeout to 5 seconds
                   
                   image.onload = () => {
                     clearTimeout(timeout);
+                    console.log(`Successfully loaded image (${strategy}):`, img.url);
                     try {
                       const canvas = document.createElement('canvas');
                       canvas.width = image.naturalWidth || image.width;
@@ -170,12 +241,15 @@ export function ExportOptions({
                       const ctx = canvas.getContext('2d');
                       if (ctx) {
                         ctx.drawImage(image, 0, 0);
-                        resolve(canvas.toDataURL('image/png'));
+                        const dataUrl = canvas.toDataURL('image/png');
+                        console.log(`Converted image to data URL (${strategy}):`, img.url, 'Length:', dataUrl.length);
+                        resolve(dataUrl);
                       } else {
                         console.error('Failed to get canvas context for:', img.url);
                         attempts++;
                         if (attempts < maxAttempts) {
-                          const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                          const strategies = ['cors', 'no-cors', 'proxy', 'base64'];
+                          const nextStrategy = strategies[attempts] as 'cors' | 'no-cors' | 'proxy' | 'base64';
                           tryLoadImage(nextStrategy);
                         } else {
                           resolve(null);
@@ -185,7 +259,8 @@ export function ExportOptions({
                       console.error('Error processing image:', img.url, error);
                       attempts++;
                       if (attempts < maxAttempts) {
-                        const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                        const strategies = ['cors', 'no-cors', 'proxy', 'base64'];
+                        const nextStrategy = strategies[attempts] as 'cors' | 'no-cors' | 'proxy' | 'base64';
                         tryLoadImage(nextStrategy);
                       } else {
                         resolve(null);
@@ -198,11 +273,16 @@ export function ExportOptions({
                     console.error(`Image load error (${strategy}) for: ${img.url}`, error);
                     attempts++;
                     if (attempts < maxAttempts) {
-                      const nextStrategy = attempts === 1 ? 'no-cors' : 'proxy';
+                      const strategies = ['cors', 'no-cors', 'proxy', 'base64'];
+                      const nextStrategy = strategies[attempts] as 'cors' | 'no-cors' | 'proxy' | 'base64';
                       console.log(`Retrying with ${nextStrategy} for: ${img.url}`);
                       tryLoadImage(nextStrategy);
                     } else {
                       console.warn(`All loading strategies failed for: ${img.url}`);
+                      // Show user-friendly warning for failed external images
+                      if (img.url.includes('wallpapercave.com') || img.url.includes('external')) {
+                        console.info(`External image from ${new URL(img.url).hostname} could not be loaded due to CORS restrictions`);
+                      }
                       resolve(null);
                     }
                   };
@@ -223,6 +303,19 @@ export function ExportOptions({
           return { ...img, dataUrl, processed: false };
         })
       );
+      
+      // Provide feedback about image loading results
+      const failedImages = loadedImages.filter(img => !img.dataUrl);
+      const successfulImages = loadedImages.filter(img => img.dataUrl);
+      
+      console.log(`PDF Export: Image loading complete - ${successfulImages.length} successful, ${failedImages.length} failed`);
+      
+      if (failedImages.length > 0) {
+        toast.warning(`${failedImages.length} external images could not be loaded and will be skipped`, { duration: 4000 });
+        console.log('Failed to load images:', failedImages.map(img => img.url));
+      } else if (images.length > 0) {
+        toast.success(`All ${images.length} images loaded successfully!`, { duration: 2000 });
+      }
       
       // Find all chart elements in the DOM and export them as images
       const chartElements = document.querySelectorAll('.export-chart[data-export-id]');
@@ -309,7 +402,28 @@ export function ExportOptions({
       })
       
       images.forEach(image => {
-        processedText = processedText.replace(`![${image.alt}](${image.url})`, '\n[IMAGE]\n')
+        // Handle multiple formats including the user's specific format
+        const standardFormat = `![${image.alt}](${image.url})`;
+        const backtickFormat = `![${image.alt}]( \`${image.url}\`)`;
+        const backtickFormatNoSpaces = `![${image.alt}](\`${image.url}\`)`;
+        const flexibleFormat = `!${image.alt} ( \`${image.url}\`)`; // User's format without brackets
+        const flexibleFormatNoSpaces = `!${image.alt}( \`${image.url}\`)`;
+        const flexibleFormatNoBrackets = `!${image.alt} (${image.url})`;
+        
+        const beforeLength = processedText.length;
+        processedText = processedText.replace(standardFormat, '\n[IMAGE]\n');
+        processedText = processedText.replace(backtickFormat, '\n[IMAGE]\n');
+        processedText = processedText.replace(backtickFormatNoSpaces, '\n[IMAGE]\n');
+        processedText = processedText.replace(flexibleFormat, '\n[IMAGE]\n');
+        processedText = processedText.replace(flexibleFormatNoSpaces, '\n[IMAGE]\n');
+        processedText = processedText.replace(flexibleFormatNoBrackets, '\n[IMAGE]\n');
+        const afterLength = processedText.length;
+        
+        if (beforeLength !== afterLength) {
+          console.log(`PDF Export: Successfully replaced image placeholder for "${image.alt}"`);
+        } else {
+          console.warn(`PDF Export: Could not find image text to replace for "${image.alt}"`);
+        }
       })
       
       // Split text into lines that fit the page width
@@ -416,6 +530,7 @@ export function ExportOptions({
         if (line.trim() === '[IMAGE]') {
           // Find the next unprocessed image
           const imageToProcess = loadedImages.find(img => !img.processed);
+          console.log('Processing image placeholder. Found image:', imageToProcess ? { alt: imageToProcess.alt, url: imageToProcess.url, hasDataUrl: !!imageToProcess.dataUrl } : 'none');
           if (imageToProcess) {
             imageToProcess.processed = true;
             
@@ -431,7 +546,7 @@ export function ExportOptions({
             try {
               if (imageToProcess.dataUrl) {
                 // We have a data URL, use it directly
-                console.log('Adding image to PDF:', imageToProcess.url);
+                console.log(`PDF Export: Adding image "${imageToProcess.alt}" to PDF`);
                 
                 // Create a temporary image to get actual dimensions
                 const tempImg = new Image();
@@ -600,8 +715,34 @@ export function ExportOptions({
         });
       }
       
+      // Add watermark to all pages
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        
+        // Set watermark properties
+        pdf.setGState({opacity: 0.1}); // Very light opacity
+        pdf.setTextColor(128, 128, 128); // Gray color
+        pdf.setFontSize(48);
+        pdf.setFont('helvetica', 'bold');
+        
+        // Calculate center position for watermark
+        const watermarkText = 'MEES AI';
+        const textWidth = pdf.getTextWidth(watermarkText);
+        const centerX = pageWidth / 2 - textWidth / 2;
+        const centerY = pageHeight / 2;
+        
+        // Add rotated watermark in center of page
+        pdf.text(watermarkText, centerX, centerY, {
+          angle: 45 // 45-degree rotation
+        });
+        
+        // Reset graphics state for normal content
+        pdf.setGState({opacity: 1});
+      }
+      
       // Save the PDF
-      pdf.save(`${title.replace(/\s+/g, '_')}.pdf`);
+      pdf.save(generateFilename('pdf'));
       toast.success("PDF exported successfully!");
     } catch (error) {
       console.error('Error exporting PDF:', error);
@@ -937,7 +1078,7 @@ w\\:* { behavior: url(#default#VML); }
       const blob = new Blob([fullDoc], { type: 'application/msword' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `${title.replace(/\s+/g, '_')}.doc`;
+      link.download = generateFilename('doc');
       link.click();
       
       toast.success("Word document exported successfully!");
@@ -1150,7 +1291,7 @@ w\\:* { behavior: url(#default#VML); }
       const blob = new Blob([fullHtml], { type: 'text/html' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `${title.replace(/\s+/g, '_')}.html`;
+      link.download = generateFilename('html');
       link.click();
       
       // Open Google Docs in a new tab
@@ -1221,7 +1362,7 @@ w\\:* { behavior: url(#default#VML); }
       const blob = new Blob([markdownContent], { type: 'text/markdown' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `${title.replace(/\s+/g, '_')}.md`;
+      link.download = generateFilename('md');
       link.click();
       
       // Open Notion in a new tab
