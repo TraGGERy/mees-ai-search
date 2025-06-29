@@ -4,7 +4,7 @@ import { shareChat } from '@/lib/actions/chat'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { cn } from '@/lib/utils'
 import { Share } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import {
@@ -31,28 +31,34 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
   const [shareUrl, setShareUrl] = useState('')
   const { isSignedIn } = useUser()
 
+  // Reset shareUrl when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setShareUrl('')
+    }
+  }, [open])
+
   const handleShare = async () => {
     if (!isSignedIn) {
       toast.error('Please sign in to share chats')
       return
     }
 
-    startTransition(() => {
-      setOpen(true)
+    startTransition(async () => {
+      const result = await shareChat(chatId)
+      if (!result) {
+        toast.error('Failed to share chat')
+        return
+      }
+
+      if (!result.sharePath) {
+        toast.error('Could not copy link to clipboard')
+        return
+      }
+
+      const url = new URL(result.sharePath, window.location.href)
+      setShareUrl(url.toString())
     })
-    const result = await shareChat(chatId)
-    if (!result) {
-      toast.error('Failed to share chat')
-      return
-    }
-
-    if (!result.sharePath) {
-      toast.error('Could not copy link to clipboard')
-      return
-    }
-
-    const url = new URL(result.sharePath, window.location.href)
-    setShareUrl(url.toString())
   }
 
   const handleCopy = () => {
@@ -79,7 +85,7 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
               className={cn('rounded-full')}
               size="icon"
               variant={'ghost'}
-              onClick={() => setOpen(true)}
+              title="Share this chat"
             >
               <Share size={14} />
             </Button>

@@ -96,10 +96,12 @@ export function PricingModal({ isOpen, onClose, onSelectFree, remaining = 0 }: P
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] md:max-w-[800px] p-4 md:p-6">
-        <DialogHeader>
-          <DialogTitle className="text-xl md:text-3xl text-center">Unlock Premium Features</DialogTitle>
-          <DialogDescription className="pt-3 text-sm md:text-lg text-center">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[800px] lg:max-w-[900px] p-3 sm:p-4 md:p-6 max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="space-y-2 sm:space-y-3">
+          <DialogTitle className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-center leading-tight">
+            Unlock Premium Features
+          </DialogTitle>
+          <DialogDescription className="pt-2 sm:pt-3 text-xs sm:text-sm md:text-base lg:text-lg text-center px-2">
             {remaining === 0 ? (
               "You've reached your daily limit for advanced models."
             ) : (
@@ -107,90 +109,103 @@ export function PricingModal({ isOpen, onClose, onSelectFree, remaining = 0 }: P
             )}
           </DialogDescription>
           {region && (
-            <p className="text-center text-sm text-muted-foreground mt-2">
+            <p className="text-center text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 px-2">
               Showing prices for your region: {region.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
             </p>
           )}
         </DialogHeader>
-        <div className="flex flex-col gap-4 md:gap-6 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="flex flex-col gap-3 sm:gap-4 md:gap-6 mt-3 sm:mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {/* Weekly Plan */}
-            <div className="p-4 md:p-6 border rounded-xl hover:border-primary transition-all">
-              <div className="flex flex-col justify-between items-start gap-2">
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold mb-1 md:mb-2">Weekly Access</h3>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">
+            <div className="p-3 sm:p-4 md:p-6 border rounded-xl hover:border-primary transition-all">
+              <div className="flex flex-col justify-between items-start gap-2 sm:gap-3">
+                <div className="w-full">
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">Weekly Access</h3>
+                  <div className="flex items-baseline gap-1 sm:gap-2">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
                       {isLoading ? '...' : `${formatCurrency(pricingDetails.currency)}${pricingDetails.weeklyPrice.toFixed(2)}`}
                     </p>
                   </div>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1">per week</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">per week</p>
                 </div>
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full self-start">Flexible</span>
               </div>
-              <ul className="space-y-2 mt-4 md:mt-6 text-sm md:text-base">
-                <li className="flex items-center">✓ All premium features</li>
-                <li className="flex items-center">✓ 7-day full access</li>
-                <li className="flex items-center">✓ Perfect for short projects</li>
+              <ul className="space-y-1 sm:space-y-2 mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base">
+                <li className="flex items-center gap-2">✓ All premium features</li>
+                <li className="flex items-center gap-2">✓ 7-day full access</li>
+                <li className="flex items-center gap-2">✓ Perfect for short projects</li>
               </ul>
-              <StripeCheckout 
-                priceId={pricingDetails.weeklyPriceId}
-              >
-              </StripeCheckout>
+              <div className="mt-3 sm:mt-4 md:mt-6">
+                <StripeCheckout 
+                  priceId={pricingDetails.weeklyPriceId}
+                >
+                </StripeCheckout>
+              </div>
             </div>
 
             {/* Monthly Plan */}
-            <div className="p-4 md:p-6 border rounded-xl hover:border-primary transition-all ring-2 ring-primary">
-              <div className="flex flex-col justify-between items-start gap-2">
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold mb-1 md:mb-2">Monthly Pro</h3>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">
-                      {isLoading ? '...' : `${formatCurrency(pricingDetails.currency)}${pricingDetails.monthlyPrice}`}
-                    </p>
-                  </div>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1">per month</p>
-                </div>
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full self-start">
-                  Save {monthlySavings}%
-                </span>
+            <div className="p-3 sm:p-4 md:p-6 border-2 border-primary rounded-xl relative">
+              <div className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground text-xs px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">Most Popular</span>
               </div>
-              <ul className="space-y-2 mt-4 md:mt-6 text-sm md:text-base">
-                <li className="flex items-center">✓ All premium features</li>
-                <li className="flex items-center">✓ Priority customer support</li>
-                <li className="flex items-center">✓ Unlimited access</li>
+              <div className="flex flex-col justify-between items-start gap-2 sm:gap-3 mt-2 sm:mt-0">
+                <div className="w-full">
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">Monthly Access</h3>
+                  <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
+                      {isLoading ? '...' : `${formatCurrency(pricingDetails.currency)}${pricingDetails.monthlyPrice.toFixed(2)}`}
+                    </p>
+                    <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                      {isLoading ? '...' : `${formatCurrency(pricingDetails.currency)}${(pricingDetails.weeklyPrice * 4).toFixed(2)}`}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">per month</p>
+                  <p className="text-xs sm:text-sm text-green-600 font-medium mt-1">
+                    Save {isLoading ? '...' : calculateSavings(pricingDetails.monthlyPrice, pricingDetails.weeklyPrice * 4)}%
+                  </p>
+                </div>
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full self-start">Best Value</span>
+              </div>
+              <ul className="space-y-1 sm:space-y-2 mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base">
+                <li className="flex items-center gap-2">✓ All premium features</li>
+                <li className="flex items-center gap-2">✓ 30-day full access</li>
+                <li className="flex items-center gap-2">✓ Best value for regular users</li>
               </ul>
-              <StripeCheckout 
-                priceId={pricingDetails.monthlyPriceId}
-              >
-              </StripeCheckout>
+              <div className="mt-3 sm:mt-4 md:mt-6">
+                <StripeCheckout 
+                  priceId={pricingDetails.monthlyPriceId}
+                >
+                </StripeCheckout>
+              </div>
             </div>
 
             {/* Lifetime Plan */}
-            <div className="p-4 md:p-6 border rounded-xl hover:border-primary transition-all">
-              <div className="flex flex-col justify-between items-start gap-2">
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold mb-1 md:mb-2">Lifetime Access</h3>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">
+            <div className="p-3 sm:p-4 md:p-6 border rounded-xl hover:border-primary transition-all">
+              <div className="flex flex-col justify-between items-start gap-2 sm:gap-3">
+                <div className="w-full">
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">Lifetime Access</h3>
+                  <div className="flex items-baseline gap-1 sm:gap-2">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
                       {isLoading ? '...' : `${formatCurrency(pricingDetails.currency)}${pricingDetails.lifetimePrice}`}
                     </p>
                   </div>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1">one-time payment</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">one-time payment</p>
                 </div>
                 <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full self-start">
                   Save {lifetimeSavings}%
                 </span>
               </div>
-              <ul className="space-y-2 mt-4 md:mt-6 text-sm md:text-base">
-                <li className="flex items-center">✓ All premium features</li>
-                <li className="flex items-center">✓ Premium support forever</li>
-                <li className="flex items-center">✓ Exclusive beta features</li>
+              <ul className="space-y-1 sm:space-y-2 mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base">
+                <li className="flex items-center gap-2">✓ All premium features</li>
+                <li className="flex items-center gap-2">✓ Premium support forever</li>
+                <li className="flex items-center gap-2">✓ Exclusive beta features</li>
               </ul>
-              <StripeCheckout 
-                priceId={pricingDetails.lifetimePriceId}
-              >
-              </StripeCheckout>
+              <div className="mt-3 sm:mt-4 md:mt-6">
+                <StripeCheckout 
+                  priceId={pricingDetails.lifetimePriceId}
+                >
+                </StripeCheckout>
+              </div>
             </div>
           </div>
 
@@ -200,7 +215,7 @@ export function PricingModal({ isOpen, onClose, onSelectFree, remaining = 0 }: P
               onClose();
               router.push('/');
             }}
-            className="self-center px-4 md:px-8 text-sm md:text-base text-muted-foreground hover:text-primary"
+            className="self-center px-3 sm:px-4 md:px-8 py-2 sm:py-3 text-xs sm:text-sm md:text-base text-muted-foreground hover:text-primary w-full sm:w-auto max-w-xs"
           >
             Continue with Free Version
           </Button>
@@ -208,4 +223,4 @@ export function PricingModal({ isOpen, onClose, onSelectFree, remaining = 0 }: P
       </DialogContent>
     </Dialog>
   )
-} 
+}

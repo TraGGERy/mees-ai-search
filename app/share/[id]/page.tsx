@@ -1,8 +1,9 @@
-import { Chat } from '@/components/chat'
+
 import { getSharedChat } from '@/lib/actions/chat'
 import { type ExtendedCoreMessage } from '@/lib/types'
 import { convertToUIMessages } from '@/lib/utils'
 import { notFound } from 'next/navigation'
+import { Chat } from '@/components/chat'
 
 export async function generateMetadata(props: {
   params: Promise<{ id: string }>
