@@ -34,8 +34,8 @@ export async function getChats() {
     
     console.log('getChats - User Chat Key:', userChatKey)
     
-    // First, check if we can get the chat IDs
-    const chatIds = await redis.zrange(userChatKey, 0, -1, { rev: true })
+    // First, check if we can get the chat IDs (limit to last 8 chats)
+    const chatIds = await redis.zrange(userChatKey, 0, 7, { rev: true })
     console.log('getChats - Chat IDs found:', chatIds?.length || 0, chatIds)
     
     if (!chatIds || !chatIds.length) {
