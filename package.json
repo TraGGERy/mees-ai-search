@@ -45,6 +45,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
     "cmdk": "1.0.0",
+    "decode-named-character-reference": "^1.2.0",
     "embla-carousel-react": "^8.0.0",
     "exa-js": "^1.0.12",
     "htmlparser2": "^10.0.0",
