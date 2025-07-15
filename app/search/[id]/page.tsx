@@ -1,139 +1,74 @@
 import { Chat } from '@/components/chat'
 import { getChat } from '@/lib/actions/chat'
-import { type ExtendedCoreMessage } from '@/lib/types'
-import { convertToUIMessages } from '@/lib/utils/index'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { getCurrentUserId } from '@/lib/auth/get-current-user'
+import { getModels } from '@/lib/config/models'
+import { convertToUIMessages } from '@/lib/utils'
+import { notFound, redirect } from 'next/navigation'
+import { ExtendedCoreMessage, SearchResults } from '@/lib/types'; // Added SearchResults
 
-interface PageProps {
+export const maxDuration = 60
+
+export async function generateMetadata(props: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{}>;
-}
+}) {
+  const { id } = await props.params;
+  const userId = await getCurrentUserId();
+  const chat = await getChat(id, userId || 'anonymous'); // Ensure fallback for userId
 
-export async function generateMetadata({ params }: PageProps) {
-  const { id } = await params
-  const chat = await getChat(id)
+  let metadata: { title: string; openGraph?: { images?: { url: string; width?: number; height?: number }[] } } = {
+    title: chat?.title?.toString().slice(0, 50) || 'Search',
+  };
 
-  if (!chat) {
-    return notFound()
-  }
+  if (chat && chat.messages) {
+    const dataMessage = chat.messages.find(
+      (msg: ExtendedCoreMessage) => msg.role === 'data'
+    );
 
-  const title = (chat?.title as string)?.toString().slice(0, 50) || 'Search'
-  const description = `Explore detailed AI-powered search results for "${title}" on Mees AI. Get comprehensive answers, insights, and related information.`
+    if (dataMessage && dataMessage.content) {
+      // Assuming dataMessage.content is of type SearchResults or a compatible structure
+      const searchData = dataMessage.content as SearchResults;
+      if (searchData.images && searchData.images.length > 0) {
+        const firstImage = searchData.images[0];
+        let imageUrl: string | undefined = undefined;
 
-  return {
-    title: `${title} | Mees AI Search Results`,
-    description,
-    openGraph: {
-      title: `${title} | Mees AI Search Results`,
-      description,
-      images: [
-        {
-          url: 'https://mees-ai-search.vercel.app/opengraph-image.png',
-          width: 1200,
-          height: 630,
-          alt: `Mees AI Search Results for ${title}`
+        if (typeof firstImage === 'string') {
+          imageUrl = firstImage;
+        } else if (typeof firstImage === 'object' && firstImage.url) {
+          imageUrl = firstImage.url;
         }
-      ]
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} | Mees AI Search Results`,
-      description,
-      images: ['https://mees-ai-search.vercel.app/opengraph-image.png']
-    },
-    alternates: {
-      canonical: `https://www.mees-ai.app/search/${id}`,
-      languages: {
-        'en-US': `https://www.mees-ai.app/search/${id}`
+
+        if (imageUrl) {
+          metadata.openGraph = {
+            images: [{ url: imageUrl, width: 1200, height: 630 }], // Standard OG image dimensions
+          };
+        }
       }
     }
   }
+  // If no image is found, metadata.openGraph.images will remain undefined,
+  // allowing fallback to parent or global OG image settings.
+  return metadata;
 }
 
-export default async function SearchIdPage({ params }: PageProps) {
-  const { id } = await params
-  const chat = await getChat(id)
-  
+// ... rest of the file (default export SearchPage) remains the same
+export default async function SearchPage(props: {
+  params: Promise<{ id: string }>
+}) {
+  const userId = await getCurrentUserId()
+  const { id } = await props.params
+
+  const chat = await getChat(id, userId)
   // convertToUIMessages for useChat hook
-  const messages = convertToUIMessages((chat?.messages || []) as ExtendedCoreMessage[])
+  const messages = convertToUIMessages(chat?.messages || [])
 
   if (!chat) {
+    redirect('/')
+  }
+
+  if (chat?.userId !== userId && chat?.userId !== 'anonymous') {
     notFound()
   }
 
-  const title = (chat?.title as string)?.toString().slice(0, 50) || 'Search'
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SearchResultsPage",
-            "name": title,
-            "url": `https://www.mees-ai.app/search/${id}`,
-            "description": `Academic Search Engine results for "${title}" - Get citation-ready answers and humanized AI responses`,
-            "breadcrumb": {
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                {
-                  "@type": "ListItem",
-                  "position": 1,
-                  "name": "Home",
-                  "item": "https://www.mees-ai.app"
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 2,
-                  "name": "Academic Search",
-                  "item": "https://www.mees-ai.app/search"
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 3,
-                  "name": title,
-                  "item": `https://www.mees-ai.app/search/${id}`
-                }
-              ]
-            },
-            "about": {
-              "@type": "Thing",
-              "name": "Academic Search Engine",
-              "description": "Academic research and literature search with citations"
-            },
-            "audience": {
-              "@type": "Audience",
-              "audienceType": ["Researchers", "Students", "Academics"]
-            },
-            "educationalUse": "Academic Research and Literature Search",
-            "learningResourceType": "Academic Search Engine",
-            "interactivityType": "Active",
-            "isAccessibleForFree": true,
-            "inLanguage": "en-US"
-          })
-        }}
-      />
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center space-x-2 text-sm text-gray-500">
-          <li>
-            <Link href="/" className="hover:text-gray-700">Home</Link>
-          </li>
-          <li>/</li>
-          <li>
-            <Link href="/search" className="hover:text-gray-700">Search</Link>
-          </li>
-          <li>/</li>
-          <li className="text-gray-700">{title}</li>
-        </ol>
-      </nav>
-      <Chat
-        id={id}
-        savedMessages={messages}
-        promptType="assignment"
-        onPromptTypeChange={null as unknown as (type: string) => void}
-      />
-    </>
-  )
+  const models = await getModels()
+  return <Chat id={id} savedMessages={messages} models={models} />
 }

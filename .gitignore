@@ -35,4 +35,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.codegpt
+# cursor
+.cursor/rules/private

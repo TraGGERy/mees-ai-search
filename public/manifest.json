@@ -1,56 +1,15 @@
 {
-  "name": "Mees AI",
+  "name": "Mees AI - Academic Search Engine & Research Assistant",
   "short_name": "Mees AI",
-  "description": "Your intelligent companion for precise and personalized search results",
+  "description": "Advanced academic search engine and research assistant powered by AI to help with scholarly research, paper analysis, and knowledge discovery.",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "form_factor": "wide",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "prefer_related_applications": false,
-  "categories": ["productivity", "utilities"],
+  "theme_color": "#4f46e5",
   "icons": [
-    {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -61,98 +20,12 @@
       "purpose": "any maskable"
     }
   ],
+  "categories": ["education", "research", "productivity", "academic"],
   "screenshots": [
     {
-      "src": "/screenshots/mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile view of Mees AI"
-    },
-    {
-      "src": "/screenshots/desktop.png",
-      "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop view of Mees AI"
-    }
-  ],
-  "apple_mobile_web_app_capable": "yes",
-  "apple_mobile_web_app_status_bar_style": "black-translucent",
-  "apple_mobile_web_app_title": "Mees AI",
-  "apple_touch_icon": [
-    {
-      "src": "/icons/60.png",
-      "sizes": "60x60",
+      "src": "/screenshot-2025-05-04.png",
+      "sizes": "1280x720",
       "type": "image/png"
-    },
-    {
-      "src": "/icons/76.png",
-      "sizes": "76x76",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/120.png",
-      "sizes": "120x120",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/180.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "New Search",
-      "short_name": "Search",
-      "description": "Start a new search",
-      "url": "/search",
-      "icons": [{ "src": "/icons/search.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Recent Searches",
-      "short_name": "Recent",
-      "description": "View your recent searches",
-      "url": "/history",
-      "icons": [{ "src": "/icons/history.png", "sizes": "192x192" }]
-    }
-  ],
-  "share_target": {
-    "action": "/share",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-  "file_handlers": [
-    {
-      "action": "/open-file",
-      "accept": {
-        "text/*": [".txt", ".md", ".html"],
-        "application/pdf": [".pdf"]
-      }
     }
   ]
 }
-  

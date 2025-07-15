@@ -1,0 +1,50 @@
+{
+  "models": [
+    {
+      "id": "o3-mini",
+      "name": "BrightMind Pro",
+      "provider": "BrightMind",
+      "providerId": "openai",
+      "enabled": true,
+      "toolCallType": "native",
+      "requiresAuth": true
+    },
+    {
+      "id": "gpt-4o-mini",
+      "name": "BrightMind Mini",
+      "provider": "BrightMind",
+      "providerId": "openai",
+      "enabled": true,
+      "toolCallType": "native"
+    },
+    {
+      "id": "claude-3-7-sonnet-20250219",
+      "name": "ThoughtfulAI",
+      "provider": "ThoughtfulAI",
+      "providerId": "anthropic",
+      "enabled": true,
+      "toolCallType": "native",
+      "requiresAuth": true
+    },
+    {
+      "id": "gemini-2.5-pro-exp-03-25",
+      "name": "CreativeGenius Pro",
+      "provider": "CreativeGenius",
+      "providerId": "google",
+      "enabled": true,
+      "toolCallType": "manual",
+      "toolCallModel": "gemini-2.0-flash",
+      "requiresAuth": true
+    },
+    {
+      "id": "deepseek-reasoner",
+      "name": "CuriosityAI Research",
+      "provider": "CuriosityAI",
+      "providerId": "deepseek",
+      "enabled": true,
+      "toolCallType": "manual",
+      "toolCallModel": "deepseek-chat",
+      "requiresAuth": true
+    }
+  ]
+}

@@ -4,13 +4,13 @@
 'use client'
 
 import { FC, memo } from 'react'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { coldarkDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { coldarkDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { Button } from '@/components/ui/button'
 import { generateId } from 'ai'
 import { Check, Copy, Download } from 'lucide-react'
-
 
 interface Props {
   language: string

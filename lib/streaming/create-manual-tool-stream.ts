@@ -1,6 +1,5 @@
 import {
   convertToCoreMessages,
-  CoreMessage,
   createDataStreamResponse,
   DataStreamWriter,
   JSONValue,
@@ -12,12 +11,16 @@ import { getMaxAllowedTokens, truncateMessages } from '../utils/context-window'
 import { handleStreamFinish } from './handle-stream-finish'
 import { executeToolCall } from './tool-execution'
 import { BaseStreamConfig } from './types'
-import { isReasoningModel } from '../utils/registry'
 
 export function createManualToolStreamResponse(config: BaseStreamConfig) {
   return createDataStreamResponse({
     execute: async (dataStream: DataStreamWriter) => {
-      const { messages, model, chatId, searchMode, promptType } = config
+      const { messages, model, chatId, searchMode, userId } = config
+      const modelId = `${model.providerId}:${model.id}`
+      let toolCallModelId = model.toolCallModel
+        ? `${model.providerId}:${model.toolCallModel}`
+        : modelId
+
       try {
         const coreMessages = convertToCoreMessages(messages)
         const truncatedMessages = truncateMessages(
@@ -29,67 +32,65 @@ export function createManualToolStreamResponse(config: BaseStreamConfig) {
           await executeToolCall(
             truncatedMessages,
             dataStream,
-            model,
+            toolCallModelId,
             searchMode
           )
 
         const researcherConfig = manualResearcher({
           messages: [...truncatedMessages, ...toolCallMessages],
-          model,
-          isSearchEnabled: searchMode,
-          promptType
+          model: modelId,
+          isSearchEnabled: searchMode
         })
 
-        let tokenCount = 0
+        // Variables to track the reasoning timing.
+        let reasoningStartTime: number | null = null
+        let reasoningDuration: number | null = null
+
         const result = streamText({
           ...researcherConfig,
-          onChunk: ({ chunk }) => {
-            if (chunk.type === 'text-delta') {
-              tokenCount++
-              // Only update status occasionally to avoid flooding
-              if (tokenCount % 5 === 0) {
-                dataStream.writeData({
-                  type: 'status',
-                  status: `Generated ${tokenCount} tokens...`
-                })
-              }
-            }
-          },
           onFinish: async result => {
-            try {
-              // For reasoning models, ensure both reasoning and response content are included
-              const responseMessages = result.response.messages.map(msg => ({
-                ...msg,
-                content: msg.content || result.reasoning, // Use reasoning as content if no content is present
-                id: msg.id || crypto.randomUUID() // Ensure each message has an ID
-              }))
+            const annotations: ExtendedCoreMessage[] = [
+              ...(toolCallDataAnnotation ? [toolCallDataAnnotation] : []),
+              {
+                role: 'data',
+                content: {
+                  type: 'reasoning',
+                  data: {
+                    time: reasoningDuration ?? 0,
+                    reasoning: result.reasoning
+                  }
+                } as JSONValue
+              }
+            ]
 
-              const annotations: ExtendedCoreMessage[] = [
-                ...(toolCallDataAnnotation ? [toolCallDataAnnotation] : []),
-                {
-                  role: 'data',
-                  content: {
-                    type: 'reasoning',
-                    data: result.reasoning
-                  } as JSONValue
-                }
-              ]
-              
-              await handleStreamFinish({
-                responseMessages: responseMessages as CoreMessage[],
-                originalMessages: messages,
-                model,
-                chatId,
-                dataStream,
-                skipRelatedQuestions: isReasoningModel(model),
-                annotations
-              })
-            } catch (error) {
-              console.error('Error in stream finish handling:', error)
-              dataStream.writeData({
-                type: 'error',
-                error: error instanceof Error ? error.message : 'Unknown streaming error'
-              })
+            await handleStreamFinish({
+              responseMessages: result.response.messages,
+              originalMessages: messages,
+              model: modelId,
+              chatId,
+              dataStream,
+              userId,
+              skipRelatedQuestions: true,
+              annotations
+            })
+          },
+          onChunk(event) {
+            const chunkType = event.chunk?.type
+
+            if (chunkType === 'reasoning') {
+              if (reasoningStartTime === null) {
+                reasoningStartTime = Date.now()
+              }
+            } else {
+              if (reasoningStartTime !== null) {
+                const elapsedTime = Date.now() - reasoningStartTime
+                reasoningDuration = elapsedTime
+                dataStream.writeMessageAnnotation({
+                  type: 'reasoning',
+                  data: { time: elapsedTime }
+                } as JSONValue)
+                reasoningStartTime = null
+              }
             }
           }
         })
@@ -99,10 +100,6 @@ export function createManualToolStreamResponse(config: BaseStreamConfig) {
         })
       } catch (error) {
         console.error('Stream execution error:', error)
-        dataStream.writeData({
-          type: 'error',
-          error: error instanceof Error ? error.message : 'Stream execution error'
-        })
       }
     },
     onError: error => {

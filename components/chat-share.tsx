@@ -4,7 +4,7 @@ import { shareChat } from '@/lib/actions/chat'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { cn } from '@/lib/utils'
 import { Share } from 'lucide-react'
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import {
@@ -17,7 +17,6 @@ import {
   DialogTrigger
 } from './ui/dialog'
 import { Spinner } from './ui/spinner'
-import { useUser, SignInButton } from '@clerk/nextjs'
 
 interface ChatShareProps {
   chatId: string
@@ -29,36 +28,24 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
   const [pending, startTransition] = useTransition()
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
   const [shareUrl, setShareUrl] = useState('')
-  const { isSignedIn } = useUser()
-
-  // Reset shareUrl when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setShareUrl('')
-    }
-  }, [open])
 
   const handleShare = async () => {
-    if (!isSignedIn) {
-      toast.error('Please sign in to share chats')
+    startTransition(() => {
+      setOpen(true)
+    })
+    const result = await shareChat(chatId)
+    if (!result) {
+      toast.error('Failed to share chat')
       return
     }
 
-    startTransition(async () => {
-      const result = await shareChat(chatId)
-      if (!result) {
-        toast.error('Failed to share chat')
-        return
-      }
+    if (!result.sharePath) {
+      toast.error('Could not copy link to clipboard')
+      return
+    }
 
-      if (!result.sharePath) {
-        toast.error('Could not copy link to clipboard')
-        return
-      }
-
-      const url = new URL(result.sharePath, window.location.href)
-      setShareUrl(url.toString())
-    })
+    const url = new URL(result.sharePath, window.location.href)
+    setShareUrl(url.toString())
   }
 
   const handleCopy = () => {
@@ -79,29 +66,16 @@ export function ChatShare({ chatId, className }: ChatShareProps) {
         aria-labelledby="share-dialog-title"
         aria-describedby="share-dialog-description"
       >
-        {isSignedIn ? (
-          <DialogTrigger asChild>
-            <Button
-              className={cn('rounded-full')}
-              size="icon"
-              variant={'ghost'}
-              title="Share this chat"
-            >
-              <Share size={14} />
-            </Button>
-          </DialogTrigger>
-        ) : (
-          <SignInButton mode="modal">
-            <Button
-              className={cn('rounded-full')}
-              size="icon"
-              variant={'ghost'}
-              title="Sign in to share chats"
-            >
-              <Share size={14} />
-            </Button>
-          </SignInButton>
-        )}
+        <DialogTrigger asChild>
+          <Button
+            className={cn('rounded-full')}
+            size="icon"
+            variant={'ghost'}
+            onClick={() => setOpen(true)}
+          >
+            <Share size={14} />
+          </Button>
+        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Share link to search result</DialogTitle>

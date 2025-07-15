@@ -1,227 +1,237 @@
 'use client'
 
 import { CHAT_ID } from '@/lib/constants'
+import { Model } from '@/lib/types/models'
 import { cn } from '@/lib/utils'
-import { PromptType } from '@/lib/utils/prompts'
-import { useUser } from '@clerk/nextjs'
-import { useChat } from 'ai/react'
-import { Message } from 'ai'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { ChatRequestOptions } from 'ai'
+import { Message } from 'ai/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
-import { LoginModal } from './login-modal'
-import { PricingModal } from './pricing-modal'
-import { toast } from 'sonner'
 
-interface ChatProps {
-  id: string
-  savedMessages: Message[]
-  promptType?: "default" | "academic" | "assignment" | "essayPlan" | "researchReport" | "literatureReview" | "caseStudy" | "debatePrep" | "labReport" | "presentationOutline"
-  query?: string
-  onPromptTypeChange?: (type: string) => void
-  className?: string
+// Define section structure
+interface ChatSection {
+  id: string // User message ID
+  userMessage: Message
+  assistantMessages: Message[]
 }
 
 export function Chat({
   id,
   savedMessages = [],
   query,
-  promptType,
-  onPromptTypeChange,
-  className
-}: ChatProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const queryFromParams = searchParams?.get('message') ?? null
-  const [loginModalOpen, setLoginModalOpen] = useState(false)
-  const [pricingModalOpen, setPricingModalOpen] = useState(false)
-  const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
-  const { user } = useUser()
-  const [promptTypeState, setPromptTypeState] = useState<PromptType>(promptType || 'default')
+  models
+}: {
+  id: string
+  savedMessages?: Message[]
+  query?: string
+  models?: Model[]
+}) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [isAtBottom, setIsAtBottom] = useState(true)
 
   const {
     messages,
     input,
     handleInputChange,
     handleSubmit,
-    isLoading,
+    status,
     setMessages,
     stop,
     append,
     data,
     setData,
+    addToolResult,
     reload
   } = useChat({
     initialMessages: savedMessages,
-    id: id || CHAT_ID,
+    id: CHAT_ID,
     body: {
-      id,
-      previewToken: searchParams?.get('preview') ?? null,
-      ...(queryFromParams && { query: queryFromParams }),
-      promptType: promptTypeState
+      id
     },
-    onFinish: (message) => {
-      if (message) {
-        setMessages(prev => {
-          // Find and replace the message if it exists, otherwise append it
-          const index = prev.findIndex(m => m.id === message.id)
-          if (index !== -1) {
-            const newMessages = [...prev]
-            newMessages[index] = message
-            return newMessages
-          }
-          return [...prev, message]
-        })
-      }
-      // Clear loading state after message is received
-      setData(undefined)
+    onFinish: () => {
+      window.history.replaceState({}, '', `/search/${id}`)
+      window.dispatchEvent(new CustomEvent('chat-history-updated'))
     },
-    onError: (error) => {
-      try {
-        // First check if the error message is already a string
-        if (typeof error.message === 'string') {
-          // Try to parse as JSON
-          try {
-            const errorData = JSON.parse(error.message)
-            if (errorData?.requiresLogin) {
-              setLoginModalOpen(true)
-            } else if (errorData?.needsUpgrade && errorData?.showPricing) {
-              if (errorData.remaining !== undefined) {
-                setUsageRemaining(errorData.remaining)
-              }
-              setPricingModalOpen(true)
-            } else {
-              // If it's a valid JSON but not one of our known error types
-              toast.error(errorData.message || 'An error occurred')
-            }
-          } catch (parseError) {
-            // If parsing fails, it's likely a plain text error message
-            toast.error(error.message)
-          }
-        } else {
-          // If error.message is not a string, show a generic error
-          toast.error('An unexpected error occurred')
-        }
-      } catch (e) {
-        console.error('Error handling error:', e)
-        toast.error('An unexpected error occurred')
-      }
-      // Clear loading state on error
-      setData(undefined)
-    }
+    onError: error => {
+      toast.error(`Error in chat: ${error.message}`)
+    },
+    sendExtraMessageFields: false, // Disable extra message fields,
+    experimental_throttle: 100
   })
 
-  // Ensure messages are properly initialized
-  useEffect(() => {
-    if (savedMessages.length > 0) {
-      setMessages(savedMessages)
-    }
-  }, [savedMessages, setMessages])
+  const isLoading = status === 'submitted' || status === 'streaming'
 
-  // Handle URL updates when messages change
+  // Convert messages array to sections array
+  const sections = useMemo<ChatSection[]>(() => {
+    const result: ChatSection[] = []
+    let currentSection: ChatSection | null = null
+
+    for (const message of messages) {
+      if (message.role === 'user') {
+        // Start a new section when a user message is found
+        if (currentSection) {
+          result.push(currentSection)
+        }
+        currentSection = {
+          id: message.id,
+          userMessage: message,
+          assistantMessages: []
+        }
+      } else if (currentSection && message.role === 'assistant') {
+        // Add assistant message to the current section
+        currentSection.assistantMessages.push(message)
+      }
+      // Ignore other role types like 'system' for now
+    }
+
+    // Add the last section if exists
+    if (currentSection) {
+      result.push(currentSection)
+    }
+
+    return result
+  }, [messages])
+
+  // Detect if scroll container is at the bottom
   useEffect(() => {
-    if (messages.length > 0 && !id) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage?.id) {
-        const chatId = lastMessage.id.split('-')[0]
-        console.log('Updating URL with chat ID:', chatId)
-        router.replace(`/search/${chatId}`, { scroll: false })
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const threshold = 50 // threshold in pixels
+      if (scrollHeight - scrollTop - clientHeight < threshold) {
+        setIsAtBottom(true)
+      } else {
+        setIsAtBottom(false)
       }
     }
-  }, [messages, id, router])
 
-  const onQuerySelect = useCallback((query: string) => {
-    append({
-      role: 'user',
-      content: query,
-      id: crypto.randomUUID()
-    })
-  }, [append])
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll() // Set initial state
 
-  const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setData(undefined)
-    
-    try {
-      handleSubmit(e)
-    } catch (error) {
-      console.error('Error submitting chat:', error)
-      toast.error('An error occurred while processing your request. Please try again.')
-      setData(undefined)
-    }
-  }, [handleSubmit, setData])
-
-  const fetchUsageData = useCallback(async () => {
-    try {
-      const response = await fetch('/api/user/usage')
-      if (response.ok) {
-        const data = await response.json()
-        setUsageRemaining(data.remaining)
-      }
-    } catch (error) {
-      console.error('Error fetching usage data:', error)
-    }
+    return () => container.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Scroll to the section when a new user message is sent
   useEffect(() => {
-    if (user) {
-      fetchUsageData()
+    if (sections.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage && lastMessage.role === 'user') {
+        // If the last message is from user, find the corresponding section
+        const sectionId = lastMessage.id
+        requestAnimationFrame(() => {
+          const sectionElement = document.getElementById(`section-${sectionId}`)
+          sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
+      }
     }
-  }, [user, fetchUsageData])
+  }, [sections, messages])
 
-  const handleTypeChange = useCallback((type: string) => {
-    // Check if the prompt type requires login (all except 'default' which is 'web')
-    if (type !== 'default' && !user) {
-      setLoginModalOpen(true)
-      // Don't change the prompt type - keep the current one
-      return
+  useEffect(() => {
+    setMessages(savedMessages)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
+  const onQuerySelect = (query: string) => {
+    append({
+      role: 'user',
+      content: query
+    })
+  }
+
+  const handleUpdateAndReloadMessage = async (
+    messageId: string,
+    newContent: string
+  ) => {
+    setMessages(currentMessages =>
+      currentMessages.map(msg =>
+        msg.id === messageId ? { ...msg, content: newContent } : msg
+      )
+    )
+
+    try {
+      const messageIndex = messages.findIndex(msg => msg.id === messageId)
+      if (messageIndex === -1) return
+
+      const messagesUpToEdited = messages.slice(0, messageIndex + 1)
+
+      setMessages(messagesUpToEdited)
+
+      setData(undefined)
+
+      await reload({
+        body: {
+          chatId: id,
+          regenerate: true
+        }
+      })
+    } catch (error) {
+      console.error('Failed to reload after message update:', error)
+      toast.error(`Failed to reload conversation: ${(error as Error).message}`)
     }
-    
-    if (onPromptTypeChange) {
-      onPromptTypeChange(type)
+  }
+
+  const handleReloadFrom = async (
+    messageId: string,
+    options?: ChatRequestOptions
+  ) => {
+    const messageIndex = messages.findIndex(m => m.id === messageId)
+    if (messageIndex !== -1) {
+      const userMessageIndex = messages
+        .slice(0, messageIndex)
+        .findLastIndex(m => m.role === 'user')
+      if (userMessageIndex !== -1) {
+        const trimmedMessages = messages.slice(0, userMessageIndex + 1)
+        setMessages(trimmedMessages)
+        return await reload(options)
+      }
     }
-    setPromptTypeState(type as PromptType)
-  }, [onPromptTypeChange, user])
+    return await reload(options)
+  }
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setData(undefined)
+    handleSubmit(e)
+  }
 
   return (
-    <>
-      <div className={cn("flex flex-col w-full max-w-3xl pt-14 pb-60 mx-auto stretch px-4 sm:px-6 lg:px-8", className)}>
-        <ChatMessages
-          messages={messages}
-          data={data}
-          onQuerySelect={onQuerySelect}
-          isLoading={isLoading}
-          chatId={id}
-        />
-        <ChatPanel
-          id={id}
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={onSubmit}
-          isLoading={isLoading}
-          messages={messages}
-          setMessages={setMessages}
-          stop={stop}
-          query={queryFromParams ?? undefined}
-          append={append}
-          reload={reload}
-          promptType={promptTypeState}
-          onPromptTypeChange={handleTypeChange}
-        />
-      </div>
-
-      <LoginModal 
-        isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
+    <div
+      className={cn(
+        'relative flex h-full min-w-0 flex-1 flex-col',
+        messages.length === 0 ? 'items-center justify-center' : ''
+      )}
+      data-testid="full-chat"
+    >
+      <ChatMessages
+        sections={sections}
+        data={data}
+        onQuerySelect={onQuerySelect}
+        isLoading={isLoading}
+        chatId={id}
+        addToolResult={addToolResult}
+        scrollContainerRef={scrollContainerRef}
+        onUpdateMessage={handleUpdateAndReloadMessage}
+        reload={handleReloadFrom}
       />
-      
-      <PricingModal 
-        isOpen={pricingModalOpen} 
-        onClose={() => setPricingModalOpen(false)}
-        onSelectFree={() => {}}
-        remaining={usageRemaining || 0}
+      <ChatPanel
+        input={input}
+        handleInputChange={handleInputChange}
+        handleSubmit={onSubmit}
+        isLoading={isLoading}
+        messages={messages}
+        setMessages={setMessages}
+        stop={stop}
+        query={query}
+        append={append}
+        models={models}
+        showScrollToBottomButton={!isAtBottom}
+        scrollContainerRef={scrollContainerRef}
       />
-    </>
+    </div>
   )
 }

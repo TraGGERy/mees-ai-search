@@ -1,24 +1,18 @@
 'use client'
 
-import { LoginModal } from '@/components/login-modal'
-import { UsageWarning } from '@/components/usage-warning'
+import { Model } from '@/lib/types/models'
 import { cn } from '@/lib/utils'
-import { PromptType } from '@/lib/utils/prompts'
-import { setCookie } from '@/lib/utils/cookies'
-import { useUser } from '@clerk/nextjs'
 import { Message } from 'ai'
-import { ArrowUp, MessageCirclePlus, Share, Square } from 'lucide-react'
+import { ArrowUp, ChevronDown, MessageCirclePlus, Square } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
-import { toast } from 'sonner'
+import { useArtifact } from './artifact/artifact-context'
 import { EmptyScreen } from './empty-screen'
 import { ModelSelector } from './model-selector'
-import { PromptSelector } from './prompt-selector'
 import { SearchModeToggle } from './search-mode-toggle'
 import { Button } from './ui/button'
-import { UsageIndicator } from './usage-indicator'
-
+import { IconLogo } from './ui/icons'
 
 interface ChatPanelProps {
   input: string
@@ -29,29 +23,27 @@ interface ChatPanelProps {
   setMessages: (messages: Message[]) => void
   query?: string
   stop: () => void
-  append: (message: Message) => Promise<string | null | undefined>
-  id: string
-  selectedModel?: { requiresLogin?: boolean }
-  reload: () => Promise<string | null | undefined>
-  promptType: PromptType
-  onPromptTypeChange: (type: PromptType) => void
+  append: (message: any) => void
+  models?: Model[]
+  /** Whether to show the scroll to bottom button */
+  showScrollToBottomButton: boolean
+  /** Reference to the scroll container */
+  scrollContainerRef: React.RefObject<HTMLDivElement>
 }
 
 export function ChatPanel({
   input,
   handleInputChange,
-  handleSubmit: onSubmit,
+  handleSubmit,
   isLoading,
   messages,
   setMessages,
   query,
   stop,
   append,
-  id,
-  selectedModel,
-  reload,
-  promptType,
-  onPromptTypeChange
+  models,
+  showScrollToBottomButton,
+  scrollContainerRef
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const router = useRouter()
@@ -59,10 +51,7 @@ export function ChatPanel({
   const isFirstRender = useRef(true)
   const [isComposing, setIsComposing] = useState(false) // Composition state
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
-  const [loginModalOpen, setLoginModalOpen] = useState(false)
-  const { isSignedIn, user } = useUser()
-  const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
-  const [showUsageWarning, setShowUsageWarning] = useState(false)
+  const { close: closeArtifact } = useArtifact()
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -76,7 +65,23 @@ export function ChatPanel({
 
   const handleNewChat = () => {
     setMessages([])
+    closeArtifact()
     router.push('/')
+  }
+
+  const isToolInvocationInProgress = () => {
+    if (!messages.length) return false
+
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage.role !== 'assistant' || !lastMessage.parts) return false
+
+    const parts = lastMessage.parts
+    const lastPart = parts[parts.length - 1]
+
+    return (
+      lastPart?.type === 'tool-invocation' &&
+      lastPart?.toolInvocation?.state === 'call'
+    )
   }
 
   // if query is not empty, submit the query
@@ -84,291 +89,142 @@ export function ChatPanel({
     if (isFirstRender.current && query && query.trim().length > 0) {
       append({
         role: 'user',
-        content: query,
-        id: crypto.randomUUID()
+        content: query
       })
       isFirstRender.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
-  useEffect(() => {
-    const fetchUsage = async () => {
-      try {
-        const response = await fetch('/api/user/usage')
-        if (response.ok) {
-          const data = await response.json()
-          setUsageRemaining(data.remaining)
-        }
-      } catch (error) {
-        console.error('Error fetching usage:', error)
-      }
-    }
-
-    if (isSignedIn) {
-      fetchUsage()
-    }
-  }, [isSignedIn])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (isComposing) return
-
-    // Check if the selected model requires login
-    const modelRequiresLogin = selectedModel?.requiresLogin;
-    
-    if (modelRequiresLogin && !isSignedIn) {
-      setLoginModalOpen(true)
-      // Continue with gpt-4o-mini instead of stopping
-      setCookie('selected-model', 'openai:gpt-4o-mini')
-      // Don't return here, continue with submission using gpt-4o-mini
-    }
-
-    // Check if the prompt type requires login (all except 'default' which is 'web')
-    if (promptType !== 'default' && !isSignedIn) {
-      setLoginModalOpen(true)
-      return
-    }
-
-    // Submit the form immediately
-    try {
-      await onSubmit(e)
-      
-      // Ensure messages are properly updated for follow-up questions
-      if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1]
-        if (lastMessage?.role === 'assistant') {
-          // If the last message was from the assistant, we're doing a follow-up
-          // Ensure the chat ID is maintained
-          if (id) {
-            router.replace(`/search/${id}`, { scroll: false })
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error)
-      toast.error('An error occurred while processing your request. Please try again.')
-    }
-
-    // Track prompt usage in the background without blocking
-    if (promptType !== 'default' && isSignedIn && user) {
-      // Use void to explicitly indicate we're ignoring the promise
-      void (async () => {
-        try {
-          const response = await fetch('/api/cold-prompt-usage', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              email: user.emailAddresses[0].emailAddress,
-              promptType
-            }),
-          })
-
-          const data = await response.json()
-
-          // Only show important notifications
-          if (!response.ok) {
-            if (response.status === 403) {
-              toast.error(`Daily prompt limit reached. Please try again tomorrow or upgrade your plan.`)
-            }
-          } else if (data.remaining <= 3) {
-            toast.info(`You have ${data.remaining} prompt${data.remaining === 1 ? '' : 's'} remaining today.`)
-          }
-        } catch (error) {
-          // Silently log errors without disturbing the user
-          console.error('Background usage tracking error:', error)
-        }
-      })()
-    }
-  }
-
-  const handleShare = async () => {
-    try {
-      const response = await fetch(`/api/share?id=${id}`, {
-        method: 'POST'
+  // Scroll to the bottom of the container
+  const handleScrollToBottom = () => {
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer) {
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth'
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to share chat')
-      }
-
-      const data = await response.json()
-      const shareUrl = `${window.location.origin}/share/${id}`
-
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Shared Chat',
-          text: 'Check out this chat!',
-          url: shareUrl
-        })
-      } else {
-        await navigator.clipboard.writeText(shareUrl)
-        toast.success('Share link copied to clipboard')
-      }
-    } catch (error) {
-      toast.error('Failed to share chat')
     }
-  }
-
-  const handleUpgradeClick = () => {
-    // Add your upgrade logic here
-    setShowUsageWarning(false)
   }
 
   return (
-    <>
-      <div
-        className={cn(
-          'mx-auto w-full max-w-full overflow-x-hidden',
-          messages.length > 0
-            ? 'fixed bottom-0 left-0 right-0 bg-background px-2 sm:px-4'
-            : 'fixed bottom-8 left-0 right-0 top-6 flex flex-col items-center justify-center px-4 sm:px-6'
-        )}
+    <div
+      className={cn(
+        'w-full bg-background group/form-container shrink-0',
+        messages.length > 0 ? 'sticky bottom-0 px-2 pb-4' : 'px-6'
+      )}
+    >
+      {messages.length === 0 && (
+        <div className="mb-10 flex flex-col items-center gap-4">
+          <IconLogo className="size-12 text-muted-foreground" />
+          <p className="text-center text-3xl font-semibold">
+            How can I help you today?
+          </p>
+        </div>
+      )}
+      <form
+        onSubmit={handleSubmit}
+        className={cn('max-w-3xl w-full mx-auto relative')}
       >
-        {messages.length === 0 && (
-          <div className="mb-8 flex flex-col items-center gap-2">
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r dark:from-white dark:to-purple-500 from-black to-gray-500">
-              {isSignedIn && user ? (
-                <>Hello{user.fullName ? `, ${user.fullName.split(' ')[0]}` : user.username ? `, ${user.username}` : user.emailAddresses && user.emailAddresses[0] ? `, ${user.emailAddresses[0].emailAddress}` : ''}</>
-              ) : (
-                'Mees AI'
-              )}
-            </h1>
-            <p className="text-sm text-center text-muted-foreground">
-              Mees Ai Your intelligent companion for precise and personalized search results
-            </p>
-          </div>
+        {/* Scroll to bottom button - only shown when showScrollToBottomButton is true */}
+        {showScrollToBottomButton && messages.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="absolute -top-10 right-4 z-20 size-8 rounded-full shadow-md"
+            onClick={handleScrollToBottom}
+            title="Scroll to bottom"
+          >
+            <ChevronDown size={16} />
+          </Button>
         )}
-        <form
-          onSubmit={handleSubmit}
-          className={cn(
-            'max-w-3xl w-full mx-auto overflow-x-hidden',
-            messages.length > 0 ? 'px-2 py-4' : 'px-2 sm:px-6'
-          )}
-        >
-          <div className="relative flex flex-col w-full max-w-full gap-2 bg-muted rounded-3xl border border-input overflow-hidden">
-            {usageRemaining !== null && usageRemaining !== Infinity && (
-              <div className="absolute -top-8 right-0">
-                <UsageIndicator className="mr-2" />
-              </div>
-            )}
-            
-            {/* Usage Warning Modal */}
-            {showUsageWarning && (
-              <UsageWarning 
-                onClose={() => setShowUsageWarning(false)}
-                onUpgrade={handleUpgradeClick}
-              />
-            )}
-            
-            <Textarea
-              ref={inputRef}
-              name="input"
-              rows={2}
-              maxRows={5}
-              tabIndex={0}
-              onCompositionStart={handleCompositionStart}
-              onCompositionEnd={handleCompositionEnd}
-              placeholder="Ask a question..."
-              spellCheck={false}
-              value={input}
-              className="resize-none w-full max-w-full min-h-12 bg-transparent border-0 px-3 sm:px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-hidden"
-              onChange={e => {
-                handleInputChange(e)
-                setShowEmptyScreen(e.target.value.length === 0)
-              }}
-              onKeyDown={e => {
-                if (
-                  e.key === 'Enter' &&
-                  !e.shiftKey &&
-                  !isComposing &&
-                  !enterDisabled
-                ) {
-                  if (input.trim().length === 0) {
-                    e.preventDefault()
-                    return
-                  }
-                  e.preventDefault()
-                  const textarea = e.target as HTMLTextAreaElement
-                  textarea.form?.requestSubmit()
-                }
-              }}
-              onFocus={() => setShowEmptyScreen(true)}
-              onBlur={() => setShowEmptyScreen(false)}
-            />
 
-            {/* Bottom menu area */}
-            <div className="flex items-center justify-between p-2 sm:p-3 gap-2 overflow-x-auto">
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                <ModelSelector />
-                <SearchModeToggle />
-                <PromptSelector 
-                  promptType={promptType} 
-                  onPromptTypeChange={(type) => onPromptTypeChange(type)} 
-                />
-              </div>
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                {messages.length > 0 && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleNewChat}
-                      className="shrink-0 rounded-full group"
-                      type="button"
-                      disabled={isLoading}
-                    >
-                      <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
-                    </Button>
-                    
-                  </>
-                )}
+        <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
+          <Textarea
+            ref={inputRef}
+            name="input"
+            rows={2}
+            maxRows={5}
+            tabIndex={0}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
+            placeholder="Ask a question..."
+            spellCheck={false}
+            value={input}
+            disabled={isLoading || isToolInvocationInProgress()}
+            className="resize-none w-full min-h-12 bg-transparent border-0 p-4 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            onChange={e => {
+              handleInputChange(e)
+              setShowEmptyScreen(e.target.value.length === 0)
+            }}
+            onKeyDown={e => {
+              if (
+                e.key === 'Enter' &&
+                !e.shiftKey &&
+                !isComposing &&
+                !enterDisabled
+              ) {
+                if (input.trim().length === 0) {
+                  e.preventDefault()
+                  return
+                }
+                e.preventDefault()
+                const textarea = e.target as HTMLTextAreaElement
+                textarea.form?.requestSubmit()
+              }
+            }}
+            onFocus={() => setShowEmptyScreen(true)}
+            onBlur={() => setShowEmptyScreen(false)}
+          />
+
+          {/* Bottom menu area */}
+          <div className="flex items-center justify-between p-3">
+            <div className="flex items-center gap-2">
+              <ModelSelector models={models || []} />
+              <SearchModeToggle />
+            </div>
+            <div className="flex items-center gap-2">
+              {messages.length > 0 && (
                 <Button
-                  type={isLoading ? 'button' : 'submit'}
-                  size={'icon'}
-                  variant={'outline'}
-                  className={cn(
-                    isLoading && 'animate-pulse',
-                    'rounded-full',
-                    // Disable the button if we're not signed in and not using the default prompt
-                    !isSignedIn && promptType !== 'default' && 'opacity-50 cursor-not-allowed'
-                  )}
-                  disabled={input.length === 0 || (!isSignedIn && promptType !== 'default')}
-                  onClick={isLoading ? stop : undefined}
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNewChat}
+                  className="shrink-0 rounded-full group"
+                  type="button"
+                  disabled={isLoading || isToolInvocationInProgress()}
                 >
-                  {isLoading ? <Square size={20} /> : <ArrowUp size={20} />}
+                  <MessageCirclePlus className="size-4 group-hover:rotate-12 transition-all" />
                 </Button>
-              </div>
+              )}
+              <Button
+                type={isLoading ? 'button' : 'submit'}
+                size={'icon'}
+                variant={'outline'}
+                className={cn(isLoading && 'animate-pulse', 'rounded-full')}
+                disabled={
+                  (input.length === 0 && !isLoading) ||
+                  isToolInvocationInProgress()
+                }
+                onClick={isLoading ? stop : undefined}
+              >
+                {isLoading ? <Square size={20} /> : <ArrowUp size={20} />}
+              </Button>
             </div>
           </div>
+        </div>
 
-          {messages.length === 0 && (
-            <EmptyScreen
-              submitMessage={message => {
-                handleInputChange({
-                  target: { value: message }
-                } as React.ChangeEvent<HTMLTextAreaElement>)
-              }}
-              className={cn(showEmptyScreen ? 'visible' : 'invisible')}
-            />
-          )}
-        </form>
-      </div>
-      <LoginModal 
-        isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
-      />
-      <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
-        {usageRemaining !== null && usageRemaining !== Infinity && usageRemaining <= 3 && (
-          <div className="mx-auto sm:max-w-2xl sm:px-4 mb-4">
-            <UsageWarning remaining={usageRemaining} />
-          </div>
+        {messages.length === 0 && (
+          <EmptyScreen
+            submitMessage={message => {
+              handleInputChange({
+                target: { value: message }
+              } as React.ChangeEvent<HTMLTextAreaElement>)
+            }}
+            className={cn(showEmptyScreen ? 'visible' : 'invisible')}
+          />
         )}
-      </div>
-    </>
+      </form>
+    </div>
   )
 }

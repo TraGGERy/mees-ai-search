@@ -1,4 +1,4 @@
-import { JSONValue, Message, ToolInvocation } from 'ai'
+import { ChatRequestOptions, JSONValue, Message, ToolInvocation } from 'ai'
 import { useMemo } from 'react'
 import { AnswerSection } from './answer-section'
 import { ReasoningSection } from './reasoning-section'
@@ -13,6 +13,12 @@ interface RenderMessageProps {
   onOpenChange: (id: string, open: boolean) => void
   onQuerySelect: (query: string) => void
   chatId?: string
+  addToolResult?: (params: { toolCallId: string; result: any }) => void
+  onUpdateMessage?: (messageId: string, newContent: string) => Promise<void>
+  reload?: (
+    messageId: string,
+    options?: ChatRequestOptions
+  ) => Promise<string | null | undefined>
 }
 
 export function RenderMessage({
@@ -21,7 +27,10 @@ export function RenderMessage({
   getIsOpen,
   onOpenChange,
   onQuerySelect,
-  chatId
+  chatId,
+  addToolResult,
+  onUpdateMessage,
+  reload
 }: RenderMessageProps) {
   const relatedQuestions = useMemo(
     () =>
@@ -89,7 +98,13 @@ export function RenderMessage({
   }, [reasoningAnnotation])
 
   if (message.role === 'user') {
-    return <UserMessage message={message.content} messageId={message.id} chatId={chatId} />
+    return (
+      <UserMessage
+        message={message.content}
+        messageId={messageId}
+        onUpdateMessage={onUpdateMessage}
+      />
+    )
   }
 
   // New way: Use parts instead of toolInvocations
@@ -101,9 +116,13 @@ export function RenderMessage({
           tool={tool}
           isOpen={getIsOpen(tool.toolCallId)}
           onOpenChange={open => onOpenChange(tool.toolCallId, open)}
+          addToolResult={addToolResult}
         />
       ))}
       {message.parts?.map((part, index) => {
+        // Check if this is the last part in the array
+        const isLastPart = index === (message.parts?.length ?? 0) - 1
+
         switch (part.type) {
           case 'tool-invocation':
             return (
@@ -114,9 +133,11 @@ export function RenderMessage({
                 onOpenChange={open =>
                   onOpenChange(part.toolInvocation.toolCallId, open)
                 }
+                addToolResult={addToolResult}
               />
             )
           case 'text':
+            // Only show actions if this is the last part and it's a text part
             return (
               <AnswerSection
                 key={`${messageId}-text-${index}`}
@@ -124,7 +145,9 @@ export function RenderMessage({
                 isOpen={getIsOpen(messageId)}
                 onOpenChange={open => onOpenChange(messageId, open)}
                 chatId={chatId}
+                showActions={isLastPart}
                 messageId={messageId}
+                reload={reload}
               />
             )
           case 'reasoning':

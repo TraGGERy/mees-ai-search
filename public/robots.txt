@@ -1,23 +1,6 @@
-# https://www.robotstxt.org/robotstxt.html
-
-# Allow all crawlers
+# Robots.txt for Mees AI - Academic Search Engine & Research Assistant
 User-agent: *
 Allow: /
-Allow: /chat
-Allow: /home
-Allow: /blog
-Allow: /about
-Allow: /contact
 
-# Disallow admin and private areas
-Disallow: /admin/
-Disallow: /private/
-Disallow: /api/
-Disallow: /_next/
-Disallow: /static/
-
-# Crawl delay
-Crawl-delay: 10
-
-# Sitemaps
-Sitemap: https://www.mees-ai.app/sitemap.xml
+# Sitemap location
+Sitemap: https://meea-ai.app/sitemap.xml

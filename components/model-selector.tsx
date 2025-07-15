@@ -1,15 +1,14 @@
 'use client'
-//client
-import { Model, models } from '@/lib/types/models'
+
+import { Model } from '@/lib/types/models'
 import { getCookie, setCookie } from '@/lib/utils/cookies'
 import { isReasoningModel } from '@/lib/utils/registry'
-import { Check, ChevronsUpDown, Lightbulb, Microscope, Target, Zap } from 'lucide-react'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { Check, ChevronsUpDown, Lightbulb } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { createModelId } from '../lib/utils'
 import { Button } from './ui/button'
-import { useUser } from '@clerk/nextjs'
-import { LoginModal } from './login-modal'
-
 import {
   Command,
   CommandEmpty,
@@ -20,90 +19,82 @@ import {
 } from './ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
-function groupModelsByProvider(models: Model[]) {
-  return models.reduce((groups, model) => {
-    const provider = model.provider
-    if (!groups[provider]) {
-      groups[provider] = []
-    }
-    groups[provider].push(model)
-    return groups
-  }, {} as Record<string, Model[]>)
+function groupModelsByProvider(models: Model[], isAuthenticated: boolean) {
+  return models
+    .filter(model => model.enabled && (!model.requiresAuth || isAuthenticated))
+    .reduce((groups, model) => {
+      const provider = model.provider
+      if (!groups[provider]) {
+        groups[provider] = []
+      }
+      groups[provider].push(model)
+      return groups
+    }, {} as Record<string, Model[]>)
 }
 
-const getModelIcon = (model: Model) => {
-  switch (model.providerId) {
-    case 'fireworks':
-    case 'deepseek':
-      return <Lightbulb size={18} className="text-amber-500" />
-    case 'anthropic':
-      return <Target size={18} className="text-blue-500" />
-    case 'google':
-      return <Microscope size={18} className="text-emerald-500" />
-    case 'openai':
-      return <Zap size={18} className="text-violet-500" />
-    default:
-      return <Zap size={18} className="text-gray-500" />
-  }
+interface ModelSelectorProps {
+  models: Model[]
 }
 
-export function ModelSelector() {
+export function ModelSelector({ models }: ModelSelectorProps) {
   const [open, setOpen] = useState(false)
-  const [selectedModelId, setSelectedModelId] = useState<string>('')
-  const [loginModalOpen, setLoginModalOpen] = useState(false)
-  const { isSignedIn } = useUser()
+  const [value, setValue] = useState('')
+  const { isAuthenticated } = useCurrentUser()
 
   useEffect(() => {
-    const savedModel = getCookie('selected-model')
+    const savedModel = getCookie('selectedModel')
     if (savedModel) {
-      setSelectedModelId(savedModel)
+      try {
+        const model = JSON.parse(savedModel) as Model
+        setValue(createModelId(model))
+      } catch (e) {
+        console.error('Failed to parse saved model:', e)
+      }
     }
   }, [])
 
   const handleModelSelect = (id: string) => {
-    const selectedModel = models.find(m => createModelId(m) === id)
+    const newValue = id === value ? '' : id
+    setValue(newValue)
     
-    // Check if the model requires login and user is not signed in
-    if (selectedModel?.requiresLogin && !isSignedIn) {
-      setLoginModalOpen(true)
-      // Don't change the model - keep the current one
-      return
+    const selectedModel = models.find(model => createModelId(model) === newValue)
+    if (selectedModel) {
+      setCookie('selectedModel', JSON.stringify(selectedModel))
+    } else {
+      setCookie('selectedModel', '')
     }
     
-    setSelectedModelId(id === selectedModelId ? '' : id)
-    setCookie('selected-model', id)
     setOpen(false)
-    
-    // Add logging for premium model selection
-    if (selectedModel?.requiresLogin) {
-      console.log(`${selectedModel.name} model selected:`, {
-        id: selectedModel.id,
-        name: selectedModel.name,
-        provider: selectedModel.provider,
-        description: selectedModel.description
-      })
-    }
   }
 
-  const groupedModels = groupModelsByProvider(models)
-  const selectedModel = models.find(m => createModelId(m) === selectedModelId)
+const availableModels = models.filter(model => 
+    !model.requiresAuth || isAuthenticated
+  );
+
+  const hasAuthRequiredModels = models.some(model => model.requiresAuth && !isAuthenticated);const selectedModel = availableModels.find(model => createModelId(model) === value)
+  const groupedModels = groupModelsByProvider(models, isAuthenticated)
 
   return (
-    <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="text-sm rounded-full shadow-none focus:ring-0"
-          >
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="text-sm rounded-full shadow-none focus:ring-0"
+        >
           {selectedModel ? (
             <div className="flex items-center space-x-1">
-              {getModelIcon(selectedModel)}
+              <Image
+                src={`/providers/logos/${selectedModel.providerId}.svg`}
+                alt={selectedModel.provider}
+                width={18}
+                height={18}
+                className="bg-white rounded-full border"
+              />
               <span className="text-xs font-medium">{selectedModel.name}</span>
               {isReasoningModel(selectedModel.id) && (
-                <Lightbulb size={12} className="text-amber-500" />
+                <Lightbulb size={12} className="text-accent-blue-foreground" />
               )}
             </div>
           ) : (
@@ -112,42 +103,49 @@ export function ModelSelector() {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-72 p-0" 
-        align="start"
-        sideOffset={4}
-      >
-        <Command className="max-h-[80vh]">
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command>
           <CommandInput placeholder="Search models..." />
-          <CommandList className="max-h-[calc(80vh-40px)] overflow-y-auto">
+          <CommandList>
             <CommandEmpty>No model found.</CommandEmpty>
             {Object.entries(groupedModels).map(([provider, models]) => (
-              <CommandGroup key={provider}>
+              <CommandGroup key={provider} heading={provider}>
                 {models.map(model => {
                   const modelId = createModelId(model)
+                  const isDisabled = model.requiresAuth && !isAuthenticated
                   return (
                     <CommandItem
                       key={modelId}
                       value={modelId}
-                      onSelect={handleModelSelect}
-                      className="flex justify-between mx-2 rounded-lg py-1"
+                      onSelect={() => {
+                         if (!isDisabled) {
+                           setValue(modelId)
+                           setOpen(false)
+                         }
+                       }}
+                      className={`flex justify-between ${
+                        isDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      disabled={isDisabled}
                     >
                       <div className="flex items-center space-x-2">
-                        {getModelIcon(model)}
-                        <div className="flex flex-col gap-0">
-                          <span className="text-xs font-medium leading-tight">
-                            {model.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground leading-tight">
-                            {model.description}
-                          </span>
-                        </div>
+                        <Image
+                          src={`/providers/logos/${model.providerId}.svg`}
+                          alt={model.provider}
+                          width={18}
+                          height={18}
+                          className="bg-white rounded-full border"
+                        />
+                        <span className="text-xs font-medium">
+                          {model.name}
+                        </span>
+                        {model.requiresAuth && !isAuthenticated && (
+                          <span className="text-xs text-muted-foreground">🔒</span>
+                        )}
                       </div>
                       <Check
                         className={`h-4 w-4 ${
-                          selectedModelId === modelId
-                            ? 'opacity-100'
-                            : 'opacity-0'
+                          value === modelId ? 'opacity-100' : 'opacity-0'
                         }`}
                       />
                     </CommandItem>
@@ -157,13 +155,12 @@ export function ModelSelector() {
             ))}
           </CommandList>
         </Command>
+        {hasAuthRequiredModels && (
+          <div className="mt-2 p-2 text-xs text-muted-foreground border-t">
+            💡 Please <strong>log in</strong> to access premium models like ThoughtfulAI, CreativeGenius Pro, and CuriosityAI Research
+          </div>
+        )}
       </PopoverContent>
-      </Popover>
-      
-      <LoginModal 
-        isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
-      />
-    </>
+    </Popover>
   )
 }

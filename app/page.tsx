@@ -1,34 +1,9 @@
-"use client"
-
 import { Chat } from '@/components/chat'
-import { SplashScreen } from '@/components/splash-screen'
-import { PromptType } from '@/lib/utils/prompts'
+import { getModels } from '@/lib/config/models'
 import { generateId } from 'ai'
-import { Suspense, useState } from 'react'
 
-function ChatWrapper() {
-  // Generate a unique ID for the chat
-  const chatId = generateId()
-  const [promptType, setPromptType] = useState<PromptType>('default')
-
-  const handlePromptTypeChange = (type: PromptType) => {
-    setPromptType(type);
-  }
-
-  return (
-    <Chat 
-      id={chatId}
-      savedMessages={[]}
-      promptType={promptType}
-      onPromptTypeChange={(type: string) => handlePromptTypeChange(type as PromptType)}
-    />
-  )
-}
-
-export default function IndexPage() {
-  return (
-    <Suspense fallback={<SplashScreen />}>
-      <ChatWrapper />
-    </Suspense>
-  )
+export default async function Page() {
+  const id = generateId()
+  const models = await getModels()
+  return <Chat id={id} models={models} />
 }
